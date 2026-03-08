@@ -838,6 +838,7 @@
           <button id="doc-readme-fr" class="about-btn hidden" data-lang="fr">Lisez-moi</button>
           <button id="doc-tech-en" class="about-btn" data-lang="en">Documentation</button>
           <button id="doc-tech-fr" class="about-btn hidden" data-lang="fr">Documentation</button>
+          <button id="doc-projection-en" class="about-btn" data-lang="en">Projection Matrix Guide</button>
         </div>
       </div>
     </div>
@@ -924,7 +925,7 @@
       { key: 'D',     action: 'exportDepthMap',       description: 'Export depth map (Shift+D)',     preventDefault: true, shift: true },
       { key: 'v',     action: 'toggleVideoRecording', description: 'Start/stop recording',          preventDefault: true },
       { key: 'j',     action: 'downloadJSON',         description: 'Save settings JSON (J)',         preventDefault: true },
-      { key: 's',     action: 'downloadJSON',         description: 'Save settings JSON (Ctrl+S)',    preventDefault: true, ctrl: true },
+      { key: 's',     action: 'downloadJSON',         description: 'Save settings JSON (Cmd/Ctrl+S)', preventDefault: true, ctrl: true },
       
       // Camera Controls
       { key: 'r',     action: 'resetCamera',          description: 'Reset camera position',          preventDefault: true },
@@ -2068,10 +2069,14 @@
     // Single centralized keyboard event handler that dispatches to actions
     // Supports modifier keys: Ctrl (or Cmd on Mac), Shift, Alt
     document.addEventListener('keydown', e => {
+      // Skip if user is typing in an input field
+      if (e.target.matches('input, textarea, select')) return;
+      
       // Find matching shortcut
       const shortcut = KEYBOARD_SHORTCUTS.find(sc => {
-        // Check if key matches
-        if (sc.key !== e.key) return false;
+        // Check if key matches (case-insensitive for letters)
+        const keyMatches = sc.key.toLowerCase() === e.key.toLowerCase();
+        if (!keyMatches) return false;
         
         // Check modifier keys (default to false if not specified)
         const ctrlMatch = (sc.ctrl || false) === (e.ctrlKey || e.metaKey); // metaKey = Cmd on Mac
@@ -2082,7 +2087,12 @@
       });
       
       if (shortcut) {
-        if (shortcut.preventDefault) e.preventDefault();
+        // CRITICAL: Prevent browser default BEFORE calling the action
+        // This stops Ctrl+S from saving the page, Ctrl+P from printing, etc.
+        if (shortcut.preventDefault) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         
         // Call the action function by name
         const actionName = shortcut.action;
@@ -2296,6 +2306,7 @@
     document.getElementById('doc-readme-fr').addEventListener('click', () => window.open('docs/markdown-viewer.html?doc=README-fr.md', '_blank'));
     document.getElementById('doc-tech-en').addEventListener('click',   () => window.open('docs/markdown-viewer.html?doc=Documentation.md', '_blank'));
     document.getElementById('doc-tech-fr').addEventListener('click',   () => window.open('docs/markdown-viewer.html?doc=Documentation-fr.md', '_blank'));
+    document.getElementById('doc-projection-en').addEventListener('click', () => window.open('docs/markdown-viewer.html?doc=Projection-Matrix-Guide.md', '_blank'));
 
     // Language filter functionality
     document.querySelectorAll('.lang-filter-btn').forEach(btn => {
