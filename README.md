@@ -4,7 +4,7 @@
 
 ### Method 1: Python Server (Recommended)
 ```bash
-cd [the directory where you are storing the files]]
+cd [the directory where you are storing the files]
 python3 -m http.server 8080
 ```
 Then open: **http://localhost:8080**
