@@ -1,18 +1,16 @@
 # ZigMap Emitter - Manuel Utilisateur Rapide
 
-**Version 12** | Guide Simple pour Débuter
+Starup Guide
 
 ---
 
 ## Démarrage
 
-1. **Ouvrir** `ZigzagEmitter_12.html` dans votre navigateur web
-2. **Observer** les motifs zigzag animés apparaître
-3. **Interagir** avec votre souris et clavier
+1. **Ouvrir** `index.html` dans votre navigateur web
+2. **Observer** les motifs zigzag animés 
+3. **Interagir** avec votre souris
 4. **Ajuster** les paramètres dans le panneau de gauche
 5. **Exporter** votre création en images ou vidéos
-
-C'est tout ! Tout le reste est un raffinement optionnel.
 
 ---
 

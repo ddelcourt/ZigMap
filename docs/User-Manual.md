@@ -1,18 +1,17 @@
 # ZigMap Emitter - Quick User Manual
 
-**Version 12** | Simple Guide for Getting Started
+Startup Guide
 
 ---
 
 ## Getting Started
 
-1. **Open** `ZigzagEmitter_12.html` in your web browser
-2. **Watch** the animated zigzag patterns appear
-3. **Interact** using your mouse and keyboard
+1. **Open** `index.html` in your web browser
+2. **Watch** the animated zigzag patterns
+3. **Interact** using your mouse
 4. **Adjust** settings in the left panel
 5. **Export** your creation as images or videos
 
-That's it! Everything else is optional refinement.
 
 ---
 

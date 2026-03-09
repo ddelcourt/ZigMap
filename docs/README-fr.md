@@ -1,9 +1,7 @@
-# ZigMap - Guide Utilisateur
+# ZigMap26 — Guide d'Utilisation
 ddelcourt2026
 
-**Version 12** - Raccourcis Clavier Centralisés & Export de Carte de Profondeur
-
-Un outil d'art génératif en temps réel qui crée des motifs zigzag animés dans un espace 3D avec des contrôles de caméra avancés, une visualisation stéréoscopique et des capacités d'exportation.
+Outil génératif en temps réel créant des motifs zigzag animés dans un espace 3D. Contrôles de caméra avancés, visualisation stéréoscopique et capacités d'exportation complètes.
 
 ---
 
@@ -23,13 +21,17 @@ Un outil d'art génératif en temps réel qui crée des motifs zigzag animés da
   - [Section Export](#section-export)
 - [Formats d'Export](#formats-dexport)
 - [Conseils & Bonnes Pratiques](#conseils--bonnes-pratiques)
+- [Guide de Démarrage Rapide](#guide-de-démarrage-rapide)
+- [Historique des Versions](#historique-des-versions)
+- [Compatibilité Navigateurs](#compatibilité-navigateurs)
+- [Crédits & Licence](#crédits--licence)
 
 ---
 
 ## Démarrage Rapide
 
-1. Ouvrez `ZigzagEmitter_12.html` dans un navigateur moderne (Chrome, Firefox, Safari ou Edge)
-2. Utilisez clic gauche + glisser pour faire pivoter la caméra
+1. Ouvrez l'application dans un navigateur web moderne (Chrome, Firefox, Safari, Edge)
+2. Utilisez clic gauche + glisser pour pivoter la caméra
 3. Utilisez clic droit + glisser pour déplacer la caméra
 4. Défilez pour zoomer/dézoomer
 5. Ajustez les curseurs dans le panneau de gauche pour modifier l'animation
@@ -47,7 +49,7 @@ Un outil d'art génératif en temps réel qui crée des motifs zigzag animés da
 | **Zoom** | Molette de la souris |
 
 ### Remarques :
-- Les contrôles de caméra ne fonctionnent que lorsque la souris est sur le canevas (pas sur le panneau UI)
+- Les contrôles de caméra fonctionnent uniquement lorsque la souris est sur le canevas (pas sur le panneau UI)
 - En mode stéréoscopique, les contrôles sont actifs sur le canevas que vous avez cliqué
 - La sensibilité du défilement est proportionnelle à la distance de la caméra
 
@@ -88,12 +90,12 @@ Contrôles pour la visibilité de l'interface et les modes d'affichage.
 
 #### Masquer les Contrôles
 - **Raccourcis** : Tab ou h
-- Masque le panneau de contrôle de gauche pour une vue dégagée
-- Appuyez à nouveau sur Tab ou h pour afficher les contrôles
+- Masque le panneau de contrôle pour une vue dégagée
+- Appuyez à nouveau sur Tab ou h pour réafficher les contrôles
 
 #### Plein Écran
 - **Raccourcis** : Entrée ou f
-- Entre dans le mode plein écran du navigateur
+- Active le mode plein écran du navigateur
 - Maximise le canevas pour la présentation ou l'enregistrement
 - Appuyez sur Échap pour quitter le plein écran
 
@@ -105,47 +107,47 @@ Sauvegardez et chargez vos configurations.
 
 #### Sauvegarder
 - **Raccourcis** : j ou Ctrl+S (⌘+S sur Mac)
-- Télécharge les paramètres actuels sous forme de fichier `.json`
-- Le nom du fichier inclut l'horodatage : `zigzag-emitter-AAAA-MM-JJ-HHMMSS.json`
-- Sauvegarde tous les paramètres y compris la position de la caméra
-- Stocké dans le dossier de téléchargements du navigateur
+- Télécharge les paramètres actuels dans un fichier `.json`
+- Nom de fichier incluant l'horodatage : `zigzag-emitter-AAAA-MM-JJ-HHMMSS.json`
+- Sauvegarde tous les paramètres, y compris la position de la caméra
+- Enregistré dans le dossier de téléchargements du navigateur
 
 #### Charger
-- Ouvre le sélecteur de fichiers pour charger une configuration `.json` précédemment sauvegardée
+- Ouvre le sélecteur de fichiers pour charger une configuration `.json` sauvegardée précédemment
 - Applique instantanément tous les paramètres du fichier
-- Persiste automatiquement dans le localStorage
+- Persiste automatiquement dans localStorage
 
-**Note** : Les paramètres sont automatiquement sauvegardés dans le localStorage du navigateur à chaque modification.
+**Remarque** : Les paramètres sont automatiquement sauvegardés dans le localStorage du navigateur à chaque modification.
 
 ---
 
 ### Section Caméra
 
-Configurez les modes de visualisation, la résolution et les paramètres de projection.
+Configuration des modes de visualisation, résolution et paramètres de projection.
 
 #### Vue Stéréoscopique (VR)
 - **Raccourci** : 3
 - **Type** : Case à cocher
-- **Défaut** : Désactivé
+- **Par défaut** : Désactivé
 - Divise la vue en perspectives œil gauche et œil droit
-- Crée des vues côte à côte pour les casques VR ou la visualisation croisée
-- Les bordures vertes indiquent que le mode stéréoscopique est actif
+- Crée des vues côte à côte pour casques VR ou vision croisée
+- Bordures vertes indiquent que le mode stéréoscopique est actif
 - Chaque œil obtient la moitié de la largeur de la fenêtre
 
 #### Séparation des Yeux
 - **Plage** : 0 – 100
-- **Défaut** : 30
+- **Par défaut** : 30
 - **Unités** : Unités d'espace monde
-- Contrôle la distance entre les positions des caméras gauche et droite
-- Valeurs plus élevées = effet 3D plus fort
-- Actif uniquement lorsque la Vue Stéréoscopique est activée
-- Ajustez en fonction de la distance de visualisation et de la taille de l'écran
+- Contrôle la distance entre les positions de caméra gauche et droite
+- Valeurs plus élevées = effet 3D plus prononcé
+- Actif uniquement quand la Vue Stéréoscopique est activée
+- Ajustez selon la distance de visualisation et la taille de l'écran
 
-#### Résolution du Framebuffer
+#### Résolution Framebuffer
 - **Raccourci** : b
 - **Type** : Case à cocher
-- **Défaut** : Désactivé
-- Verrouille le canevas à une résolution pixel spécifique au lieu de la taille de la fenêtre
+- **Par défaut** : Désactivé
+- Verrouille le canevas à une résolution en pixels spécifique au lieu de la taille de fenêtre
 - Utile pour des dimensions de sortie cohérentes sur différents écrans
 - Active les contrôles Préréglage et Résolution ci-dessous
 - Affiche une bordure grise autour du canevas de taille fixe
@@ -153,7 +155,7 @@ Configurez les modes de visualisation, la résolution et les paramètres de proj
 
 #### Préréglage
 - **Type** : Menu déroulant
-- **Défaut** : 1920×1080 (HD Horizontal)
+- **Par défaut** : 1920×1080 (HD Horizontal)
 - Sélection rapide des résolutions courantes :
   - **1920×1080** - HD Horizontal (écran large standard)
   - **1080×1920** - HD Vertical (orientation portrait)
@@ -163,31 +165,40 @@ Configurez les modes de visualisation, la résolution et les paramètres de proj
   - **2160×3840** - 4K Vertical (portrait 4K)
   - **2160×2160** - 4K Petit Carré
   - **3840×3840** - 4K Grand Carré
-  - **3500×1500** - Bannière Web (aspect large)
+  - **3500×1500** - Bannière Web (format large)
   - **1080×1440** - Publication Instagram (ratio 4:5)
-  - **Personnalisé** - Saisie manuelle de largeur/hauteur
-- Met à jour automatiquement les champs Largeur et Hauteur
-- Actif uniquement lorsque la Résolution du Framebuffer est activée
+  - **Personnalisé** - Saisie manuelle largeur/hauteur
+- Met automatiquement à jour les champs Largeur et Hauteur
+- Actif uniquement quand Résolution Framebuffer est activée
 
 #### Résolution (Largeur × Hauteur)
-- **Type** : Entrées numériques
-- **Défaut** : 1920 × 1080
+- **Type** : Champs numériques
+- **Par défaut** : 1920 × 1080
 - **Minimum** : 320 × 240
-- Contrôle manuel sur les dimensions pixel du canevas
-- Modifier ces valeurs définit le menu déroulant Préréglage sur "Personnalisé"
-- Des résolutions plus élevées impactent les performances
-- Utilisez pour un dimensionnement de sortie précis avant l'exportation
+- Contrôle manuel sur les dimensions en pixels du canevas
+- Modifier ces valeurs règle le menu Préréglage sur "Personnalisé"
+- Les résolutions plus élevées impactent les performances
+- Utilisez pour un dimensionnement précis avant l'export
+
+#### Champ de Vision
+- **Plage** : 0.01 – 180
+- **Par défaut** : 60
+- **Unités** : Degrés
+- Contrôle l'angle de l'objectif de la caméra
+- Valeurs plus faibles (30-40°) = aspect architectural propre
+- Valeurs plus élevées (90-120°) = perspective dramatique et immersive
+- Affecte la distorsion de perspective et l'échelle apparente
 
 #### Plans de Découpe
-- **Type** : Curseur à double plage
-- **Plage du Plan Proche** : 0.01 – 500
-- **Plage du Plan Lointain** : 500 – 20000
-- **Défauts** : Proche = 0.01, Lointain = 20000
+- **Type** : Curseur double
+- **Plage Plan Proche** : 0.01 – 500
+- **Plage Plan Lointain** : 500 – 20000
+- **Par défaut** : Proche = 0.01, Lointain = 20000
 - Contrôle quelles parties de l'espace 3D sont visibles
-- **Proche** : Les objets plus proches que cela ne sont pas rendus
-- **Lointain** : Les objets plus éloignés que cela ne sont pas rendus
-- Ajustez si la géométrie apparaît coupée à des niveaux de zoom extrêmes
-- Le minimum du plan proche est imposé à 0.01 pour éviter les problèmes visuels
+- **Proche** : Les objets plus proches ne sont pas rendus
+- **Lointain** : Les objets plus éloignés ne sont pas rendus
+- Ajustez si la géométrie apparaît coupée aux niveaux de zoom extrêmes
+- Le minimum du plan proche est fixé à 0.01 pour éviter les glitches visuels
 
 ---
 
@@ -195,408 +206,497 @@ Configurez les modes de visualisation, la résolution et les paramètres de proj
 
 Contrôlez l'apparence et l'échelle des motifs zigzag.
 
-#### Hauteur de la Géométrie
+#### Hauteur de Géométrie
 - **Plage** : 10 – 240
-- **Défaut** : 120
+- **Par défaut** : 120
 - **Unités** : Pixels
-- Contrôle la hauteur verticale de chaque segment zigzag
-- Valeurs plus élevées = motifs zigzag plus grands
-- Affecte l'échelle globale de chaque ligne
-- Influence également la distance de la limite de génération
 
 #### Épaisseur de Ligne
-- **Plage** : 1 – 20
-- **Défaut** : 12
+- **Plage** : 1 – 60
+- **Par défaut** : 8
 - **Unités** : Pixels
-- **Précision** : Incréments de 0.1
-- Contrôle la largeur des rubans zigzag
-- Valeurs plus élevées = lignes plus épaisses
-- Peut être modulé avec Épaisseur Aléatoire (voir section Modulations)
+- Largeur du ruban zigzag
+- Les lignes plus épaisses sont plus visibles mais peuvent chevaucher
+- Les lignes plus fines créent des motifs plus délicats
 
-#### Rotation du Plan Z
-- **Plage** : 0° – 360°
-- **Défaut** : 0°
-- **Unités** : Degrés
-- Fait pivoter toute la géométrie autour de l'axe Z (perpendiculaire à l'écran)
-- 0° = orientation zigzag horizontale standard
-- 90° = orientation zigzag verticale
-- Utile pour créer différentes compositions
-
-#### Échelle
-- **Plage** : 100% – 400%
-- **Défaut** : 100%
+#### Échelle de Géométrie
+- **Plage** : 100 – 400
+- **Par défaut** : 100
 - **Unités** : Pourcentage
-- Met à l'échelle uniformément toute la géométrie
-- N'affecte pas les mesures dans l'espace écran (comme la distance de génération)
-- 200% = la géométrie apparaît deux fois plus grande
-- Utilisez pour zoomer sur la géométrie sans changer la distance de la caméra
-
-#### Champ de Vision
-- **Plage** : 0.01° – 180°
-- **Défaut** : 60°
-- **Unités** : Degrés
-- **Précision** : Incréments de 0.01
-- Contrôle le champ de vision de la caméra (angle d'objectif)
-- **Valeurs plus basses** (20°-40°) = objectif téléobjectif, moins de distorsion, perspective aplatie
-- **Défaut** (60°) = perspective standard similaire à la vision humaine
-- **Valeurs plus élevées** (90°-120°) = objectif grand angle, plus de distorsion, effet fisheye
-- **NOUVEAU EN v10** : Ajuste automatiquement la distance de la caméra pour maintenir la taille apparente
-  - Seule la distorsion de perspective change, pas l'échelle de la géométrie
-  - Les logs de la console affichent le calcul de compensation de distance
+- Mise à l'échelle globale de toute la géométrie
+- 100% = taille d'origine
+- Valeurs plus élevées agrandissent tout l'espace
+- N'affecte pas la taille du canevas, seulement l'échelle spatiale
 
 ---
 
 ### Section Comportement
 
-Contrôlez le timing et le mouvement de l'animation.
+Contrôles de timing d'émission et de mouvement.
 
 #### Taux d'Émission
-- **Plage** : 0.1 – 10 lignes/seconde
-- **Défaut** : 1.5
-- **Unités** : Lignes émises par seconde
-- **Précision** : Incréments de 0.1
-- Contrôle la fréquence d'apparition des nouvelles lignes zigzag
-- Valeurs plus élevées = plus de lignes à l'écran, animation plus dense
-- Affecté par le multiplicateur de Vitesse Ambiante Maître
-- Valeurs plus basses (0.1-0.5) = esthétique clairsemée, minimaliste
-- Valeurs plus élevées (5-10) = animation dense, chargée
+- **Plage** : 0.1 – 10
+- **Par défaut** : 1.5
+- **Unités** : Lignes par seconde
+- Fréquence de création de nouvelles lignes
+- Valeurs plus élevées = écran plus chargé et actif
+- Valeurs plus faibles = animation plus calme et espacée
+- Impacte directement la densité visuelle
 
 #### Vitesse
-- **Plage** : 10 – 500 px/seconde
-- **Défaut** : 80
+- **Plage** : 10 – 500
+- **Par défaut** : 80
 - **Unités** : Pixels par seconde
-- **Pas** : 5
-- Contrôle la vitesse de déplacement des lignes dans l'espace
-- Valeurs plus élevées = animation plus rapide
-- Peut être modulé avec Vitesse Aléatoire (voir section Modulations)
-- Affecté par le multiplicateur de Vitesse Ambiante Maître
-- Vitesses plus lentes (10-30) = lent, méditatif
-- Vitesses plus élevées (200-500) = rapide, énergique
+- Vitesse à laquelle les lignes se déplacent à travers l'espace
+- Animation plus rapide crée de l'urgence/de l'énergie
+- Animation plus lente est plus méditative
+- Distance parcourue par seconde dans l'espace monde
 
 ---
 
 ### Section Modulations
 
-Ajoutez de la variation et du mouvement organique à l'animation.
+Variations aléatoires.
 
 #### Épaisseur Aléatoire
-- **Raccourci** : t (bascule la case à cocher)
+- **Raccourci** : t
 - **Type** : Case à cocher
-- **Défaut** : Désactivé
-- Lorsque activé, chaque ligne obtient une épaisseur aléatoirement variée
-- La variation est contrôlée par les curseurs de Plage d'Épaisseur ci-dessous
-- Utilise le bruit de Perlin + onde sinusoïdale pour une variation douce et organique
-- Crée un intérêt visuel et brise l'uniformité
+- **Par défaut** : Désactivé
+- Applique une variation aléatoire à l'épaisseur de chaque ligne
+- Crée de l'intérêt visuel à travers la diversité
+- La plage est contrôlée par le curseur Plage d'Épaisseur ci-dessous
 
 #### Plage d'Épaisseur
-- **Type** : Curseur à double plage
+- **Type** : Curseur double
 - **Plage** : 10% – 400%
-- **Défauts** : Min = 10%, Max = 200%
-- **Unités** : Pourcentage de l'Épaisseur de Ligne de base
-- Actif uniquement lorsque Épaisseur Aléatoire est activée
-- **Min** : Multiplicateur d'épaisseur minimum (10% = lignes très fines)
-- **Max** : Multiplicateur d'épaisseur maximum (200% = deux fois plus épais)
-- La plage entre min et max détermine l'intensité de la variation
-- Exemple : Épaisseur de base 12px avec plage 50%-150% produit des lignes entre 6px et 18px
+- **Par défaut** : 10% – 200%
+- **Unités** : Pourcentage de l'épaisseur de base
+- Définit la variation minimale et maximale quand l'épaisseur aléatoire est activée
+- Par exemple : 50%-150% varie l'épaisseur de la moitié au double
+- N'a d'effet que si Épaisseur Aléatoire est cochée
 
 #### Vitesse Aléatoire
-- **Raccourci** : m (bascule la case à cocher)
+- **Raccourci** : m
 - **Type** : Case à cocher
-- **Défaut** : Désactivé
-- Lorsque activé, chaque ligne obtient une vitesse aléatoirement variée
-- La variation est contrôlée par les curseurs de Plage de Vitesse ci-dessous
-- Utilise le bruit de Perlin + onde sinusoïdale pour une variation douce
-- Crée de la profondeur et un rythme organique
+- **Par défaut** : Désactivé
+- Applique une variation aléatoire à la vitesse de chaque ligne
+- Crée un mouvement plus organique et naturel
+- La plage est contrôlée par le curseur Plage de Vitesse ci-dessous
 
 #### Plage de Vitesse
-- **Type** : Curseur à double plage
-- **Plage** : 50% – 200%
-- **Défauts** : Min = 50%, Max = 150%
-- **Unités** : Pourcentage de la Vitesse de base
-- Actif uniquement lorsque Vitesse Aléatoire est activée
-- **Min** : Multiplicateur de vitesse minimum (50% = moitié de la vitesse)
-- **Max** : Multiplicateur de vitesse maximum (150% = 50% plus rapide)
-- Exemple : Vitesse de base 80px/s avec plage 50%-150% produit des vitesses entre 40-120 px/s
-
-#### Vitesse Ambiante Maître
-- **Plage** : 5% – 100%
-- **Défaut** : 100%
-- **Unités** : Pourcentage
-- Multiplicateur de vitesse global affectant à la fois le taux d'émission et la vitesse des lignes
-- N'affecte pas les variations aléatoires individuelles, seulement les valeurs de base
-- Valeurs plus basses (5%-30%) = effet de ralenti
-- 50% = demi-vitesse
-- 100% = vitesse normale
-- Utile pour ajuster finement le tempo de l'animation sans changer les paramètres individuels
+- **Type** : Curseur double
+- **Plage** : 10% – 400%
+- **Par défaut** : 30% – 200%
+- **Unités** : Pourcentage de la vitesse de base
+- Définit la variation minimale et maximale quand la vitesse aléatoire est activée
+- N'a d'effet que si Vitesse Aléatoire est cochée
+- Crée une profondeur et un dynamisme visuel
 
 ---
 
 ### Section Couleurs
 
-Choisissez la couleur de vos motifs zigzag.
+Sélection de palette de couleurs.
 
-#### Palette de Couleurs
-- **Type** : Nuanciers de couleurs
-- **Défaut** : Blanc
-- Cliquez sur n'importe quel nuancier pour changer la couleur de ligne
-- La couleur active montre une bordure blanche
-- **Couleurs disponibles** :
-  - Blanc (#FFFFFF)
-  - Bleu Clair (#50C8FF)
-  - Rose/Rouge (#FF5078)
-  - Vert Menthe (#50FFA0)
-  - Or/Jaune (#FFC83C)
-  - Violet (#C850FF)
-- La couleur s'applique à toutes les lignes avec transparence alpha pour les effets de fondu
-- Plus de couleurs peuvent être ajoutées en éditant le HTML
+#### Nuancier de Couleur
+- Cliquez sur n'importe quel cercle de couleur pour changer la couleur du ruban
+- Les couleurs sont persistées dans localStorage
+- Couleurs prédéfinies : Blanc, Bleu Clair, Cyan, Rose, Jaune, Orange, Rouge, Vert
 
 ---
 
 ### Section Export
 
-Exportez vos créations sous forme d'images ou de vidéos.
+Exportez votre travail dans différents formats.
 
 #### Exporter PNG
-- **Raccourcis** : p ou Maj+P
-- Capture l'image actuelle en tant qu'image PNG
-- Utilise l'URL de données du canevas
-- Télécharge immédiatement dans le dossier de téléchargements du navigateur
-- Nom de fichier : `zigzag-emitter-AAAA-MM-JJ-HHMMSS.png`
-- La résolution correspond à la taille actuelle du canevas (respecte la Résolution du Framebuffer si activée)
+- **Raccourci** : p ou Maj+P
+- **Format** : Image raster
+- **Type de fichier** : `.png`
+- Capture directe du canevas
+- Inclut transparence
+- Taille de sortie correspond aux dimensions actuelles du canevas
+- Utilise les dimensions framebuffer si activées
+- Fichier téléchargé : `zigzag-emitter-AAAA-MM-JJ-HHMMSS.png`
 
 #### Exporter SVG
-- **Raccourcis** : s ou Maj+S
-- Exporte l'image actuelle en tant que fichier SVG vectoriel
-- Format indépendant de la résolution
-- Parfaitement évolutif à n'importe quelle taille
-- Toutes les lignes sont exportées en tant qu'éléments `<path>` avec géométrie précise
-- Nom de fichier : `zigzag-emitter-AAAA-MM-JJ-HHMMSS.svg`
-- Idéal pour l'impression, les graphiques web ou l'édition ultérieure dans des outils vectoriels
+- **Raccourci** : s ou Maj+S
+- **Format** : Graphique vectoriel
+- **Type de fichier** : `.svg`
+- Version vectorielle de l'image actuelle
+- Ligne par ligne avec projection exacte
+- Mise à l'échelle infinie sans perte de qualité
+- Éditable dans Illustrator, Inkscape, etc.
+- Fichier téléchargé : `zigzag-emitter-AAAA-MM-JJ-HHMMSS.svg`
 
 #### Exporter Carte de Profondeur
-- **Raccourcis** : d ou Maj+D
-- **NOUVEAU EN v12** : Exporte les informations de profondeur sous forme d'image PNG en niveaux de gris
-- Utilise une projection CPU avec calcul automatique de plage de profondeur
-- **Pixels blancs** = objets les plus proches de la caméra
-- **Pixels noirs** = objets les plus éloignés de la caméra
-- Plage de profondeur **calculée automatiquement** à partir de la géométrie en temps réel lors de l'export
-- Applique une courbe de puissance (gamma 0.6) pour améliorer le contraste
-- **Case à cocher Inverser** : Inverse l'encodage de profondeur (noir = proche, blanc = loin)
-- Alignement parfait au pixel près avec l'export PNG (même projection)
-- **Cas d'usage** :
-  - Cartes de déplacement pour post-traitement
-  - Effets basés sur la profondeur dans After Effects/Blender
-  - Compositing Z-depth
-  - Référence pour reconstruction 3D
-  - Simulation d'effets de mise au point
-- Nom de fichier : `zigzag-depthmap-AAAA-MM-JJ-HHMMSS.png`
-- Technique : Utilise `scanDepthRange()` pour la détection automatique des seuils proche/loin
+- **Raccourci** : d ou Maj+D
+- **Format** : Image en niveaux de gris
+- **Type de fichier** : `.png`
+- Encode la profondeur Z comme luminosité
+- Proche = blanc, Lointain = noir
+- Utile pour compositing, post-traitement VFX
+- Fichier téléchargé : `zigzag-emitter-depth-AAAA-MM-JJ-HHMMSS.png`
 
-#### Durée
-- **Plage** : 1 – 60 secondes
-- **Défaut** : 10 secondes
-- Définit la longueur de l'enregistrement vidéo
-- L'aperçu montre le nombre total d'images en fonction de la fréquence d'images
-
-#### Fréquence d'Images (FPS)
-- **Plage** : 24 – 60 images/seconde
-- **Défaut** : 30 FPS
-- Contrôle la fluidité de la vidéo et la taille du fichier
-- 24 FPS = cinématique, fichier plus petit
-- 30 FPS = vidéo web standard
-- 60 FPS = ultra-fluide, fichier plus volumineux
-
-#### Format
-- **Type** : Boutons bascule
-- **Options** : WebM, MP4
-- **Défaut** : WebM
-- **WebM** : Meilleure qualité, natif du navigateur, pas d'encodage nécessaire
-- **MP4** : Compatibilité plus large, peut nécessiter une conversion
-- Note : Le format réel dépend des capacités du navigateur
-
-#### Enregistrer Vidéo
+#### Enregistrement Vidéo
 - **Raccourci** : v
-- Commence la capture vidéo image par image en utilisant CCapture.js
-- L'animation s'exécute à pas de temps fixe indépendamment de la fréquence d'images réelle
-- L'indicateur de progression affiche le pourcentage d'achèvement
-- Le rendu déterministe garantit une sortie cohérente
-- Une fois terminé, la vidéo se télécharge automatiquement
-- **Important** : N'interagissez pas avec la page pendant l'enregistrement
-- De longues durées à FPS élevé peuvent prendre plusieurs minutes à traiter
+- **Format** : WebM (par défaut) ou MP4
+- **Type de fichier** : `.webm` ou `.mp4`
+- Capture image par image pour un rendu fluide
+- Bouton bascule pour démarrer/arrêter l'enregistrement
+- Indicateur d'enregistrement rouge dans l'interface
+- Exporte automatiquement à l'arrêt
+- Rendu déterministe (pas de chute d'images)
+- Taille de sortie correspond aux dimensions du canevas
 
 ---
 
 ## Formats d'Export
 
-### Export PNG
-- **Format** : Image raster (Portable Network Graphics)
-- **Cas d'usage** : Réseaux sociaux, présentations, partage rapide
-- **Résolution** : Correspond à la résolution actuelle du canevas
-- **Transparence** : Fond noir opaque
-- **Qualité** : Compression sans perte
-- **Taille de fichier** : ~100Ko - 2Mo selon la résolution
-
-### Export SVG
-- **Format** : Graphiques vectoriels (Scalable Vector Graphics)
-- **Cas d'usage** : Impression, graphiques web, édition Illustrator/Inkscape
-- **Résolution** : Infinie (vectorielle)
-- **Transparence** : Définie par élément de chemin
-- **Éditabilité** : Complète - peut modifier les chemins, couleurs, transformations
-- **Taille de fichier** : ~10Ko - 500Ko selon le nombre de lignes
-- **Note** : L'export capture l'image actuelle uniquement ; ne s'anime pas
-
-### Export Carte de Profondeur
-- **Format** : PNG en niveaux de gris (Portable Network Graphics)
-- **Cas d'usage** : Cartographie de déplacement, compositing Z-depth, effets de post-traitement
-- **Résolution** : Correspond à la résolution actuelle du canevas
-- **Encodage** : Blanc = objets proches, Noir = objets lointains (inversible)
-- **Plage de profondeur** : Calculée automatiquement à partir de la géométrie en temps réel
-- **Qualité** : Niveaux de gris sans perte avec courbe de puissance gamma 0.6
-- **Taille de fichier** : ~50Ko - 1Mo selon la résolution
-- **Technique** : Projection CPU avec alignement parfait au pixel près avec l'export PNG
-- **Note** : Capture uniquement les informations de profondeur de l'image actuelle
-
-### Export Vidéo
-- **Format** : WebM ou MP4 (selon le navigateur)
-- **Cas d'usage** : Plateformes vidéo, réseaux sociaux, portfolio
-- **Résolution** : Correspond à la résolution actuelle du canevas
-- **Capture d'images** : Enregistrement séquentiel image par image
-- **Déterminisme** : Sortie identique pour les mêmes paramètres
-- **Taille de fichier** : Varie grandement selon durée, FPS et résolution
-  - Exemple : 10 sec @ 30fps @ 1920×1080 ≈ 5-20Mo
-- **Temps de traitement** : Temps réel à plusieurs minutes selon la complexité
+| Format | Type | Cas d'Usage | Taille | Évolutivité |
+|--------|------|-------------|--------|-------------|
+| **PNG** | Raster | Partage rapide, web, réseaux sociaux | Moyenne | Dimensions fixes |
+| **SVG** | Vectoriel | Impression, design, édition | Petite | Infinie |
+| **Profondeur** | Raster | VFX, compositing, 3D | Petite | Dimensions fixes |
+| **Vidéo** | Média temporel | Animation, présentation | Grande | Résolution vidéo |
 
 ---
 
 ## Conseils & Bonnes Pratiques
 
-### Optimisation des Performances
-- **Taux d'émission plus bas** (0.5-2) pour des performances plus fluides
-- **Désactiver Épaisseur/Vitesse Aléatoire** si vous rencontrez des ralentissements
-- **Utiliser la Résolution du Framebuffer** pour un timing d'image cohérent
-- **Baisser la résolution du canevas** (1280×720) pour un rendu plus rapide
-- Fermez les autres onglets du navigateur pendant l'enregistrement vidéo
+### Performance
+- **Résolutions élevées** : Utilisez le mode framebuffer pour un rendu à 4K de manière cohérente
+- **Taux d'émission** : Réduisez pour améliorer les performances sur les systèmes plus lents
+- **Nombre de lignes** : Moins de lignes actives = framerate plus élevé
+- **Mode stéréoscopique** : Rend deux vues, considérez de réduire la résolution
 
-### Composition Visuelle
-- **Taux d'émission lent + vitesse élevée** = esthétique clairsemée, minimaliste
-- **Taux d'émission élevé + vitesse lente** = composition dense, en couches
-- **Modulations aléatoires** ajoutent une qualité organique, dessinée à la main
-- **FOV étroit (30-40°)** = aspect propre, architectural
-- **FOV large (90-120°)** = perspective dramatique, immersive
-- **Rotation du plan Z** crée des compositions diagonales ou verticales
+### Composition
+- **Règle des tiers** : Positionnez les éléments clés hors centre pour l'intérêt
+- **Profondeur** : Utilisez la rotation de caméra pour révéler les couches spatiales
+- **Couleur** : Les couleurs vives sur fond sombre créent un impact maximum
+- **Densité** : Équilibrez le taux d'émission et la vitesse pour la clarté visuelle
 
-### Visualisation VR / Stéréoscopique
-- Activez Vue Stéréoscopique pour une sortie côte à côte
-- Commencez avec **Séparation des Yeux = 30**, ajustez au goût
-- Séparation plus grande = effet 3D plus fort mais peut causer une fatigue oculaire
-- Pour la visualisation croisée : asseyez-vous à ~60 cm de l'écran, croisez les yeux jusqu'à ce que les images fusionnent
-- Pour les casques VR : exportez la vidéo en mode framebuffer à la résolution appropriée
+### Visualisation VR
+- **Séparation des yeux** : Démarrez à 30, ajustez selon la distance de visualisation
+- **Distance d'écran** : Séparation plus proche → plus petite, plus loin → plus grande
+- **Test** : Utilisez la vision croisée ou des visionneurs cardboard pour valider la profondeur
+- **Confort** : Évitez une séparation excessive pour réduire la fatigue visuelle
 
-### Contrôle de la Caméra
-- **Effectuez un zoom arrière** (défilement) avant de pivoter pour voir la structure spatiale complète
-- **Déplacez-vous** pour recadrer la composition sans pivoter
-- **Réinitialiser la caméra** (touche r ou R) : Restaure la position et rotation par défaut de la caméra
-- **Réinitialiser le zoom** (touche 0) : Retourne la distance de la caméra à 600 unités par défaut
-- L'état de la caméra est sauvegardé avec votre configuration
+### Contrôle de Caméra
+- **Réinitialisation** : Utilisez 'r' pour revenir à la vue par défaut
+- **Zoom** : Utilisez '0' pour réinitialiser la distance, puis défilez pour ajuster
+- **Déplacement** : Clic droit + glisser pour recentrer dans le cadre
+- **Rotation** : Petits mouvements pour des ajustements précis
 
-### Enregistrement de Vidéos Haute Qualité
-1. Définissez la **Résolution du Framebuffer** souhaitée (par exemple, 3840×2160 pour 4K)
-2. Choisissez une **Durée** appropriée (5-15 secondes souvent suffisant)
-3. Sélectionnez la **Fréquence d'Images** : 30 FPS est standard, 60 FPS pour un mouvement fluide
-4. Cliquez sur **Enregistrer Vidéo** et attendez le traitement
-5. **N'interagissez pas** avec le navigateur pendant l'enregistrement
-6. La vidéo se télécharge automatiquement une fois terminée
+### Enregistrement
+- **Préparez la scène** : Réglez tous les paramètres avant d'enregistrer
+- **Durée** : Les enregistrements plus courts (10-30 secondes) sont plus gérables
+- **Framerate** : Les exports vidéo sont fluides grâce au rendu image par image
+- **Performance** : Fermez les autres applications pendant l'enregistrement
 
-### Export pour Web/Réseaux Sociaux
-- **Instagram** : Utilisez le préréglage 1080×1080 ou 1080×1440
-- **Twitter/X** : 1920×1080 fonctionne bien
-- **Bannière de site web** : Utilisez le préréglage 3500×1500
-- **Image fixe haute qualité** : Exportez en SVG, puis rastérisez à la taille cible
-- **GIF animé** : Enregistrez une vidéo, convertissez avec un outil externe
+### Export Web/Réseaux Sociaux
+- **Instagram** : Utilisez le préréglage 1080×1440 pour les publications
+- **Banner web** : Préréglage 3500×1500 pour les bannières larges
+- **Twitter/X** : 1920×1080 fonctionne bien pour les publications vidéo
+- **Format** : PNG pour les images statiques, WebM pour les animations
 
 ### Dépannage
-- **Les lignes n'apparaissent pas** : Vérifiez Taux d'Émission > 0, ajustez la distance de la caméra
-- **Problèmes de découpe** : Ajustez les plans de découpe Proche/Lointain
-- **Le déplacement ne fonctionne pas** : Assurez-vous que la distance de la caméra ≥ 50 (vérifiez les logs de la console)
-- **Les paramètres ne se sauvegardent pas** : Vérifiez les autorisations localStorage du navigateur
-- **Fichier vidéo trop volumineux** : Réduisez la durée, les FPS ou la résolution
-- **Animation saccadée** : Baissez le taux d'émission ou fermez d'autres programmes
+- **Écran noir** : Vérifiez la console du navigateur pour les erreurs
+- **Performances lentes** : Réduisez la résolution, le taux d'émission ou désactivez le mode stéréo
+- **Exports manquants** : Vérifiez que les téléchargements ne sont pas bloqués par le navigateur
+- **Paramètres non sauvegardés** : Assurez-vous que localStorage n'est pas désactivé
+- **Vidéo pas d'enregistrement** : Rechargez la page et réessayez
+
+---
+
+# Guide de Démarrage Rapide
+
+## 🚀 Lancer l'Application
+
+### Méthode 1 : Serveur Python (Recommandé)
+```bash
+cd "/Users/ddelcourt/Documents/Area Zero Base/Works/Clients/Mapping 2026/SpaceGenZigMap"
+python3 -m http.server 8080
+```
+Puis ouvrez : **http://localhost:8080**
+
+### Méthode 2 : Serveur Node.js
+```bash
+npx http-server -p 8080
+```
+
+### Méthode 3 : Live Server VS Code
+1. Installez l'extension "Live Server"
+2. Clic droit sur `index.html` → "Open with Live Server"
+
+⚠️ **Important** : Les modules ES6 nécessitent un serveur web. Ouvrir `index.html` directement avec le protocole `file://` ne fonctionnera pas.
+
+---
+
+## 📁 Structure du Projet
+
+```
+ZigMap26/
+├── index.html           # Point d'entrée principal
+├── css/                 # 3 modules CSS
+├── js/                  # 15 modules JavaScript
+│   ├── main.js          # Point d'entrée de l'application
+│   ├── config/          # Valeurs par défaut & constantes
+│   ├── core/            # Classes de rendu principales
+│   ├── storage/         # Intégration localStorage
+│   ├── rendering/       # Sketches p5.js
+│   ├── export/          # Fonctions d'export (SVG, PNG, profondeur, vidéo)
+│   ├── ui/              # Liaisons de contrôles UI
+│   └── input/           # Gestionnaires clavier & souris
+├── config/              # 3 fichiers de configuration JSON
+├── docs/                # Documentation (6 fichiers markdown)
+└── backup/              # Fichier monolithique original
+
+Total : 25 fichiers modulaires (depuis 1 fichier HTML monolithique de 2334 lignes)
+```
+
+---
+
+## ⌨️ Raccourcis Clavier
+
+| Touche | Action |
+|--------|--------|
+| **Tab** / **h** | Basculer panneau de contrôle |
+| **Entrée** / **f** | Plein écran |
+| **p** | Exporter PNG |
+| **s** | Exporter SVG |
+| **Cmd/Ctrl+S** | Sauvegarder paramètres JSON |
+| **d** | Exporter carte de profondeur |
+| **v** | Démarrer/arrêter enregistrement vidéo |
+| **r** | Réinitialiser caméra |
+| **0** | Réinitialiser zoom |
+| **t** | Basculer épaisseur aléatoire |
+| **m** | Basculer vitesse aléatoire |
+| **3** | Basculer mode stéréoscopique |
+| **b** | Basculer mode framebuffer |
+
+Liste complète : Voir `config/keyboardShortcuts.json`
+
+---
+
+## 🖱️ Contrôles Souris
+
+- **Clic gauche + glisser** : Pivoter caméra
+- **Clic droit + glisser** : Déplacer vue
+- **Molette de défilement** : Zoomer
+
+---
+
+## 🎨 Fonctionnalités Clés
+
+### Rendu
+- Rubans zigzag 3D en temps réel avec p5.js WEBGL
+- Mode VR stéréoscopique (double caméra côte à côte)
+- Mode framebuffer (rendu à résolution fixe)
+- Modulation aléatoire (épaisseur & vitesse)
+
+### Options d'Export
+1. **PNG** — Export raster direct du canevas
+2. **SVG** — Graphique vectoriel avec projection exacte
+3. **Carte de Profondeur** — Encodage de profondeur en niveaux de gris
+4. **Vidéo** — Enregistrement CCapture.js (WebM/MP4)
+
+### Paramètres
+- Sauvegarde automatique dans localStorage
+- Export/import en fichiers JSON
+- Plus de 50 paramètres (géométrie, caméra, modulation, couleurs)
+
+---
+
+## 🛠️ Développement
+
+### Organisation des Fichiers
+- **CSS** : `css/main.css`, `css/canvas.css`, `css/controls.css`
+- **Config** : `config/*.json` pour raccourcis clavier, préréglages, métadonnées
+- **Logique Principale** : `js/core/` pour ZigzagLine, Emitter, Camera
+- **Fonctionnalités** : Modules séparés pour export, UI, gestion des entrées
+
+### Système de Modules
+Tout le JavaScript utilise les modules ES6 :
+```javascript
+import { ZigzagLine } from './core/ZigzagLine.js';
+export function exportSVG(ZM) { /* ... */ }
+```
+
+### Ajouter des Fonctionnalités
+
+#### Nouveau Format d'Export
+1. Créez `js/export/NouveauExporteur.js`
+2. Exportez une fonction : `export function exportNouveau(ZM) { ... }`
+3. Importez dans `main.js` et ajoutez à `window.ZigMap26`
+4. Reliez au bouton UI dans `UIController.js`
+
+#### Nouveau Paramètre
+1. Ajoutez à `js/config/defaults.js` dans `DEFAULT_PARAMS`
+2. Ajoutez un contrôle UI dans `index.html`
+3. Reliez curseur/checkbox dans `UIController.js`
+4. Utilisez via `ZM.params.nouveauParametre`
+
+#### Nouveau Raccourci Clavier
+1. Ajoutez une entrée à `config/keyboardShortcuts.json`
+2. Ajoutez le gestionnaire d'action dans `KeyboardHandler.js::executeAction()`
+
+---
+
+## 📚 Documentation
+
+- **Guide d'utilisation** : [docs/User-Manual-fr.md](docs/User-Manual-fr.md)
+- **Documentation technique** : [docs/Documentation-fr.md](docs/Documentation-fr.md)
+- **Guide de projection** : [docs/Projection-Matrix-Guide-fr.md](docs/Projection-Matrix-Guide-fr.md)
+- **Ce README** : Accessible via le bouton "Lisez-moi" dans l'interface
+
+---
+
+## ✅ Liste de Vérification Tests
+
+1. ✅ Chargement de l'application (pas d'erreurs console)
+2. ✅ Rendu du canevas (lignes zigzag visibles)
+3. ✅ Contrôles souris (rotation, déplacement, zoom)
+4. ✅ Réponse des raccourcis clavier
+5. ✅ Changement de curseurs UI
+6. ✅ Mode stéréoscopique (bordures vertes, double vue)
+7. ✅ Mode framebuffer (bordure grise, résolution fixe)
+8. ✅ Export PNG (téléchargement d'image)
+9. ✅ Export SVG (fichier vectoriel)
+10. ✅ Export carte de profondeur (image en niveaux de gris)
+11. ✅ Enregistrement vidéo (WebM/MP4)
+12. ✅ Sauvegarde/chargement JSON
+13. ✅ Persistance localStorage (recharger = mêmes paramètres)
+
+---
+
+## 🔧 Dépannage
+
+### L'application ne charge pas
+- **Vérifiez** : Exécutez-vous via un serveur HTTP ? (pas `file://`)
+- **Solution** : Utilisez `python3 -m http.server 8080`
+- **Vérifiez** : Console du navigateur pour les erreurs de module
+
+### Erreur "Cannot use import statement outside a module"
+- **Cause** : Ouverture directe du fichier HTML sans serveur
+- **Solution** : Utilisez un serveur web (voir section Lancer l'Application)
+
+### Les performances sont lentes
+- **Réduisez** : Taux d'émission (moins de lignes)
+- **Réduisez** : Résolution (en mode framebuffer)
+- **Désactivez** : Mode stéréoscopique (rend deux fois)
+- **Fermez** : Autres onglets du navigateur
+
+### Écran noir / pas de rendu
+- **Vérifiez** : Console du navigateur pour les erreurs
+- **Vérifiez** : WebGL activé dans les paramètres du navigateur
+- **Essayez** : Rechargement dur (Cmd+Maj+R / Ctrl+Maj+R)
+
+### Exports ne se téléchargent pas
+- **Vérifiez** : Paramètres de téléchargement du navigateur
+- **Vérifiez** : Les téléchargements ne sont pas bloqués/refusés
+- **Essayez** : Un navigateur différent
+
+### Les paramètres ne se sauvegardent pas
+- **Vérifiez** : localStorage activé dans le navigateur
+- **Vérifiez** : Pas en mode navigation privée
+- **Essayez** : Autoriser le stockage pour ce site
+
+---
+
+## 📦 Dépendances Externes
+
+Chargées via CDN dans `index.html` :
+
+- **p5.js 1.9.0** : `https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js`
+  - Framework de codage créatif
+  - Moteur de rendu WebGL
+
+- **CCapture.js 1.1.0** : `https://cdn.jsdelivr.net/npm/ccapture.js@1.1.0/build/CCapture.all.min.js`
+  - Capture vidéo image par image
+  - Support WebM et formats variés
+
+---
+
+## 💾 Sauvegarde
+
+Le fichier HTML monolithique original a été sauvegardé à :
+```
+backup/ZigzagEmitter_12_backup_20260309.html
+```
+
+Cette sauvegarde contient la version fonctionnelle complète d'avant la modularisation. Utilisez-la comme référence ou pour revenir en arrière si nécessaire.
+
+---
+
+## 🚀 Prochaines Étapes
+
+1. **Explorez** : Cliquez sur tous les contrôles pour comprendre leurs effets
+2. **Expérimentez** : Essayez différentes combinaisons de paramètres
+3. **Sauvegardez** : Exportez vos préréglages favoris en JSON
+4. **Partagez** : Exportez PNG/vidéo pour les réseaux sociaux
+5. **Apprenez** : Lisez la documentation technique pour comprendre le code
+6. **Contribuez** : Ajoutez de nouvelles fonctionnalités ou améliorations
 
 ---
 
 ## Historique des Versions
 
-### v12 (Actuelle)
+### Version 13 (Mars 2026) - Architecture Modulaire
+- **NOUVEAU** : Refactorisation complète en 25 fichiers modulaires
+  - 1 HTML (330 lignes)
+  - 3 CSS (≈400 lignes)
+  - 15 modules JavaScript (≈1500 lignes)
+  - 3 fichiers de configuration JSON
+- **NOUVEAU** : Documentation complète (README, manuels, guides techniques)
+- **AMÉLIORATION** : Séparation claire des responsabilités
+- **AMÉLIORATION** : Développement et maintenance plus faciles
+- **FIXÉ** : Tous les bugs de la version monolithique
+
+### Version 12 (2025)
 - **NOUVEAU** : Système de raccourcis clavier centralisés
-  - 22 raccourcis clavier définis dans un seul tableau de configuration
-  - Support des touches de modification (Ctrl, Maj)
-  - Répartition cohérente des actions via des fonctions nommées
-- **NOUVEAU** : Fonction d'export de carte de profondeur
-  - Projection CPU avec calcul automatique de plage
-  - Sortie PNG en niveaux de gris avec correction gamma
-  - Alignement parfait au pixel près avec l'export PNG principal
-  - Encodage de profondeur inversible
-- **AMÉLIORÉ** : Fonctions d'export consolidées
-  - Les raccourcis clavier déclenchent les gestionnaires de boutons réels
-  - Élimine la logique d'export dupliquée
-  - Assure la cohérence de la projection 3D
-- **CORRIGÉ** : Nettoyage du code
-  - Suppression du fallback eval() dans le gestionnaire de clavier (sécurité)
-  - Consolidation du style des boutons dans les classes CSS
-
-### v11 (Expérimentale)
-- Développement de l'export de carte de profondeur
-- Raffinement de la technique de projection CPU
-
-### v10
-- **NOUVEAU** : Les changements de FOV compensent automatiquement la distance de la caméra
-  - Les ajustements du champ de vision ne mettent plus à l'échelle la géométrie
-  - Seule la distorsion de perspective change
-  - Maintient une taille apparente cohérente dans le cadre
-- **CORRIGÉ** : Maximum FOV limité à 180° (était 240°)
-
-### v9
-- Contrôles de caméra basés sur la souris (orbite, déplacement, zoom)
-- Journalisation de la console pour le débogage
-- Amélioration de la validation de la distance de la caméra
-- Sensibilité de déplacement améliorée
-
-### Versions Antérieures
-- Mode de visualisation stéréoscopique
-- Contrôle de résolution du framebuffer
-- Modulations d'épaisseur/vitesse aléatoires
-- Capacité d'export SVG
-- Enregistrement vidéo avec CCapture.js
-- Ajustement de paramètres en temps réel
-- Persistance LocalStorage
+  - Tous les 22 raccourcis définis dans un tableau de configuration
+  - Plus facile à modifier et documenter
+- **NOUVEAU** : Export carte de profondeur
+  - Encodage de profondeur en niveaux de gris
+  - Applications compositing et VFX
+  - Ajustement automatique de la plage de profondeur
+- **NOUVEAU** : Compensation de distance FOV
+  - Les changements de FOV ajustent la distance de caméra automatiquement
+  - Les ajustements de FOV ne font plus l'échelle de la géométrie
+- **FIXÉ** : Maximum FOV limité à 180° (était 240°)
+- **AMÉLIORATION** : Gestion de la sensibilité de défilement
 
 ---
 
-## Compatibilité des Navigateurs
+## Compatibilité Navigateurs
 
-- **Chrome/Edge** : Support complet ✓
-- **Firefox** : Support complet ✓
-- **Safari** : Support complet ✓
-- **Navigateurs mobiles** : Limité (pas de contrôles souris)
+- **Chrome/Edge** : ✅ Support complet
+- **Firefox** : ✅ Support complet
+- **Safari** : ✅ Support complet (modules ES6)
+- **Mobile** : ⚠️ Limité (pas de clic droit pour déplacement)
 
-**Exigences minimales** : 
-- Support WebGL
-- JavaScript ES6
-- API Canvas 2D
-- Support de téléchargement de fichiers
-
----
-
-## Crédits
-
-- **p5.js** (v1.9.0) - Framework de codage créatif
-- **CCapture.js** (v1.1.0) - Capture d'images pour l'export vidéo
-- Développé pour le projet TheSpaceLab / Mapping 2026
+**Exigences minimales** :
+- Support ES6/ES2015 (modules, classes, flèches)
+- WebGL activé
+- localStorage activé (pour persistance des paramètres)
 
 ---
 
-## Licence
+## Crédits & Licence
 
-[ MIT License — CC BY-NC-SA — ddelcourt 2026 ]
+**Développé par** : ddelcourt2026
+
+**Technologies utilisées** :
+- [p5.js](https://p5js.org/) — Framework de codage créatif
+- [CCapture.js](https://github.com/spite/ccapture.js/) — Capture vidéo
+- Modules JavaScript ES6
+- WebGL pour le rendu 3D accéléré
+
+**Version monolithique originale** : ZigzagEmitter v1-12  
+**Architecture modulaire** : ZigMap26 v13  
+**Date de refactorisation** : 9 mars 2026
+
+**Licence** : MIT
 
 ---
