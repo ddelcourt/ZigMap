@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZigMap26 — Zigzag Space Emitter</title>
+  
+  <!-- External CSS -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/canvas.css">
+  <link rel="stylesheet" href="css/controls.css">
+  
+  <!-- External Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
+</head>
+<body>
+
+  <div class="controls">
+
+    <!-- UI -->
+    <div class="section">
+      <div class="section-header" data-section="view">
+        <span class="section-title">UI</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button id="hide-controls-btn" style="width:100%;padding:8px;background:#222;border:1px solid #444;color:#fff;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+              <span>Hide controls</span>
+            </button>
+            <button id="fullscreen-btn" style="width:100%;padding:8px;background:#222;border:1px solid #444;color:#fff;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+              <span>Fullscreen</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- File -->
+    <div class="section">
+      <div class="section-header" data-section="file">
+        <span class="section-title">File</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <div style="display: flex; gap: 8px;">
+            <button id="save-json" style="flex:1;padding:10px;background:#1a3a1a;border:1px solid #2d5f2d;color:#aaffaa;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Save</button>
+            <button id="load-json" style="flex:1;padding:10px;background:#1a1a3a;border:1px solid #2d2d5f;color:#aaaaff;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Load</button>
+            <input type="file" id="load-json-input" accept=".json" style="display:none;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Camera -->
+    <div class="section">
+      <div class="section-header" data-section="rendering">
+        <span class="section-title">View / Camera</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+
+          <div class="control-group">
+            <label><input type="checkbox" id="framebuffer-mode">Framebuffer Resolution</label>
+          </div>
+          <div class="control-group">
+            <label>Preset</label>
+            <select id="framebuffer-preset" style="width:100%;background:#1a1a1a;border:1px solid #333;color:#ccc;padding:6px;border-radius:3px;font-size:0.85rem;cursor:pointer;">
+              <option value="1920x1080">1920 × 1080 (HD Horizontal)</option>
+              <option value="1080x1920">1080 × 1920 (HD Vertical)</option>
+              <option value="1080x1080">1080 × 1080 (HD Small Square)</option>
+              <option value="1920x1920">1920 × 1920 (HD Big Square)</option>
+              <option value="3840x2160">3840 × 2160 (4K Horizontal)</option>
+              <option value="2160x3840">2160 × 3840 (4K Vertical)</option>
+              <option value="2160x2160">2160 × 2160 (4K Small Square)</option>
+              <option value="3840x3840">3840 × 3840 (4K Big Square)</option>
+              <option value="3500x1500">3500 × 1500 (Website Banner)</option>
+              <option value="1080x1440">1080 × 1440 (Instagram Post)</option>
+              <option value="custom">Custom Dimensions</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Resolution</label>
+            <div style="display:flex;gap:8px;">
+              <input type="number" id="framebuffer-width"  value="1920" min="320" step="1" style="flex:1;min-width:0;background:#1a1a1a;border:1px solid #333;color:#ccc;padding:6px;border-radius:3px;font-size:0.85rem;" placeholder="Width"/>
+              <span style="color:#666;align-self:center;">×</span>
+              <input type="number" id="framebuffer-height" value="1080" min="240" step="1" style="flex:1;min-width:0;background:#1a1a1a;border:1px solid #333;color:#ccc;padding:6px;border-radius:3px;font-size:0.85rem;" placeholder="Height"/>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Field of View</label>
+            <div class="slider-row">
+              <input type="range" id="fov" min="0.01" max="180" value="60"/>
+              <span class="value-display" id="fov-val">60</span>
+            </div>
+          </div>
+                    <div class="control-group">
+            <label>Clipping Planes</label>
+            <div class="range-slider-container">
+              <div class="slider-track-line"></div>
+              <input type="range" id="near" min="0.01" max="500"   value="0.01"/>
+              <input type="range" id="far"  min="500"  max="20000" value="20000"/>
+            </div>
+            <div class="range-values">
+              <span>Near: <span id="near-val">0.01</span></span>
+              <span>Far: <span id="far-val">20000</span></span>
+            </div>
+          </div>
+
+                    <div class="control-group">
+            <label><input type="checkbox" id="stereoscopic-mode">Stereoscopic View (VR)</label>
+          </div>
+          <div class="control-group">
+            <label>Eye Separation</label>
+            <div class="slider-row">
+              <input type="range" id="eye-separation" min="0" max="100" value="30"/>
+              <span class="value-display" id="eye-separation-val">30</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Geometry -->
+    <div class="section">
+      <div class="section-header" data-section="geometry">
+        <span class="section-title">Geometry</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <div class="control-group">
+            <label>Emitter Range</label>
+            <div class="slider-row">
+              <input type="range" id="seg-length" min="10" max="240" value="120"/>
+              <span class="value-display" id="seg-length-val">120</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Line Thickness</label>
+            <div class="slider-row">
+              <input type="range" id="thickness" min="1" max="20" value="12"/>
+              <span class="value-display" id="thickness-val">12</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Z-Plane Rotation</label>
+            <div class="slider-row">
+              <input type="range" id="emitter-rotation" min="0" max="360" value="0"/>
+              <span class="value-display" id="emitter-rotation-val">0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Scale <span style="color:#444">(%)</span></label>
+            <div class="slider-row">
+              <input type="range" id="geometry-scale" min="100" max="400" value="100"/>
+              <span class="value-display" id="geometry-scale-val">100</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Behavior -->
+    <div class="section">
+      <div class="section-header" data-section="behavior">
+        <span class="section-title">Behavior</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <div class="control-group">
+            <label>Emit Rate <span style="color:#444">(lines/sec)</span></label>
+            <div class="slider-row">
+              <input type="range" id="emit-rate" min="0.1" max="10" value="1.5"/>
+              <span class="value-display" id="emit-rate-val">1.5</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Speed <span style="color:#444">(px/sec)</span></label>
+            <div class="slider-row">
+              <input type="range" id="speed" min="10" max="500" value="80"/>
+              <span class="value-display" id="speed-val">80</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modulations -->
+    <div class="section">
+      <div class="section-header" data-section="modulations">
+        <span class="section-title">Modulations</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <div class="control-group">
+            <label><input type="checkbox" id="random-thickness">Random Thickness</label>
+          </div>
+          <div class="control-group">
+            <label>Thickness Range <span style="color:#444">(% of base)</span></label>
+            <div class="range-slider-container">
+              <div class="slider-track-line"></div>
+              <input type="range" id="thickness-range-min" min="10" max="400" value="10"/>
+              <input type="range" id="thickness-range-max" min="10" max="400" value="200"/>
+            </div>
+            <div class="range-values">
+              <span id="thickness-range-min-val">10%</span>
+              <span id="thickness-range-max-val">200%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label><input type="checkbox" id="random-speed">Random Speed</label>
+          </div>
+          <div class="control-group">
+            <label>Speed Range <span style="color:#444">(% of base)</span></label>
+            <div class="range-slider-container">
+              <div class="slider-track-line"></div>
+              <input type="range" id="speed-range-min" min="50" max="200" value="50"/>
+              <input type="range" id="speed-range-max" min="50" max="200" value="150"/>
+            </div>
+            <div class="range-values">
+              <span id="speed-range-min-val">50%</span>
+              <span id="speed-range-max-val">150%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Ambient Speed Master</label>
+            <div class="slider-row">
+              <input type="range" id="ambient-speed-master" min="5" max="100" value="100"/>
+              <span class="value-display"><span id="ambient-speed-master-val">100</span>%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colors -->
+    <div class="section">
+      <div class="section-header" data-section="colors">
+        <span class="section-title">Colors</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <div class="control-group">
+            <label>Color Palette</label>
+            <div class="color-row" id="color-swatches">
+              <div class="swatch active" data-color="255,255,255" style="background:#fff"></div>
+              <div class="swatch" data-color="80,200,255"  style="background:#50c8ff"></div>
+              <div class="swatch" data-color="255,80,120"  style="background:#ff5078"></div>
+              <div class="swatch" data-color="80,255,160"  style="background:#50ffa0"></div>
+              <div class="swatch" data-color="255,200,60"  style="background:#ffc83c"></div>
+              <div class="swatch" data-color="200,80,255"  style="background:#c850ff"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div class="section">
+      <div class="section-header" data-section="export">
+        <span class="section-title">Export</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <button id="export-png" class="export-btn export-btn-png">Export PNG</button>
+          <button id="export-svg" class="export-btn export-btn-svg">Export SVG</button>
+
+          <!-- ══ DEPTH MAP EXPORT ══════════════════════════════════════════ -->
+          <button id="export-depth-map">Export Depth Map</button>
+
+          <div class="depth-settings">
+            <div class="control-group">
+              <label style="color:#4a7a5a;"><input type="checkbox" id="depth-invert">Depth Map Invert</label>
+            </div>
+          </div>
+          <!-- ══════════════════════════════════════════════════════════════ -->
+
+          <div class="control-group" style="margin-top:10px;">
+            <label>Duration <span style="color:#444">(seconds)</span></label>
+            <div class="slider-row">
+              <input type="range" id="video-duration" min="1" max="60" value="10"/>
+              <span class="value-display" id="video-duration-val">10</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Frame Rate <span style="color:#444">(FPS)</span></label>
+            <div class="slider-row">
+              <input type="range" id="video-fps" min="24" max="60" value="30"/>
+              <span class="value-display" id="video-fps-val">30</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Format</label>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <button class="cap-btn active" data-format="webm" style="flex:1;width:auto;height:auto;padding:8px;">WebM</button>
+              <button class="cap-btn"        data-format="mp4"  style="flex:1;width:auto;height:auto;padding:8px;">MP4</button>
+            </div>
+          </div>
+          <button id="export-video" style="width:100%;padding:12px;background:#5f1a1a;border:1px solid #8b2d2d;color:#ffe8e8;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;border-radius:4px;cursor:pointer;transition:all 0.2s;margin-top:10px;">Export Video</button>
+          <div id="video-progress" style="display:none;margin-top:8px;padding:8px;background:rgba(100,50,50,0.3);border-radius:3px;font-size:0.7rem;text-align:center;color:#ffaaaa;">Recording: 0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="section">
+      <div class="section-header" data-section="about">
+        <span class="section-title">About / Help</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <div class="lang-filter">
+            <button class="lang-filter-btn active" data-lang-filter="en">English</button>
+            <button class="lang-filter-btn" data-lang-filter="fr">Français</button>
+          </div>
+          <button id="doc-manual-en" class="about-btn" data-lang="en">User Manual</button>
+          <button id="doc-manual-fr" class="about-btn hidden" data-lang="fr">Manuel Utilisateur</button>
+          <button id="doc-readme-en" class="about-btn" data-lang="en">Read me</button>
+          <button id="doc-readme-fr" class="about-btn hidden" data-lang="fr">Lisez-moi</button>
+          <button id="doc-tech-en" class="about-btn" data-lang="en">Documentation</button>
+          <button id="doc-tech-fr" class="about-btn hidden" data-lang="fr">Documentation</button>
+          <button id="doc-projection-en" class="about-btn" data-lang="en">Projection Matrix Guide</button>
+          <button id="doc-projection-fr" class="about-btn hidden" data-lang="fr">Guide des Matrices de Projection</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.controls -->
+
+  <div id="canvas-container">
+    <div id="canvas-wrapper"></div>
+  </div>
+
+  <!-- Main Application Module -->
+  <script type="module" src="js/main.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,129 @@
+{
+  "shortcuts": [
+    {
+      "key": "Tab",
+      "action": "toggleControls",
+      "description": "Toggle controls panel",
+      "preventDefault": true
+    },
+    {
+      "key": "Enter",
+      "action": "toggleFullscreen",
+      "description": "Toggle fullscreen",
+      "preventDefault": true
+    },
+    {
+      "key": "h",
+      "action": "toggleControls",
+      "description": "Hide/show controls",
+      "preventDefault": true
+    },
+    {
+      "key": "f",
+      "action": "toggleFullscreen",
+      "description": "Fullscreen",
+      "preventDefault": true
+    },
+    {
+      "key": "p",
+      "action": "exportPNG",
+      "description": "Export PNG",
+      "preventDefault": true
+    },
+    {
+      "key": "P",
+      "action": "exportPNG",
+      "description": "Export PNG (Shift+P)",
+      "preventDefault": true,
+      "shift": true
+    },
+    {
+      "key": "s",
+      "action": "exportSVG",
+      "description": "Export SVG",
+      "preventDefault": true
+    },
+    {
+      "key": "S",
+      "action": "exportSVG",
+      "description": "Export SVG (Shift+S)",
+      "preventDefault": true,
+      "shift": true
+    },
+    {
+      "key": "d",
+      "action": "exportDepthMap",
+      "description": "Export depth map",
+      "preventDefault": true
+    },
+    {
+      "key": "D",
+      "action": "exportDepthMap",
+      "description": "Export depth map (Shift+D)",
+      "preventDefault": true,
+      "shift": true
+    },
+    {
+      "key": "v",
+      "action": "toggleVideoRecording",
+      "description": "Start/stop recording",
+      "preventDefault": true
+    },
+    {
+      "key": "j",
+      "action": "downloadJSON",
+      "description": "Save settings JSON (J)",
+      "preventDefault": true
+    },
+    {
+      "key": "s",
+      "action": "downloadJSON",
+      "description": "Save settings JSON (Cmd/Ctrl+S)",
+      "preventDefault": true,
+      "ctrl": true
+    },
+    {
+      "key": "r",
+      "action": "resetCamera",
+      "description": "Reset camera position",
+      "preventDefault": true
+    },
+    {
+      "key": "R",
+      "action": "resetCamera",
+      "description": "Reset camera (Shift+R)",
+      "preventDefault": true,
+      "shift": true
+    },
+    {
+      "key": "0",
+      "action": "resetZoom",
+      "description": "Reset zoom to default",
+      "preventDefault": true
+    },
+    {
+      "key": "t",
+      "action": "toggleRandomThickness",
+      "description": "Toggle random thickness",
+      "preventDefault": true
+    },
+    {
+      "key": "m",
+      "action": "toggleRandomSpeed",
+      "description": "Toggle random speed",
+      "preventDefault": true
+    },
+    {
+      "key": "3",
+      "action": "toggleStereoMode",
+      "description": "Toggle stereoscopic view",
+      "preventDefault": true
+    },
+    {
+      "key": "b",
+      "action": "toggleFramebuffer",
+      "description": "Toggle framebuffer mode",
+      "preventDefault": true
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ZIGMAP26 - Main Styles
+   Base styles, layout, and global elements
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #1b1b1b;
+  color: #e8e8e8;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  min-height: 100vh;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  transition: background 2s ease-in-out;
+}
+
+body.fullscreen {
+  background: #000;
+}
+
+body.ui-hidden {
+  cursor: none !important;
+}
+
+body.ui-hidden * {
+  cursor: none !important;
+}
+
+#canvas-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

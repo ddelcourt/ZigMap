@@ -1,0 +1,81 @@
+/**
+ * MouseHandler — Camera controls via mouse interaction
+ */
+
+export function setupMouseHandlers(ZM) {
+  const container = document.getElementById('canvas-container');
+  
+  // Mouse down
+  container.addEventListener('mousedown', (e) => {
+    if (e.button === 0) {
+      ZM.camera.isDragging = true;
+      ZM.camera.isPanning = false;
+      ZM.camera.lastMouseX = e.clientX;
+      ZM.camera.lastMouseY = e.clientY;
+    } else if (e.button === 2) {
+      ZM.camera.isPanning = true;
+      ZM.camera.isDragging = false;
+      ZM.camera.lastMouseX = e.clientX;
+      ZM.camera.lastMouseY = e.clientY;
+      e.preventDefault();
+    }
+  });
+  
+  // Mouse move
+  window.addEventListener('mousemove', (e) => {
+    if (ZM.camera.isDragging) {
+      const dx = e.clientX - ZM.camera.lastMouseX;
+      const dy = e.clientY - ZM.camera.lastMouseY;
+      
+      ZM.camera.rotationY += dx * 0.005;
+      ZM.camera.rotationX += dy * 0.005;
+      
+      ZM.params.cameraRotationY = ZM.camera.rotationY;
+      ZM.params.cameraRotationX = ZM.camera.rotationX;
+      
+      ZM.camera.lastMouseX = e.clientX;
+      ZM.camera.lastMouseY = e.clientY;
+      
+      ZM.saveToLocalStorage();
+    } else if (ZM.camera.isPanning) {
+      const dx = e.clientX - ZM.camera.lastMouseX;
+      const dy = e.clientY - ZM.camera.lastMouseY;
+      
+      ZM.camera.offsetX += dx;
+      ZM.camera.offsetY += dy;
+      
+      ZM.params.cameraOffsetX = ZM.camera.offsetX;
+      ZM.params.cameraOffsetY = ZM.camera.offsetY;
+      
+      ZM.camera.lastMouseX = e.clientX;
+      ZM.camera.lastMouseY = e.clientY;
+      
+      ZM.saveToLocalStorage();
+    }
+  });
+  
+  // Mouse up
+  window.addEventListener('mouseup', () => {
+    ZM.camera.isDragging = false;
+    ZM.camera.isPanning = false;
+  });
+  
+  // Prevent context menu on right-click
+  container.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+  });
+  
+  // Mouse wheel for zoom
+  container.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    
+    const delta = e.deltaY;
+    const zoomSpeed = 2;
+    
+    ZM.camera.distance += delta * zoomSpeed;
+    ZM.camera.distance = Math.max(50, Math.min(10000, ZM.camera.distance));
+    
+    ZM.params.cameraDistance = ZM.camera.distance;
+    ZM.saveToLocalStorage();
+  }, { passive: false });
+}

@@ -1,0 +1,101 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ZIGMAP26 - Canvas Styles
+   Canvas wrapper, stereoscopic mode, and framebuffer styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+#canvas-wrapper {
+  background: #000;
+  overflow: hidden;
+  box-shadow: none;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  transition: all 0.3s ease-in-out;
+  padding: 2px;
+}
+
+#canvas-wrapper.framebuffer-mode {
+  width: auto;
+  height: auto;
+  outline: 1px solid #555555;
+  outline-offset: 0;
+  padding: 2px;
+  transition: all 0.3s ease-in-out;
+}
+
+#canvas-wrapper.stereoscopic {
+  flex-direction: column;
+  gap: 0;
+}
+
+.stereo-container {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: visible;
+  transition: all 0.3s ease-in-out;
+}
+
+.stereo-eye {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 50%;
+  overflow: visible;
+  min-width: 0;
+  outline: 1.5px solid rgb(0, 255, 0);
+  outline-offset: 0;
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  padding: 2px;
+}
+
+.stereo-eye::after {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  width: 25px;
+  height: 25px;
+  background: rgb(0, 255, 0);
+  pointer-events: none;
+  border-radius: 50%;
+  transform: translate(-50%, 10%);
+  transition: all 0.3s ease-in-out;
+}
+
+/* Child canvas containers */
+#mono-canvas,
+#left-canvas,
+#right-canvas {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease-in-out;
+}
+
+#canvas-wrapper canvas {
+  display: block;
+  cursor: grab;
+  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, height 0.3s ease-in-out;
+}
+
+/* Canvas sizing is handled dynamically via JS */
+
+#canvas-wrapper canvas.dragging {
+  cursor: none !important;
+}

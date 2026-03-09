@@ -1,0 +1,28 @@
+{
+  "name": "ZigMap26",
+  "version": "1.0.0",
+  "title": "ZigMap26 - Generative Space Mapping",
+  "description": "Interactive 3D zigzag pattern generator with real-time camera controls and multiple export formats",
+  "author": "DD",
+  "year": 2026,
+  "license": "MIT",
+  "repository": "https://github.com/ddelcourt/ZigMap",
+  "documentation": {
+    "userManual": {
+      "en": "docs/markdown-viewer.html?doc=User-Manual.md",
+      "fr": "docs/markdown-viewer.html?doc=User-Manual-fr.md"
+    },
+    "readme": {
+      "en": "docs/markdown-viewer.html?doc=README.md",
+      "fr": "docs/markdown-viewer.html?doc=README-fr.md"
+    },
+    "technical": {
+      "en": "docs/markdown-viewer.html?doc=Documentation.md",
+      "fr": "docs/markdown-viewer.html?doc=Documentation-fr.md"
+    },
+    "projectionGuide": {
+      "en": "docs/markdown-viewer.html?doc=Projection-Matrix-Guide.md",
+      "fr": "docs/markdown-viewer.html?doc=Projection-Matrix-Guide-fr.md"
+    }
+  }
+}

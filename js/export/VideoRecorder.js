@@ -1,0 +1,113 @@
+/**
+ * VideoRecorder — Video export using CCapture.js
+ */
+
+let capturer = null;
+let isRecording = false;
+let recordingFrameCount = 0;
+let recordingTotalFrames = 0;
+
+export function isRecording_() {
+  return isRecording;
+}
+
+export function startVideoRecording(ZM) {
+  if (isRecording) {
+    stopVideoRecording(ZM);
+    return;
+  }
+  
+  // Prepare recording state
+  isRecording = true;
+  recordingFrameCount = 0;
+  recordingTotalFrames = ZM.params.videoDuration * ZM.params.videoFPS;
+  
+  // Disable UI during recording
+  document.querySelectorAll('.controls input, .controls button').forEach(el => {
+    el.disabled = true;
+    el.style.opacity = '0.5';
+    el.style.pointerEvents = 'none';
+  });
+  
+  const btn = document.getElementById('export-video');
+  btn.textContent = 'Stop Recording';
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.pointerEvents = 'auto';
+  btn.style.background = '#8b2d2d';
+  
+  document.getElementById('video-progress').style.display = 'block';
+  document.getElementById('video-progress').textContent = 'Recording: 0%';
+  
+  // Clear emitter for clean start
+  if (ZM.emitterInstance) {
+    ZM.emitterInstance.lines = [];
+    ZM.emitterInstance.accumulator = 0;
+  }
+  
+  // Initialize CCapture
+  capturer = new CCapture({
+    format: ZM.params.videoFormat === 'mp4' ? 'webm' : ZM.params.videoFormat,
+    framerate: ZM.params.videoFPS,
+    name: 'zigmap26',
+    quality: 95,
+    verbose: false,
+    display: false,
+    autoSaveTime: 0,
+    workersPath: 'https://cdn.jsdelivr.net/npm/ccapture.js@1.1.0/build/'
+  });
+  
+  // Start capture
+  ZM.p5Instance.noLoop();
+  capturer.start();
+  renderVideoFrame(ZM);
+}
+
+function renderVideoFrame(ZM) {
+  if (!isRecording || recordingFrameCount >= recordingTotalFrames) {
+    if (isRecording) stopVideoRecording(ZM);
+    return;
+  }
+  
+  ZM.p5Instance.redraw();
+  capturer.capture(ZM.p5Instance.canvas);
+  recordingFrameCount++;
+  
+  const progress = Math.round((recordingFrameCount / recordingTotalFrames) * 100);
+  document.getElementById('video-progress').textContent = `Recording: ${progress}%`;
+  
+  setTimeout(() => renderVideoFrame(ZM), 0);
+}
+
+export function stopVideoRecording(ZM) {
+  if (!isRecording) return;
+  
+  document.getElementById('video-progress').textContent = 'Encoding video...';
+  
+  capturer.stop();
+  capturer.save();
+  
+  isRecording = false;
+  recordingFrameCount = 0;
+  
+  // Re-enable UI
+  document.querySelectorAll('.controls input, .controls button').forEach(el => {
+    el.disabled = false;
+    el.style.opacity = '1';
+    el.style.pointerEvents = 'auto';
+  });
+  
+  const btn = document.getElementById('export-video');
+  btn.disabled = false;
+  btn.textContent = 'Export Video';
+  btn.style.background = '#5f1a1a';
+  
+  document.getElementById('video-progress').style.display = 'none';
+  
+  // Resume playback
+  ZM.p5Instance.frameRate(60);
+  ZM.p5Instance.loop();
+}
+
+// Export with correct name
+export { isRecording_ as isRecording };
