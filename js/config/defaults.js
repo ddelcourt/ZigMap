@@ -6,7 +6,7 @@
 export const DEFAULT_PARAMS = {
   // Geometry
   segmentLength: 120,
-  lineThickness: 12,
+  lineThickness: 24,
   lineColor: [255, 255, 255],
   emitterRotation: 0,
   geometryScale: 100,

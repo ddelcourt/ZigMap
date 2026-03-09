@@ -38,7 +38,6 @@ async function loadUIConfigs() {
  */
 function initializeAllControls(ZM) {
   // Standard sliders
-  wireSlider(ZM, 'seg-length', 'seg-length-val', 'segmentLength');
   wireSlider(ZM, 'thickness', 'thickness-val', 'lineThickness', 1);
   wireSlider(ZM, 'emit-rate', 'emit-rate-val', 'emitRate');
   wireSlider(ZM, 'speed', 'speed-val', 'speed');

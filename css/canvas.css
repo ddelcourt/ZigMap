@@ -13,7 +13,7 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  transition: all 0.3s ease-in-out;
+  transition: width 0.3s ease-out, height 0.3s ease-out;
   padding: 2px;
 }
 
@@ -23,7 +23,7 @@
   outline: 1px solid #555555;
   outline-offset: 0;
   padding: 2px;
-  transition: all 0.3s ease-in-out;
+  transition: width 0.3s ease-out, height 0.3s ease-out;
 }
 
 #canvas-wrapper.stereoscopic {
@@ -42,7 +42,7 @@
   max-width: 100%;
   max-height: 100%;
   overflow: visible;
-  transition: all 0.3s ease-in-out;
+  transition: width 0.3s ease-out, height 0.3s ease-out;
 }
 
 .stereo-eye {
@@ -58,7 +58,7 @@
   outline: 1.5px solid rgb(0, 255, 0);
   outline-offset: 0;
   position: relative;
-  transition: all 0.3s ease-in-out;
+  transition: width 0.3s ease-out, height 0.3s ease-out;
   padding: 2px;
 }
 
@@ -73,7 +73,7 @@
   pointer-events: none;
   border-radius: 50%;
   transform: translate(-50%, 10%);
-  transition: all 0.3s ease-in-out;
+  transition: opacity 0.3s ease-out;
 }
 
 /* Child canvas containers */
@@ -85,13 +85,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: all 0.3s ease-in-out;
+  transition: width 0.3s ease-out, height 0.3s ease-out;
 }
 
 #canvas-wrapper canvas {
   display: block;
   cursor: grab;
-  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, height 0.3s ease-in-out;
+  /* No transition on transform - applied instantly */
 }
 
 /* Canvas sizing is handled dynamically via JS */
