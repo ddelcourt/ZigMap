@@ -1847,3 +1847,298 @@ Fonctionnalités potentielles pour versions futures :
 ---
 
 Pour questions ou contributions, veuillez contacter [vos informations de contact].
+
+
+---
+
+# ZigMap26 — Architecture Modulaire
+
+## Vue d'Ensemble
+
+ZigMap26 est une modularisation complète de l'application ZigzagEmitter originale. Le fichier HTML monolithique a été transformé en une architecture moderne basée sur les modules ES6 avec une séparation appropriée des préoccupations.
+
+## Structure du Projet
+
+```
+ZigMap26/
+├── index.html                    # Point d'entrée HTML principal
+├── css/                          # Feuilles de style
+│   ├── main.css                  # Styles de base et mise en page
+│   ├── canvas.css                # Styles de rendu du canevas
+│   └── controls.css              # Styles du panneau de contrôle UI
+├── js/
+│   ├── main.js                   # Orchestrateur de l'application
+│   ├── config/                   # Modules de configuration
+│   │   ├── defaults.js           # Export DEFAULT_PARAMS
+│   │   └── constants.js          # Constantes de l'application
+│   ├── core/                     # Classes de rendu principales
+│   │   ├── ZigzagLine.js         # Objet ruban zigzag unique
+│   │   ├── Emitter.js            # Émission et cycle de vie des lignes
+│   │   ├── Camera.js             # Gestion de l'état de la caméra
+│   │   ├── utils.js              # Fonctions utilitaires partagées
+│   │   └── Projection.js         # Mathématiques de projection 3D vers 2D
+│   ├── storage/                  # Persistance
+│   │   └── localStorage.js       # Sauvegarde/chargement des paramètres
+│   ├── rendering/                # Intégration p5.js
+│   │   └── SketchFactory.js      # Création du sketch p5
+│   ├── export/                   # Fonctionnalité d'export
+│   │   ├── SVGExporter.js        # Export graphique vectoriel
+│   │   ├── PNGExporter.js        # Export image raster
+│   │   ├── DepthExporter.js      # Export carte de profondeur
+│   │   └── VideoRecorder.js      # Intégration CCapture.js
+│   ├── ui/                       # Interface utilisateur
+│   │   └── UIController.js       # Liaison des contrôles
+│   └── input/                    # Gestion des entrées
+│       ├── KeyboardHandler.js    # Raccourcis clavier
+│       └── MouseHandler.js       # Contrôles souris de la caméra
+├── config/                       # Configurations JSON
+│   ├── keyboardShortcuts.json    # Raccourcis centralisés
+│   ├── uiPresets.json            # Préréglages framebuffer/couleur
+│   └── appInfo.json              # Métadonnées de l'application
+├── docs/                         # Documentation
+│   ├── English/                  # Documentation anglaise
+│   │   ├── README.md             # Guide utilisateur (EN)
+│   │   ├── User-Manual.md        # Manuel utilisateur (EN)
+│   │   ├── Documentation.md      # Docs techniques (EN)
+│   │   └── Projection-Matrix-Guide.md  # Guide mathématique (EN)
+│   ├── French/                   # Documentation française
+│   │   ├── README-fr.md          # Guide utilisateur (FR)
+│   │   ├── User-Manual-fr.md     # Manuel utilisateur (FR)
+│   │   ├── Documentation-fr.md   # Docs techniques (FR)
+│   │   └── Projection-Matrix-Guide-fr.md  # Guide mathématique (FR)
+│   └── markdown-viewer.html      # Visionneuse de documentation
+└── backup/                       # Fichiers originaux
+    └── ZigzagEmitter_12_backup_20260309.html
+```
+
+## Principes d'Architecture
+
+### 1. **Séparation des Préoccupations**
+- **Modules CSS** : Style séparé en fichiers thématiques (main, canvas, controls)
+- **Modules JavaScript** : Code organisé par fonction (core, rendering, export, UI, input)
+- **Configs JSON** : Configuration externe pour raccourcis clavier, préréglages, métadonnées
+
+### 2. **Injection de Dépendances**
+Les classes principales acceptent les dépendances comme paramètres plutôt que d'utiliser des variables globales :
+```javascript
+const line = new ZigzagLine(
+  canvasWidth,
+  canvasHeight,
+  getSpawnDistanceFn,
+  buildRibbonSidesFn
+);
+```
+
+### 3. **Système de Modules ES6**
+Tout le JavaScript utilise la syntaxe moderne de modules :
+```javascript
+import { ZigzagLine } from './core/ZigzagLine.js';
+export function exportSVG(ZM) { /* ... */ }
+```
+
+### 4. **Espace de Noms Global**
+Un seul objet `window.ZigMap26` fournit un accès global organisé :
+```javascript
+window.ZigMap26 = {
+  params,        // Paramètres de l'application
+  camera,        // État de la caméra
+  emitterInstance, // Référence de l'émetteur principal
+  exportSVG(),   // Fonctions d'export
+  // ...
+};
+```
+
+## Lancer l'Application
+
+### Serveur de Développement
+```bash
+python3 -m http.server 8080
+# Ouvrir http://localhost:8080
+```
+
+### Exigences du Serveur de Fichiers
+Les modules ES6 nécessitent un serveur web (pas le protocole `file://`). N'importe quel serveur HTTP fonctionne :
+- Python : `python3 -m http.server`
+- Node.js : `npx http-server`
+- VS Code : Extension Live Server
+
+## Fonctionnalités Clés
+
+### Rendu Principal
+- **WebGL 3D** : Moteur de rendu p5.js WEBGL avec contrôles de caméra
+- **Rubans Zigzag** : Géométrie zigzag générée procéduralement
+- **Modulation** : Variations aléatoires d'épaisseur et de vitesse
+- **Mode Stéréoscopique** : Rendu double canevas compatible VR
+
+### Capacités d'Export
+- **PNG** : Export direct du canevas
+- **SVG** : Export vectoriel avec mathématiques de projection exactes
+- **Carte de Profondeur** : Rendu de profondeur basé CPU avec ajustement automatique
+- **Vidéo** : Intégration CCapture.js (WebM/MP4)
+
+### Persistance des Paramètres
+- **localStorage** : Sauvegarde automatique de tous les paramètres
+- **Export/Import JSON** : Partager les configurations sous forme de fichiers
+- **Validation** : Vérification des limites des paramètres critiques
+
+### Gestion des Entrées
+- **Raccourcis Clavier** : Plus de 20 raccourcis configurables
+- **Contrôles Souris** :
+  - Glisser gauche : Pivoter la caméra
+  - Glisser droit : Déplacer la vue
+  - Défilement : Zoom
+- **Mode Framebuffer** : Rendu à résolution fixe
+
+## Fichiers de Configuration
+
+### `config/keyboardShortcuts.json`
+Définitions centralisées des raccourcis clavier :
+```json
+[
+  {
+    "key": "p",
+    "action": "exportPNG",
+    "description": "Exporter PNG",
+    "preventDefault": true
+  }
+]
+```
+
+### `config/uiPresets.json`
+Préréglages framebuffer et nuanciers de couleurs :
+```json
+{
+  "framebufferPresets": [
+    { "name": "1920x1080", "width": 1920, "height": 1080 }
+  ],
+  "colorSwatches": [
+    [255, 255, 255],
+    [80, 200, 255]
+  ]
+}
+```
+
+### `config/appInfo.json`
+Métadonnées de l'application et liens de documentation :
+```json
+{
+  "name": "ZigMap26",
+  "version": "1.0.0",
+  "documentation": { ... }
+}
+```
+
+## Détails des Modules
+
+### Classes Principales
+
+#### `ZigzagLine`
+```javascript
+class ZigzagLine {
+  constructor(canvasWidth, canvasHeight, getSpawnDistanceFn, buildRibbonSidesFn)
+  update(dt)
+  draw(p5Instance)
+  _alpha()  // Fondu entrée/sortie
+  _buildVertices()  // Générer les points zigzag
+}
+```
+
+#### `Emitter`
+```javascript
+class Emitter {
+  constructor(params, noiseOffsetGetter, canvasWidth, canvasHeight, utilFns)
+  update(dt)
+  draw(p5Instance)
+  _emit()  // Créer une nouvelle ligne
+}
+```
+
+#### `Camera`
+```javascript
+class Camera {
+  constructor(params)
+  syncToParams(params)
+  reset()
+  resetZoom()
+}
+```
+
+### Système de Projection
+
+Le système de projection utilise des mathématiques identiques pour tous les exports (SVG, PNG, profondeur) afin d'assurer un alignement pixel-parfait :
+
+1. **Ordre de Rotation** : Z → Y → X (correspond à p5.js WEBGL)
+2. **Modèle de Caméra** : `distance_totale = default_camera_z + user_distance`
+3. **Perspective** : `screen_x = world_x * (camera_z / -view_z) + width/2`
+
+Voir [docs/French/Projection-Matrix-Guide-fr.md](Projection-Matrix-Guide-fr.md) pour les mathématiques détaillées.
+
+## Migration depuis l'Original
+
+Le `ZigzagEmitter_12.html` original (2 334 lignes) a été divisé en :
+- 1 fichier HTML (330 lignes)
+- 3 fichiers CSS (total ~400 lignes)
+- 15 modules JavaScript (total ~1 500 lignes)
+- 3 fichiers de configuration JSON (total ~200 lignes)
+
+### Changements Incompatibles
+- Aucun pour les utilisateurs (clés localStorage préservées)
+- Les développeurs doivent utiliser un serveur HTTP (pas `file://`)
+
+### Fonctionnalités Préservées
+- Toutes les fonctionnalités originales maintenues
+- Chargement automatique des paramètres depuis localStorage
+- Raccourcis clavier inchangés
+- Formats d'export identiques
+
+## Développement
+
+### Ajout de Nouvelles Fonctionnalités
+
+#### Nouveau Format d'Export
+1. Créer `js/export/NouveauExporteur.js`
+2. Exporter une fonction : `export function exportNouveau(ZM) { ... }`
+3. Importer dans `main.js` et ajouter à `window.ZigMap26`
+4. Connecter au bouton UI dans `UIController.js`
+
+#### Nouveau Paramètre
+1. Ajouter à `js/config/defaults.js` dans `DEFAULT_PARAMS`
+2. Ajouter un contrôle UI dans `index.html`
+3. Connecter curseur/case à cocher dans `UIController.js`
+4. Utiliser via `ZM.params.nouveauParametre`
+
+#### Nouveau Raccourci Clavier
+1. Ajouter une entrée à `config/keyboardShortcuts.json`
+2. Ajouter le gestionnaire d'action dans `KeyboardHandler.js::executeAction()`
+
+## Compatibilité Navigateurs
+
+- **Chrome/Edge** : ✅ Support complet
+- **Firefox** : ✅ Support complet
+- **Safari** : ✅ Support complet (modules ES6)
+- **Mobile** : ⚠️ Limité (pas de clic droit pour déplacer)
+
+## Dépendances
+
+- **p5.js 1.9.0** : Moteur de rendu 3D
+- **CCapture.js 1.1.0** : Enregistrement vidéo
+- Les deux chargés via CDN dans `index.html`
+
+## Licence
+
+Identique au projet original.
+
+## Contributions
+
+Lors de l'ajout de nouveaux modules :
+1. Utiliser la syntaxe `import`/`export` ES6
+2. Passer les dépendances comme paramètres (pas de globales sauf `window.ZigMap26`)
+3. Suivre la convention camelCase pour le nommage
+4. Documenter les fonctions complexes avec des commentaires JSDoc
+5. Tester avec un serveur HTTP avant de committer
+
+## Crédits
+
+**Version Monolithique Originale** : ZigzagEmitter v1-12  
+**Architecture Modulaire** : ZigMap26 v1.0  
+**Date de Refactorisation** : 9 mars 2026

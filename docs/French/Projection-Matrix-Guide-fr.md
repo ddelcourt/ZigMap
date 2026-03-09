@@ -1,7 +1,7 @@
 # Guide des Matrices de Projection : Conversion 3D WebGL vers 2D SVG
 
 **Projet ZigzagEmitter - Plongée Technique**  
-*Auteur : Documentation Technique*  
+*Auteur : ddelcourt*  
 *Date : 9 mars 2026*
 
 ---

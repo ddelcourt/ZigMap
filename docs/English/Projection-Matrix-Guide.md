@@ -1,7 +1,7 @@
 # Projection Matrix Guide: WebGL 3D to SVG 2D Conversion
 
 **ZigzagEmitter Project - Technical Deep Dive**  
-*Author: Technical Documentation*  
+*Author: ddelcourt*  
 *Date: March 8, 2026*
 
 ---

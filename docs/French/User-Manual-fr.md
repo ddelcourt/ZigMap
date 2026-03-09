@@ -179,33 +179,26 @@ Laissez **Framebuffer Resolution** décoché - il utilisera la taille de votre f
 | Problème | Solution |
 |----------|----------|
 | **Rien n'apparaît** | Rafraîchissez la page ; vérifiez que Emit Rate > 0 |
-| **Trop chargé/encombré** | Baissez le curseur Emit Rate |
+| **Trop chargé** | Baissez le curseur Emit Rate |
 | **Trop lent** | Augmentez le curseur Speed |
-| **Les lignes disparaissent** | Elles sortent du champ de vue - c'est normal |
+| **Les lignes disparaissent** | Elles sont hors du champ de vue |
 | **Impossible de pivoter caméra** | Assurez-vous que le curseur est sur l'animation, pas le panneau |
-| **La vidéo ne se télécharge pas** | Attendez plus longtemps - les grandes vidéos prennent du temps |
+| **La vidéo ne se télécharge pas** | Attendez - les grandes vidéos prennent du temps |
 | **Impossible de sortir du plein écran** | Appuyez sur la touche **Échap** |
 
 ---
 
 ## À Quoi Servent les Fichiers
 
-- **ZigzagEmitter_12.html** - L'application principale (ouvrez celui-ci !)
-- **User-Manual-fr.md** - Ce guide simple (vous le lisez)
-- **README-fr.md** - Guide détaillé complet avec toutes les fonctionnalités
-- **Documentation-fr.md** - Documentation technique pour développeurs
-- **Fichiers .json sauvegardés** - Vos paramètres sauvegardés (chargez-les pour restaurer)
+- **index.html** - L'application
+- **User-Manual-fr.md** - Ce guide (vous le lisez)
+- **README-fr.md** - Fonctionnalités
+- **Documentation-fr.md** - Documentation technique
+- **Fichiers .json sauvegardés** - Vos paramètres de projet
 
 ---
 
-## Plus d'informations:
-
-📖 **Informations détaillées** : Voir [README-fr.md](README-fr.md)  
-🔧 **Techniques** : Voir [Documentation-fr.md](Documentation-fr.md)
-
----
-
-**Rappel rapide** : Vos paramètres se sauvegardent automatiquement dans votre navigateur, donc quand vous rechargez la page, tout sera comme vous l'avez laissé !
+**Note** : Vos paramètres se sauvegardent automatiquement dans votre navigateur. Quand vous quittez la page, les paramètres sont conservés.
 
 .
 .

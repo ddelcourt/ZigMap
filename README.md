@@ -1,7 +1,7 @@
 # ZigMap Emitter - User Guide
 ddelcourt2026
 
-Real-time generative tool that creates animated patterns in 3D space. Advanced camera controls, stereoscopic viewing, export capabilities.
+Real-time generative tool that creates animated patterns in 3D space. Advanced camera controls, stereoscopic viewing, 2D vectors export function.
 
 ---
 

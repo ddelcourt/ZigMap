@@ -1,7 +1,7 @@
 # ZigMap26 — Guide d'Utilisation
 ddelcourt2026
 
-Outil génératif en temps réel créant des motifs zigzag animés dans un espace 3D. Contrôles de caméra avancés, visualisation stéréoscopique et capacités d'exportation complètes.
+Outil génératif en temps réel créant des motifs zigzag animés dans un espace 3D. Contrôles de caméra avancés, visualisation stéréoscopique et exportation en 2D vectoriel.
 
 ---
 
