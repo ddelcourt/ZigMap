@@ -4,7 +4,7 @@
 
 ### Method 1: Python Server (Recommended)
 ```bash
-cd "/Users/ddelcourt/Documents/Area Zero Base/Works/Clients/Mapping 2026/SpaceGenZigMap"
+cd [the directory where you are storing the files]]
 python3 -m http.server 8080
 ```
 Then open: **http://localhost:8080**
