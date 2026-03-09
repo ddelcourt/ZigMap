@@ -10,6 +10,10 @@
       padding: 0;
       box-sizing: border-box;
     }
+    
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, Helvetica, sans-serif;
@@ -61,6 +65,7 @@
       margin-bottom: 0.5rem;
       padding-bottom: 0.3rem;
       border-bottom: 3px solid #5078ff;
+      scroll-margin-top: 20px;
     }
 
     #content h2 {
@@ -71,6 +76,7 @@
       margin-bottom: 1rem;
       padding-bottom: 0.3rem;
       border-bottom: 2px solid #444;
+      scroll-margin-top: 20px;
     }
 
     #content h3 {
@@ -79,6 +85,7 @@
       color: #e0e0e0;
       margin-top: 2rem;
       margin-bottom: 0.8rem;
+      scroll-margin-top: 20px;
     }
 
     #content h4 {
@@ -87,6 +94,7 @@
       color: #d0d0d0;
       margin-top: 1.5rem;
       margin-bottom: 0.6rem;
+      scroll-margin-top: 20px;
     }
 
     #content h5 {
@@ -274,7 +282,8 @@
       breaks: true,
       gfm: true, // GitHub Flavored Markdown
       tables: true,
-      headerIds: true
+      headerIds: true,
+      mangle: false // Don't mangle IDs
     });
 
     // Check if we're running on local file system (file://) or web server (http://)
@@ -316,13 +325,53 @@
           if (firstH1) {
             document.title = firstH1.textContent + ' - Documentation';
           }
+          
+          // Setup anchor link handling
+          document.querySelectorAll('#content a[href^="#"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetId = this.getAttribute('href').substring(1);
+              let targetElement = document.getElementById(targetId);
+              
+              // If not found, try to find by heading text
+              if (!targetElement) {
+                const headingText = targetId.replace(/-/g, ' ');
+                const allHeadings = document.querySelectorAll('#content h1, #content h2, #content h3, #content h4, #content h5, #content h6');
+                for (const heading of allHeadings) {
+                  if (heading.textContent.toLowerCase().trim() === headingText.toLowerCase()) {
+                    targetElement = heading;
+                    break;
+                  }
+                }
+              }
+              
+              if (targetElement) {
+                targetElement.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'start' 
+                });
+                // Update URL hash without jumping
+                history.pushState(null, null, '#' + targetId);
+              } else {
+                console.warn('Target element not found:', targetId);
+                console.log('Available IDs:', Array.from(document.querySelectorAll('#content [id]')).map(el => el.id));
+              }
+            });
+          });
+          
+          // Scroll to hash if present in URL
+          if (window.location.hash) {
+            setTimeout(() => {
+              const target = document.getElementById(window.location.hash.substring(1));
+              if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 100);
+          }
         })
         .catch(error => {
           document.getElementById('content').innerHTML = `
             <div class="error">
-              <h2>Error Loading Documentation</h2>
-              <p><strong>Could not load:</strong> ${docFile}</p>
-              <p>${error.message}</p>
               <p>Please make sure the file exists in the docs folder.</p>
             </div>
           `;
