@@ -1,6 +1,6 @@
-# ZigMap Emitter - Manuel Utilisateur Rapide
+# ZigMap Emitter - Manuel Utilisateur
 
-Starup Guide
+Startup Guide
 
 ---
 
@@ -198,13 +198,19 @@ Laissez **Framebuffer Resolution** décoché - il utilisera la taille de votre f
 
 ---
 
-## Besoin de Plus d'Aide ?
+## Plus d'informations:
 
-📖 **Pour informations détaillées** : Voir [README-fr.md](README-fr.md)  
-🔧 **Pour détails techniques** : Voir [Documentation-fr.md](Documentation-fr.md)
+📖 **Informations détaillées** : Voir [README-fr.md](README-fr.md)  
+🔧 **Techniques** : Voir [Documentation-fr.md](Documentation-fr.md)
 
 ---
 
 **Rappel rapide** : Vos paramètres se sauvegardent automatiquement dans votre navigateur, donc quand vous rechargez la page, tout sera comme vous l'avez laissé !
 
-Amusez-vous bien à créer ! ✨
+.
+.
+.
+.
+.
+.
+.

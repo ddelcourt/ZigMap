@@ -275,7 +275,20 @@
   <script>
     // Get the document parameter from URL
     const urlParams = new URLSearchParams(window.location.search);
-    const docFile = urlParams.get('doc') || 'README.md';
+    // Language-aware doc path
+    let docFile = urlParams.get('doc');
+    if (!docFile) {
+      // Default to English README
+      docFile = 'English/README.md';
+    } else if (!docFile.includes('/')) {
+      // If only a filename is given, guess language by prefix
+      const lang = urlParams.get('lang');
+      if (lang === 'fr' || docFile.endsWith('-fr.md')) {
+        docFile = 'French/' + docFile;
+      } else {
+        docFile = 'English/' + docFile;
+      }
+    }
     
     // Configure marked options
     marked.setOptions({
