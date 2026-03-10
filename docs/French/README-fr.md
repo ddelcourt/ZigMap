@@ -75,9 +75,13 @@ Outil génératif en temps réel créant des motifs zigzag animés dans un espac
 | **r** | Réinitialiser la position de la caméra |
 | **R** (Maj+R) | Réinitialiser la position de la caméra (alternatif) |
 | **0** | Réinitialiser le zoom par défaut (600 unités) |
+| **1** | Basculer vers palette de couleurs 1 |
+| **2** | Basculer vers palette de couleurs 2 |
+| **3** | Basculer vers palette de couleurs 3 |
+| **4** | Basculer vers palette de couleurs 4 |
 | **t** | Basculer la modulation d'épaisseur aléatoire |
 | **m** | Basculer la modulation de vitesse aléatoire |
-| **3** | Basculer le mode stéréoscopique (VR) |
+| **y** | Basculer le mode stéréoscopique (VR) |
 | **b** | Basculer le mode framebuffer |
 
 ---
@@ -296,12 +300,34 @@ Variations aléatoires.
 
 ### Section Couleurs
 
-Sélection de palette de couleurs.
+Choisissez les couleurs de vos motifs zigzag avec le système avancé de palettes.
 
-#### Nuancier de Couleur
-- Cliquez sur n'importe quel cercle de couleur pour changer la couleur du ruban
-- Les couleurs sont persistées dans localStorage
-- Couleurs prédéfinies : Blanc, Bleu Clair, Cyan, Rose, Jaune, Orange, Rouge, Vert
+#### Palettes de Couleurs
+- **Type** : 4 palettes distinctes avec 4 emplacements de couleur chacune
+- **Raccourcis** : Touches 1, 2, 3, 4 pour basculer entre les palettes
+- **UI** : Cliquez sur les boutons de palette (numérotés 1-4) en haut de la section
+
+#### Personnalisation des Couleurs
+Chaque palette possède 4 emplacements de couleur :
+- **Sélecteur de Couleur** : Cliquez pour personnaliser les valeurs RGB
+- **Rôle de Couleur** : Menu déroulant pour assigner un rôle :
+  - **Line** : Couleur utilisée pour les rubans zigzag (sélection aléatoire à la génération)
+  - **Background** : Couleur utilisée pour l'arrière-plan du canevas
+  - **None** : Emplacement de couleur désactivé
+- Les couleurs peuvent avoir des rôles dupliqués (plusieurs couleurs comme lignes ou arrière-plans)
+
+#### Séparation de Profondeur de Couleur
+- **Plage** : 10-500
+- **Par défaut** : 100
+- **Objectif** : Contrôle l'espacement de l'axe Z entre les lignes de différentes couleurs
+- Des valeurs plus élevées augmentent la séparation en profondeur, empêchant le chevauchement visuel (z-fighting)
+- Formule : Décalage de chaque emplacement de couleur = `(slotIndex - 2) × multiplicateur`
+
+#### Transitions de Couleur
+- Lors du changement de palette, toutes les lignes existantes transitionnent en douceur vers les nouvelles couleurs
+- Durée de transition : 3 secondes
+- L'arrière-plan transite également en douceur
+- Utilise l'interpolation linéaire RGB pour un mélange fluide des couleurs
 
 ---
 

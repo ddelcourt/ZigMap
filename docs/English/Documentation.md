@@ -231,9 +231,23 @@ const params = {
   // Geometry
   segmentLength: 120,        // Height of each zigzag segment (px)
   lineThickness: 12,         // Width of ribbon (px)
-  lineColor: [255,255,255],  // RGB array
   emitterRotation: 0,        // Z-axis rotation (degrees)
   geometryScale: 100,        // Uniform scale (%)
+  fadeDuration: 0.8,         // Fade-in/out duration (seconds)
+  
+  // Color Palettes
+  palettes: [                // 4 palettes × 4 colors each
+    [
+      { color: [255, 255, 255], role: 'line' },
+      { color: [200, 200, 255], role: 'line' },
+      { color: [255, 200, 200], role: 'line' },
+      { color: [200, 255, 200], role: 'none' }
+    ],
+    // ... palettes 2-4
+  ],
+  activePaletteIndex: 0,     // Currently selected palette (0-3)
+  colorTransitionDuration: 3.0,  // Palette switch transition time (seconds)
+  colorSlotZOffset: 100,     // Z-axis separation multiplier for color slots
   
   // Animation
   emitRate: 1.5,             // Lines spawned per second
@@ -295,8 +309,6 @@ const camera = {
 
 ```javascript
 const SEGMENTS = 16;                // Zigzag vertices per line
-const FADE_IN_DURATION = 0.3;       // Seconds for opacity fade-in
-const FADE_OUT_DISTANCE = 80;       // Pixels from boundary to start fade-out
 const STORAGE_KEY = 'zigzagEmitterSettings';  // LocalStorage key
 ```
 
@@ -330,6 +342,8 @@ Represents a single animated zigzag ribbon.
 ```javascript
 constructor({ p, x, y, segmentLength, lineThickness, lineColor, vy })
 ```
+colorData, vy })
+```
 
 **Parameters:**
 - `p` (p5): p5.js instance reference
@@ -337,7 +351,7 @@ constructor({ p, x, y, segmentLength, lineThickness, lineColor, vy })
 - `y` (Number): Initial Y position (canvas space)
 - `segmentLength` (Number): Height of each segment
 - `lineThickness` (Number): Ribbon width
-- `lineColor` (Array): RGB color `[r, g, b]`
+- `colorData` (Object): Color data with `{color: [r,g,b], slotIndex: 0-3}`
 - `vy` (Number): Velocity in Y direction (px/s, negative = upward)
 
 **Properties:**
@@ -346,8 +360,13 @@ constructor({ p, x, y, segmentLength, lineThickness, lineColor, vy })
 - `totalWidth` (Number): Total horizontal width = `segments × step`
 - `alive` (Boolean): Whether line is still visible
 - `age` (Number): Seconds since spawn
-
-#### Methods
+- `currentColor` (Array): Current RGB color `[r, g, b]`
+- `startColor` (Array): Color at transition start
+- `targetColor` (Array): Color at transition end
+- `colorTransitionProgress` (Number): Transition progress (0-1)
+- `isTransitioning` (Boolean): Whether actively transitioning
+- `colorSlotIndex` (Number): Index (0-3) for Z-offset calculation
+- `zOffset` (Number): Z-axis depth offset = `(colorSlotIndex - 2) × params.colorSlotZOffset`
 
 ##### `_buildVertices()`
 
@@ -1057,12 +1076,18 @@ const KEYBOARD_SHORTCUTS = [
   { key: 'R',     action: 'resetCamera',          description: 'Reset camera (Shift+R)',         preventDefault: true, shift: true },
   { key: '0',     action: 'resetZoom',            description: 'Reset zoom to default',          preventDefault: true },
   
+  // Color Palette Selection
+  { key: '1',     action: 'selectPalette1',       description: 'Switch to color palette 1',      preventDefault: true },
+  { key: '2',     action: 'selectPalette2',       description: 'Switch to color palette 2',      preventDefault: true },
+  { key: '3',     action: 'selectPalette3',       description: 'Switch to color palette 3',      preventDefault: true },
+  { key: '4',     action: 'selectPalette4',       description: 'Switch to color palette 4',      preventDefault: true },
+  
   // Modulation Toggles
   { key: 't',     action: 'toggleRandomThickness', description: 'Toggle random thickness',      preventDefault: true },
   { key: 'm',     action: 'toggleRandomSpeed',     description: 'Toggle random speed',          preventDefault: true },
   
   // View Modes
-  { key: '3',     action: 'toggleStereoMode',     description: 'Toggle stereoscopic view',       preventDefault: true },
+  { key: 'y',     action: 'toggleStereoMode',     description: 'Toggle stereoscopic view',       preventDefault: true },
   { key: 'b',     action: 'toggleFramebuffer',    description: 'Toggle framebuffer mode',        preventDefault: true }
 ];
 ```
@@ -1126,22 +1151,82 @@ function resetCamera() {
 - Easy to add/modify/remove shortcuts
 - Consistent modifier key handling
 - Self-documenting with descriptions
-- No duplicate code
-- Export functions delegate to button handlers (ensures 3D projection consistency)
+- No duplicPalette System
 
----
+**Architecture:**
+- **4 palettes** × **4 color slots** each
+- Each color slot has: `color` (RGB array) and `role` ('line', 'background', or 'none')
+- Lines randomly pick from colors with role='line' at spawn time
+- Background uses first color with role='background', or black if none
 
-#### Color Swatches
-
-**Implementation:**
+**Palette switching:**
 ```javascript
-swatches.querySelectorAll('.swatch').forEach(sw => {
-  sw.addEventListener('click', () => {
-    const rgb = sw.dataset.color.split(',').map(Number);
-    params.lineColor = rgb;
-    swatches.querySelector('.active').classList.remove('active');
-    sw.classList.add('active');
-    saveToLocalStorage();
+// Triggered by keyboard shortcuts (1-2-3-4) or UI buttons
+function triggerPaletteChange(newIndex) {
+  params.activePaletteIndex = newIndex;
+  
+  // Trigger color transitions in all existing lines
+  emitterInstance.lines.forEach(line => {
+    const colorData = pickRandomLineColor();
+    line.transitionToColor(colorData.color);
+  });
+  
+  // Trigger background transition
+  SketchFactory.backgroundTransition.start = SketchFactory.backgroundTransition.current;
+  SketchFactory.backgroundTransition.target = getBackgroundColor();
+  SketchFactory.backgroundTransition.progress = 0;
+  SketchFactory.backgroundTransition.isTransitioning = true;
+  
+  syncUIFromParams();
+  saveToLocalStorage();
+}
+```
+
+**Color transition in ZigzagLine:**
+```javascript
+transitionToColor(newColor) {
+  this.startColor = [...this.currentColor];
+  this.targetColor = newColor;
+  this.colorTransitionProgress = 0;
+  this.isTransitioning = true;
+}
+
+update(dt) {
+  // ... position updates
+  
+  // Color lerp during transition (cached to avoid 60fps recalculation)
+  if (this.isTransitioning) {
+    this.colorTransitionProgress += dt / params.colorTransitionDuration;
+    
+    if (this.colorTransitionProgress >= 1) {
+      this.currentColor = [...this.targetColor];
+      this.isTransitioning = false;
+    } else {
+      this.currentColor = lerpColor(
+        this.startColor,
+        this.targetColor,
+        this.colorTransitionProgress
+      );
+    }
+  }
+}
+```
+
+**Z-offset for depth separation:**
+Each color slot gets a distinct Z-axis offset to prevent WebGL z-fighting:
+```javascript
+// In ZigzagLine constructor
+this.zOffset = (colorSlotIndex - 2) * params.colorSlotZOffset;
+// colorSlotIndex: 0 → zOffset: -200 (at default multiplier 100)
+// colorSlotIndex: 1 → zOffset: -100
+// colorSlotIndex: 2 → zOffset: 0
+// colorSlotIndex: 3 → zOffset: +100
+```
+
+**Storage:**
+All palette data persists in localStorage and JSON exports with backward compatibility for older saves.
+
+**Trigger:** Palette button/keyboard → all lines transition smoothly over 3 seconds
   });
 });
 ```
@@ -1562,17 +1647,32 @@ const value = params.newParameter;
 ---
 
 ### Adding Custom Shapes
+Customizing existing palettes:**
+1. Select palette (1-4) via buttons or keyboard
+2. Click color pickers to adjust RGB values
+3. Set color roles via dropdowns (Line/Background/None)
+4. Adjust **Color Depth Separation** slider (10-500) to control Z-offset multiplier
 
-**1. Create new class:**
+**Adding more palettes:**
+Edit `js/config/defaults.js`:
 ```javascript
-class CustomShape {
-  constructor({ p, x, y, ...customParams }) {
-    this.p = p;
-    this.x = x;
-    this.y = y;
-    // Store custom parameters
-    this.alive = true;
-  }
+palettes: [
+  // Add 5th palette
+  [
+    { color: [255, 128, 0], role: 'line' },
+    { color: [0, 255, 128], role: 'line' },
+    { color: [128, 0, 255], role: 'background' },
+    { color: [255, 255, 0], role: 'none' }
+  ]
+],
+```
+
+Update `js/ui/UIController.js` to add 5th button to palette selector.
+
+**Technical notes:**
+- Color transitions use RGB linear interpolation (lerpColor)
+- Z-offset formula: `(slotIndex - 2) × multiplier` centers at 0
+- isTransitioning flags prevent unnecessary calculations after transitions complete
   
   update(dt) {
     // Update position, check bounds

@@ -38,13 +38,24 @@ Startup Guide
 | **v** | Démarrer/arrêter enregistrement vidéo |
 | **r** | Réinitialiser caméra à position par défaut |
 | **0** (zéro) | Réinitialiser niveau de zoom |
+| **1** | Basculer vers Palette de Couleurs 1 |
+| **2** | Basculer vers Palette de Couleurs 2 |
+| **3** | Basculer vers Palette de Couleurs 3 |
+| **4** | Basculer vers Palette de Couleurs 4 |
+| **y** | Basculer vue stéréoscopique (VR/3D) |
 
 ---
 
 ## Contrôles Principaux (Panneau Gauche)
 
-### 🎨 Couleurs
-**Cliquez sur n'importe quel cercle de couleur** pour changer la couleur des lignes.
+### 🎨 Palettes de Couleurs
+**Quatre palettes de couleurs distinctes**, chacune avec 4 emplacements de couleur :
+- **Cliquez sur les boutons de palette (1-4)** en haut pour basculer entre les palettes (ou utilisez les touches 1-2-3-4)
+- **Cliquez sur les sélecteurs de couleur** pour personnaliser chaque couleur
+- **Définissez les rôles** pour chaque couleur : Line (utilisé pour les lignes zigzag) / Background (arrière-plan) / None (désactivé)
+- **Color Depth Separation** : Curseur qui contrôle l'espacement sur l'axe Z entre les lignes de différentes couleurs (empêche le chevauchement visuel)
+
+💡 **Astuce** : Lors du changement de palette, toutes les lignes existantes passent en douceur aux nouvelles couleurs en 3 secondes.
 
 ### 📐 Paramètres de Base
 
@@ -55,7 +66,7 @@ Startup Guide
 
 ### 🎬 Effets d'Animation
 
-- **Random Thickness** : ☑️ Cocher pour varier l'épaisseur aléatoirement
+- **Random Thickness** : ☑️ Cocher pour varier l'épaisseur aléa (ou appuyez sur **y**)toirement
 - **Random Speed** : ☑️ Cocher pour varier la vitesse aléatoirement
 - **Ambient Speed Master** : Ralentir ou accélérer tout (curseur)
 
@@ -108,8 +119,10 @@ Appuyez sur **Entrée** (ou cliquez sur bouton "Fullscreen")
 ### Masquer les Contrôles
 Appuyez sur **Tab** pour obtenir une vue nette pour les captures d'écran
 
-### Changer la Couleur
-Cliquez sur n'importe quel cercle de couleur dans la section Couleurs
+### Changer les Couleurs
+1. Cliquez sur un bouton de palette (1-4) en haut, ou appuyez sur les touches **1**, **2**, **3**, ou **4**
+2. Cliquez sur n'importe quel sélecteur de couleur pour personnaliser les couleurs
+3. Définissez quelles couleurs sont utilisées pour les lignes ou l'arrière-plan
 
 ### Rendre Plus Chargé
 Augmentez le curseur **Emit Rate** (plus de lignes apparaissent)

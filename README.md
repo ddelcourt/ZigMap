@@ -72,9 +72,13 @@ Real-time generative tool that creates animated patterns in 3D space. Advanced c
 | **r** | Reset camera position |
 | **R** (Shift+R) | Reset camera position (alternate) |
 | **0** | Reset zoom to default (600 units) |
+| **1** | Switch to color palette 1 |
+| **2** | Switch to color palette 2 |
+| **3** | Switch to color palette 3 |
+| **4** | Switch to color palette 4 |
 | **t** | Toggle random thickness modulation |
 | **m** | Toggle random speed modulation |
-| **3** | Toggle stereoscopic (VR) mode |
+| **y** | Toggle stereoscopic (VR) mode |
 | **b** | Toggle framebuffer mode |
 
 ---
@@ -332,22 +336,34 @@ Add variation and organic movement to the animation.
 
 ### Colors Section
 
-Choose the color of your zigzag patterns.
+Choose colors for your zigzag patterns using the advanced palette system.
 
-#### Color Palette
-- **Type**: Color swatches
-- **Default**: White
-- Click any swatch to change the line color
-- Active color shows white border
-- **Available colors**:
-  - White (#FFFFFF)
-  - Light Blue (#50C8FF)
-  - Pink/Red (#FF5078)
-  - Mint Green (#50FFA0)
-  - Gold/Yellow (#FFC83C)
-  - Purple (#C850FF)
-- Color applies to all lines with alpha transparency for fade effects
-- More colors can be added by editing the HTML
+#### Color Palettes
+- **Type**: 4 distinct palettes with 4 color slots each
+- **Shortcuts**: Keys 1, 2, 3, 4 to switch between palettes
+- **UI**: Click palette buttons (numbered 1-4) at top of section
+
+#### Color Customization
+Each palette has 4 color slots:
+- **Color Picker**: Click to customize RGB values
+- **Color Role**: Dropdown menu to assign role:
+  - **Line**: Color used for zigzag ribbons (randomly selected at spawn)
+  - **Background**: Color used for canvas background
+  - **None**: Color slot disabled
+- Colors can have duplicate roles (multiple colors as lines or backgrounds)
+
+#### Color Depth Separation
+- **Range**: 10-500
+- **Default**: 100
+- **Purpose**: Controls Z-axis spacing between lines of different colors
+- Higher values increase depth separation, preventing visual overlap (z-fighting)
+- Formula: Each color slot offset = `(slotIndex - 2) × multiplier`
+
+#### Color Transitions
+- When switching palettes, all existing lines smoothly transition to new colors
+- Transition duration: 3 seconds
+- Background also transitions smoothly
+- Uses RGB linear interpolation for smooth color blending
 
 ---
 

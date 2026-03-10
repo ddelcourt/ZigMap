@@ -39,13 +39,24 @@ Startup Guide
 | **v** | Start/stop video recording |
 | **r** | Reset camera to default position |
 | **0** (zero) | Reset zoom level |
+| **1** | Switch to Color Palette 1 |
+| **2** | Switch to Color Palette 2 |
+| **3** | Switch to Color Palette 3 |
+| **4** | Switch to Color Palette 4 |
+| **y** | Toggle stereoscopic (VR/3D) view |
 
 ---
 
 ## Main Controls (Left Panel)
 
-### 🎨 Colors
-**Click any color circle** to change the line color.
+### 🎨 Color Palettes
+**Four distinct color palettes**, each with 4 color slots:
+- **Click palette buttons (1-4)** at the top to switch between palettes (or use keys 1-2-3-4)
+- **Click color pickers** to customize each color
+- **Set roles** for each color: Line (used for zigzag lines) / Background / None (disabled)
+- **Color Depth Separation**: Slider that controls Z-axis spacing between lines of different colors (prevents visual overlapping)
+
+💡 **Tip**: When switching palettes, all existing lines smoothly transition to the new colors over 3 seconds.
 
 ### 📐 Basic Settings
 
@@ -56,7 +67,7 @@ Startup Guide
 
 ### 🎬 Animation Effects
 
-- **Random Thickness**: ☑️ Check to vary line thickness randomly
+- **Random Thickness**: ☑️ Check to vary line thickness rando (or press **y**)mly
 - **Random Speed**: ☑️ Check to vary line speed randomly
 - **Ambient Speed Master**: Slow down or speed up everything (slider)
 
@@ -103,8 +114,10 @@ Startup Guide
 
 ## Common Tasks
 
-### Make It Fullscreen
-Press **Enter** (or click "Fullscreen" button)
+### Make ItColors
+1. Click a palette button (1-4) at the top, or press keys **1**, **2**, **3**, or **4**
+2. Click any color picker to customize colors
+3. Set which colors are used for lines vs backgroundn)
 
 ### Hide the Controls
 Press **Tab** to get a clean view for screenshots

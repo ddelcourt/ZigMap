@@ -231,9 +231,23 @@ const params = {
   // Géométrie
   segmentLength: 120,        // Hauteur de chaque segment zigzag (px)
   lineThickness: 12,         // Largeur du ruban (px)
-  lineColor: [255,255,255],  // Tableau RGB
   emitterRotation: 0,        // Rotation axe Z (degrés)
   geometryScale: 100,        // Échelle uniforme (%)
+  fadeDuration: 0.8,         // Durée de fondu d'entrée/sortie (secondes)
+  
+  // Palettes de Couleurs
+  palettes: [                // 4 palettes × 4 couleurs chacune
+    [
+      { color: [255, 255, 255], role: 'line' },
+      { color: [200, 200, 255], role: 'line' },
+      { color: [255, 200, 200], role: 'line' },
+      { color: [200, 255, 200], role: 'none' }
+    ],
+    // ... palettes 2-4
+  ],
+  activePaletteIndex: 0,     // Palette actuellement sélectionnée (0-3)
+  colorTransitionDuration: 3.0,  // Temps de transition de palette (secondes)
+  colorSlotZOffset: 100,     // Multiplicateur de séparation Z pour emplacements de couleur
   
   // Animation
   emitRate: 1.5,             // Lignes générées par seconde
@@ -268,6 +282,10 @@ const params = {
   
   // Export
   videoDuration: 10,         // Longueur d'enregistrement (secondes)
+  videoFPS: 30,              // Fréquence d'images d'enregistrement
+  videoFormat: 'webm'        // Codec vidéo
+};
+```
   videoFPS: 30,              // Fréquence d'images d'enregistrement
   videoFormat: 'webm'        // Codec vidéo
 };
@@ -328,7 +346,7 @@ Représente un seul ruban zigzag animé.
 #### Constructeur
 
 ```javascript
-constructor({ p, x, y, segmentLength, lineThickness, lineColor, vy })
+constructor({ p, x, y, segmentLength, lineThickness, colorData, vy })
 ```
 
 **Paramètres :**
@@ -337,7 +355,7 @@ constructor({ p, x, y, segmentLength, lineThickness, lineColor, vy })
 - `y` (Number) : Position Y initiale (espace canevas)
 - `segmentLength` (Number) : Hauteur de chaque segment
 - `lineThickness` (Number) : Largeur du ruban
-- `lineColor` (Array) : Couleur RGB `[r, g, b]`
+- `colorData` (Object) : Données de couleur avec `{color: [r,g,b], slotIndex: 0-3}`
 - `vy` (Number) : Vélocité en direction Y (px/s, négatif = vers le haut)
 
 **Propriétés :**
@@ -346,6 +364,13 @@ constructor({ p, x, y, segmentLength, lineThickness, lineColor, vy })
 - `totalWidth` (Number) : Largeur horizontale totale = `segments × step`
 - `alive` (Boolean) : Si la ligne est toujours visible
 - `age` (Number) : Secondes depuis la génération
+- `currentColor` (Array) : Couleur RGB actuelle `[r, g, b]`
+- `startColor` (Array) : Couleur au début de la transition
+- `targetColor` (Array) : Couleur à la fin de la transition
+- `colorTransitionProgress` (Number) : Progression de transition (0-1)
+- `isTransitioning` (Boolean) : Si en transition active
+- `colorSlotIndex` (Number) : Index (0-3) pour calcul de Z-offset
+- `zOffset` (Number) : Décalage de profondeur axe Z = `(colorSlotIndex - 2) × params.colorSlotZOffset`
 
 #### Méthodes
 
@@ -1118,22 +1143,82 @@ function executeAction(actionName) {
 
 ---
 
-#### Nuanciers de Couleurs
+#### Système de Palettes de Couleurs
 
-**Implémentation :**
+**Architecture :**
+- **4 palettes** × **4 emplacements de couleur** chacune
+- Chaque emplacement a : `color` (tableau RGB) et `role` ('line', 'background', ou 'none')
+- Les lignes sélectionnent aléatoirement parmi les couleurs avec role='line' au moment de la génération
+- L'arrière-plan utilise la première couleur avec role='background', ou noir si aucune
+
+**Changement de palette :**
 ```javascript
-swatches.querySelectorAll('.swatch').forEach(sw => {
-  sw.addEventListener('click', () => {
-    const rgb = sw.dataset.color.split(',').map(Number);
-    params.lineColor = rgb;
-    swatches.querySelector('.active').classList.remove('active');
-    sw.classList.add('active');
-    saveToLocalStorage();
+// Déclenché par les raccourcis clavier (1-2-3-4) ou les boutons UI
+function triggerPaletteChange(newIndex) {
+  params.activePaletteIndex = newIndex;
+  
+  // Déclencher transitions de couleur dans toutes les lignes existantes
+  emitterInstance.lines.forEach(line => {
+    const colorData = pickRandomLineColor();
+    line.transitionToColor(colorData.color);
   });
-});
+  
+  // Déclencher transition d'arrière-plan
+  SketchFactory.backgroundTransition.start = SketchFactory.backgroundTransition.current;
+  SketchFactory.backgroundTransition.target = getBackgroundColor();
+  SketchFactory.backgroundTransition.progress = 0;
+  SketchFactory.backgroundTransition.isTransitioning = true;
+  
+  syncUIFromParams();
+  saveToLocalStorage();
+}
 ```
 
-**Déclencheur :** Clic sur nuancier → mettre à jour `params.lineColor` → sauvegarder.
+**Transition de couleur dans ZigzagLine :**
+```javascript
+transitionToColor(newColor) {
+  this.startColor = [...this.currentColor];
+  this.targetColor = newColor;
+  this.colorTransitionProgress = 0;
+  this.isTransitioning = true;
+}
+
+update(dt) {
+  // ... mises à jour de position
+  
+  // Interpolation de couleur pendant transition (mise en cache pour éviter recalcul 60fps)
+  if (this.isTransitioning) {
+    this.colorTransitionProgress += dt / params.colorTransitionDuration;
+    
+    if (this.colorTransitionProgress >= 1) {
+      this.currentColor = [...this.targetColor];
+      this.isTransitioning = false;
+    } else {
+      this.currentColor = lerpColor(
+        this.startColor,
+        this.targetColor,
+        this.colorTransitionProgress
+      );
+    }
+  }
+}
+```
+
+**Z-offset pour séparation de profondeur :**
+Chaque emplacement de couleur obtient un décalage d'axe Z distinct pour empêcher z-fighting WebGL :
+```javascript
+// Dans le constructeur ZigzagLine
+this.zOffset = (colorSlotIndex - 2) * params.colorSlotZOffset;
+// colorSlotIndex: 0 → zOffset: -200 (au multiplicateur par défaut 100)
+// colorSlotIndex: 1 → zOffset: -100
+// colorSlotIndex: 2 → zOffset: 0
+// colorSlotIndex: 3 → zOffset: +100
+```
+
+**Stockage :**
+Toutes les données de palette persistent dans localStorage et les exports JSON avec compatibilité ascendante pour les anciennes sauvegardes.
+
+**Déclencheur :** Bouton de palette/clavier → toutes les lignes transitionnent en douceur sur 3 secondes.
 
 ---
 
@@ -1695,17 +1780,32 @@ Câbler au bouton dans HTML.
 
 ### Palettes de Couleurs Personnalisées
 
-**1. Ajouter nuanciers au HTML :**
-```html
-<div class="swatch" data-color="128,0,255" style="background:#8000ff"></div>
+**Personnalisation des palettes existantes :**
+1. Sélectionnez la palette (1-4) via les boutons ou le clavier
+2. Cliquez sur les sélecteurs de couleur pour ajuster les valeurs RGB
+3. Définissez les rôles de couleur via les menus déroulants (Line/Background/None)
+4. Ajustez le curseur **Color Depth Separation** (10-500) pour contrôler le multiplicateur de Z-offset
+
+**Ajout de plus de palettes :**
+Éditez `js/config/defaults.js` :
+```javascript
+palettes: [
+  // Ajouter 5ème palette
+  [
+    { color: [255, 128, 0], role: 'line' },
+    { color: [0, 255, 128], role: 'line' },
+    { color: [128, 0, 255], role: 'background' },
+    { color: [255, 255, 0], role: 'none' }
+  ]
+],
 ```
 
-**2. Récupère automatiquement gestionnaire existant.**
+Mettez à jour `js/ui/UIController.js` pour ajouter un 5ème bouton au sélecteur de palette.
 
-**Pour palettes avancées :**
-- Ajouter input sélecteur de couleur : `<input type="color">`
-- Convertir hex en RGB : `hexToRgb(hex)`
-- Mettre à jour `params.lineColor`
+**Notes techniques :**
+- Les transitions de couleur utilisent l'interpolation linéaire RGB (lerpColor)
+- Formule de Z-offset : `(slotIndex - 2) × multiplier` centre à 0
+- Les drapeaux isTransitioning empêchent les calculs inutiles après la fin des transitions
 
 ---
 
