@@ -2,6 +2,8 @@
  * KeyboardHandler — Centralized keyboard shortcuts
  */
 
+import { triggerPaletteChange } from '../core/colorUtils.js';
+
 export function setupKeyboardHandlers(ZM) {
   // Load keyboard shortcuts configuration
   fetch('config/keyboardShortcuts.json')
@@ -126,6 +128,35 @@ function executeAction(action, ZM) {
       ZM.params.framebufferMode = !ZM.params.framebufferMode;
       document.getElementById('framebuffer-mode').checked = ZM.params.framebufferMode;
       ZM.updateCanvasSize();
+      ZM.saveToLocalStorage();
+    },
+    
+    // Color Palette Selection
+    selectPalette1: () => {
+      ZM.params.activePaletteIndex = 0;
+      triggerPaletteChange(ZM);
+      if (ZM.syncUIFromParams) ZM.syncUIFromParams();
+      ZM.saveToLocalStorage();
+    },
+    
+    selectPalette2: () => {
+      ZM.params.activePaletteIndex = 1;
+      triggerPaletteChange(ZM);
+      if (ZM.syncUIFromParams) ZM.syncUIFromParams();
+      ZM.saveToLocalStorage();
+    },
+    
+    selectPalette3: () => {
+      ZM.params.activePaletteIndex = 2;
+      triggerPaletteChange(ZM);
+      if (ZM.syncUIFromParams) ZM.syncUIFromParams();
+      ZM.saveToLocalStorage();
+    },
+    
+    selectPalette4: () => {
+      ZM.params.activePaletteIndex = 3;
+      triggerPaletteChange(ZM);
+      if (ZM.syncUIFromParams) ZM.syncUIFromParams();
       ZM.saveToLocalStorage();
     }
   };

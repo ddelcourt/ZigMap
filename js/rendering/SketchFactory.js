@@ -4,6 +4,7 @@
 
 import { Emitter } from '../core/Emitter.js';
 import { getSpawnDistance, buildRibbonSides } from '../core/utils.js';
+import { getBackgroundColor, lerpColor } from '../core/colorUtils.js';
 
 let sharedLastTime = 0;
 
@@ -11,6 +12,18 @@ let sharedLastTime = 0;
  * Creates main p5 sketch or stereo pair
  */
 export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
+  // Background color transition state (shared across stereo pair via ZM)
+  if (!ZM.bgTransition) {
+    const initialBg = getBackgroundColor(ZM.params);
+    ZM.bgTransition = {
+      current: [...initialBg],   // Cached display color
+      start: [...initialBg],      // Start of transition
+      target: [...initialBg],     // Target of transition
+      progress: 1.0,
+      isTransitioning: false
+    };
+  }
+  
   return (p) => {
     let emitter = null;
     const isPrimary = canvasId === 'left-canvas' || canvasId === 'mono-canvas';
@@ -56,10 +69,27 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
         
         // Update emitter (only on primary canvas)
         emitter.update(dt);
+        
+        // Update background color transition (only if actively transitioning)
+        if (ZM.bgTransition.isTransitioning) {
+          ZM.bgTransition.progress += dt / ZM.params.colorTransitionDuration;
+          if (ZM.bgTransition.progress >= 1.0) {
+            ZM.bgTransition.progress = 1.0;
+            ZM.bgTransition.current = [...ZM.bgTransition.target];
+            ZM.bgTransition.isTransitioning = false; // Stop checking
+          } else {
+            // Cache lerped color: interpolate from start to target
+            ZM.bgTransition.current = lerpColor(
+              ZM.bgTransition.start,
+              ZM.bgTransition.target,
+              ZM.bgTransition.progress
+            );
+          }
+        }
       }
       
-      // Clear background
-      p.background(0);
+      // Clear background with cached color (no per-frame lerp)
+      p.background(...ZM.bgTransition.current);
       
       // Setup camera
       const fovRad = ZM.params.fov * (Math.PI / 180);

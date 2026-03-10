@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { ZigzagLine } from './ZigzagLine.js';
+import { pickRandomLineColor } from './colorUtils.js';
 
 export class Emitter {
   constructor({
@@ -71,6 +72,8 @@ export class Emitter {
     }
     speed *= this.params.ambientSpeedMaster / 100;
 
+    const colorData = pickRandomLineColor(this.params);
+
     this.lines.push(
       new ZigzagLine({
         p: this.p,
@@ -78,10 +81,12 @@ export class Emitter {
         y: this.y,
         segmentLength: this.params.segmentLength,
         lineThickness: thickness,
-        lineColor: this.params.lineColor,
+        lineColor: colorData.color,
+        colorSlotIndex: colorData.slotIndex,
         vy: -speed,
         canvasWidth: this.canvasWidth,
         canvasHeight: this.canvasHeight,
+        params: this.params,
         getSpawnDistanceFn: this.getSpawnDistance,
         buildRibbonSidesFn: this.buildRibbonSides
       })

@@ -83,7 +83,7 @@ export function exportSVG(ZM) {
       .map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
     
     polygon.setAttribute('points', pts);
-    polygon.setAttribute('fill', `rgba(${line.lineColor.join(',')},${alpha})`);
+    polygon.setAttribute('fill', `rgba(${line.currentColor.join(',')},${alpha})`);
     polygon.setAttribute('stroke', 'none');
     svg.appendChild(polygon);
   });

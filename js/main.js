@@ -5,7 +5,7 @@
 
 // Import configurations
 import { DEFAULT_PARAMS } from './config/defaults.js';
-import { SEGMENTS, FADE_IN_DURATION, FADE_OUT_DISTANCE, STORAGE_KEY } from './config/constants.js';
+import { SEGMENTS, STORAGE_KEY } from './config/constants.js';
 
 // Import core classes
 import { ZigzagLine } from './core/ZigzagLine.js';
@@ -43,8 +43,6 @@ window.ZigMap26 = {
   
   // Constants
   SEGMENTS,
-  FADE_IN_DURATION,
-  FADE_OUT_DISTANCE,
   STORAGE_KEY,
   
   // State
@@ -118,17 +116,17 @@ function init() {
   // Initialize UI
   initializeUI(ZM);
   
+  // Sync UI if we loaded saved settings (this will call initializeSketches)
+  if (hadSavedSettings && ZM.syncUIFromParams) {
+    ZM.syncUIFromParams();
+  } else {
+    // Create p5 sketches only if we didn't sync from saved settings
+    ZM.initializeSketches();
+  }
+  
   // Setup input handlers
   setupKeyboardHandlers(ZM);
   setupMouseHandlers(ZM);
-  
-  // Create p5 sketches
-  ZM.initializeSketches();
-  
-  // If had saved stereo settings, reinitialize
-  if (hadSavedSettings && ZM.params.stereoscopicMode) {
-    ZM.initializeSketches();
-  }
   
   // Handle window resize
   window.addEventListener('resize', () => {

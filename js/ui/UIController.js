@@ -2,6 +2,8 @@
  * UIController — Binds UI controls to parameters
  */
 
+import { triggerPaletteChange, getBackgroundColor } from '../core/colorUtils.js';
+
 export function initializeUI(ZM) {
   // Load JSON configs for UI presets
   loadUIConfigs().then(() => {
@@ -43,6 +45,8 @@ function initializeAllControls(ZM) {
   wireSlider(ZM, 'speed', 'speed-val', 'speed');
   wireSlider(ZM, 'emitter-rotation', 'emitter-rotation-val', 'emitterRotation');
   wireSlider(ZM, 'geometry-scale', 'geometry-scale-val', 'geometryScale');
+  wireSlider(ZM, 'fade-duration', 'fade-duration-val', 'fadeDuration');
+  wireSlider(ZM, 'color-slot-z-offset', 'color-slot-z-offset-val', 'colorSlotZOffset');
   wireSlider(ZM, 'ambient-speed-master', 'ambient-speed-master-val', 'ambientSpeedMaster');
   wireSlider(ZM, 'video-duration', 'video-duration-val', 'videoDuration');
   wireSlider(ZM, 'video-fps', 'video-fps-val', 'videoFPS');
@@ -71,8 +75,8 @@ function initializeAllControls(ZM) {
   // Framebuffer controls
   setupFramebufferControls(ZM);
   
-  // Color swatches
-  setupColorSwatches(ZM);
+  // Palette UI
+  setupPaletteUI(ZM);
   
   // Video format buttons
   setupVideoFormatButtons(ZM);
@@ -346,15 +350,108 @@ function getPresetForDimensions(w, h) {
 /**
  * Setup color swatches
  */
-function setupColorSwatches(ZM) {
-  document.querySelectorAll('.swatch').forEach(swatch => {
-    swatch.addEventListener('click', () => {
-      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-      swatch.classList.add('active');
-      ZM.params.lineColor = swatch.dataset.color.split(',').map(Number);
+/**
+ * Setup palette UI controls
+ */
+function setupPaletteUI(ZM) {
+  // Initialize UI from current params
+  updatePaletteUI(ZM);
+  
+  // Palette selector buttons
+  document.querySelectorAll('.palette-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const paletteIndex = parseInt(btn.dataset.palette);
+      
+      // Update active button
+      document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Update params and trigger color transitions
+      ZM.params.activePaletteIndex = paletteIndex;
+      updatePaletteUI(ZM);
+      triggerPaletteChange(ZM);
       ZM.saveToLocalStorage();
     });
   });
+  
+  // Color pickers
+  document.querySelectorAll('.color-picker').forEach(picker => {
+    picker.addEventListener('input', () => {
+      const slotIndex = parseInt(picker.dataset.slot);
+      const hex = picker.value;
+      const rgb = hexToRgb(hex);
+      
+      ZM.params.palettes[ZM.params.activePaletteIndex][slotIndex].rgb = rgb;
+      triggerPaletteChange(ZM);
+      ZM.saveToLocalStorage();
+    });
+  });
+  
+  // Role selectors
+  document.querySelectorAll('.color-role').forEach(select => {
+    select.addEventListener('change', () => {
+      const slotIndex = parseInt(select.dataset.slot);
+      const newRole = select.value;
+      const activePalette = ZM.params.palettes[ZM.params.activePaletteIndex];
+      
+      // Enforce background exclusivity
+      if (newRole === 'background') {
+        activePalette.forEach((color, idx) => {
+          if (idx !== slotIndex && color.role === 'background') {
+            color.role = 'none';
+          }
+        });
+        updatePaletteUI(ZM); // Refresh all dropdowns
+      }
+      
+      activePalette[slotIndex].role = newRole;
+      triggerPaletteChange(ZM);
+      ZM.saveToLocalStorage();
+    });
+  });
+}
+
+/**
+ * Update palette UI from current params
+ */
+function updatePaletteUI(ZM) {
+  const activePalette = ZM.params.palettes[ZM.params.activePaletteIndex];
+  
+  activePalette.forEach((color, idx) => {
+    // Update color picker
+    const picker = document.querySelector(`.color-picker[data-slot="${idx}"]`);
+    if (picker) {
+      picker.value = rgbToHex(color.rgb);
+    }
+    
+    // Update role dropdown
+    const roleSelect = document.querySelector(`.color-role[data-slot="${idx}"]`);
+    if (roleSelect) {
+      roleSelect.value = color.role;
+    }
+  });
+}
+
+/**
+ * Convert RGB array to hex string
+ */
+function rgbToHex(rgb) {
+  return '#' + rgb.map(c => {
+    const hex = c.toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  }).join('');
+}
+
+/**
+ * Convert hex string to RGB array
+ */
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? [
+    parseInt(result[1], 16),
+    parseInt(result[2], 16),
+    parseInt(result[3], 16)
+  ] : [0, 0, 0];
 }
 
 /**
@@ -564,6 +661,24 @@ function syncUIFromParams(ZM) {
       if (display) display.textContent = ZM.params[key];
     }
   });
+  
+  // Update palette UI
+  updatePaletteUI(ZM);
+  
+  // Update active palette button
+  document.querySelectorAll('.palette-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.palette) === ZM.params.activePaletteIndex);
+  });
+  
+  // Update background transition state if needed
+  if (ZM.bgTransition) {
+    const newBg = getBackgroundColor(ZM.params);
+    ZM.bgTransition.current = newBg;
+    ZM.bgTransition.start = newBg;
+    ZM.bgTransition.target = newBg;
+    ZM.bgTransition.progress = 1.0;
+    ZM.bgTransition.isTransitioning = false;
+  }
   
   // Sync camera
   ZM.camera.syncToParams(ZM.params);

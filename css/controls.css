@@ -244,30 +244,6 @@ input[type="range"]:disabled::-moz-range-thumb:hover {
   color: #888;
 }
 
-/* ── Color swatches ── */
-.color-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.swatch {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: transform 0.15s, border-color 0.15s;
-}
-
-.swatch:hover {
-  transform: scale(1.15);
-}
-
-.swatch.active {
-  border-color: #fff;
-}
-
 /* ── Capture buttons ── */
 .cap-btn {
   background: #1a1a1a;
@@ -488,4 +464,106 @@ input[type="range"]:disabled::-moz-range-thumb:hover {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* ── Palette Selector ── */
+.palette-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.palette-btn {
+  padding: 10px;
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #333;
+  color: #888;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.palette-btn:hover {
+  background: rgba(40, 40, 40, 0.9);
+  border-color: #555;
+}
+
+.palette-btn.active {
+  background: rgba(0, 135, 255, 0.2);
+  border-color: #0087ff;
+  color: #0087ff;
+}
+
+/* ── Palette Editor ── */
+.palette-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.color-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(20, 20, 20, 0.5);
+  border-radius: 4px;
+  border: 1px solid rgba(50, 50, 50, 0.5);
+}
+
+.color-slot label {
+  font-size: 0.6rem;
+  color: #777;
+}
+
+.color-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.color-picker {
+  width: 50px;
+  height: 30px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
+
+.color-role {
+  flex: 1;
+  padding: 6px 10px;
+  background: rgba(30, 30, 30, 0.9);
+  border: 1px solid #444;
+  color: #aaa;
+  font-size: 0.7rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.color-role:hover {
+  border-color: #666;
+}
+
+.color-role:focus {
+  outline: none;
+  border-color: #0087ff;
 }

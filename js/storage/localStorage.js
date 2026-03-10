@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { STORAGE_KEY } from '../config/constants.js';
+import { DEFAULT_PARAMS } from '../config/defaults.js';
 
 /**
  * Save parameters to localStorage
@@ -35,6 +36,14 @@ export function loadFromLocalStorage(defaultParams) {
     if (loaded.cameraOffsetX === undefined) loaded.cameraOffsetX = 0;
     if (loaded.cameraOffsetY === undefined) loaded.cameraOffsetY = 0;
     if (loaded.depthInvert === undefined) loaded.depthInvert = false;
+    
+    // Ensure palettes exist (for backward compatibility with old saves)
+    if (!loaded.palettes || !Array.isArray(loaded.palettes) || loaded.palettes.length !== 4) {
+      loaded.palettes = defaultParams.palettes;
+    }
+    if (loaded.activePaletteIndex === undefined) loaded.activePaletteIndex = 0;
+    if (loaded.colorTransitionDuration === undefined) loaded.colorTransitionDuration = 3.0;
+    if (loaded.colorSlotZOffset === undefined) loaded.colorSlotZOffset = 100;
     
     return { ...defaultParams, ...loaded };
   } catch (e) {
@@ -73,6 +82,14 @@ export function loadJSON(file, callback) {
       
       // Validate critical values
       if (loaded.near < 0.01) loaded.near = 0.01;
+      
+      // Ensure palettes exist (for backward compatibility)
+      if (!loaded.palettes || !Array.isArray(loaded.palettes) || loaded.palettes.length !== 4) {
+        loaded.palettes = DEFAULT_PARAMS.palettes;
+      }
+      if (loaded.activePaletteIndex === undefined) loaded.activePaletteIndex = 0;
+      if (loaded.colorTransitionDuration === undefined) loaded.colorTransitionDuration = 3.0;
+      if (loaded.colorSlotZOffset === undefined) loaded.colorSlotZOffset = 100;
       
       callback(loaded);
     } catch (err) {

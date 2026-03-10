@@ -114,7 +114,31 @@
       "preventDefault": true
     },
     {
+      "key": "1",
+      "action": "selectPalette1",
+      "description": "Select Color Palette 1",
+      "preventDefault": true
+    },
+    {
+      "key": "2",
+      "action": "selectPalette2",
+      "description": "Select Color Palette 2",
+      "preventDefault": true
+    },
+    {
       "key": "3",
+      "action": "selectPalette3",
+      "description": "Select Color Palette 3",
+      "preventDefault": true
+    },
+    {
+      "key": "4",
+      "action": "selectPalette4",
+      "description": "Select Color Palette 4",
+      "preventDefault": true
+    },
+    {
+      "key": "y",
       "action": "toggleStereoMode",
       "description": "Toggle stereoscopic view",
       "preventDefault": true

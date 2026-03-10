@@ -7,9 +7,40 @@ export const DEFAULT_PARAMS = {
   // Geometry
   segmentLength: 120,
   lineThickness: 24,
-  lineColor: [255, 255, 255],
   emitterRotation: 0,
   geometryScale: 100,
+  fadeDuration: 1.0,
+
+  // Color Palettes
+  palettes: [
+    [ // Palette 0 - Monochrome
+      { rgb: [255, 255, 255], role: 'line' },
+      { rgb: [0, 0, 0], role: 'background' },
+      { rgb: [180, 180, 180], role: 'line' },
+      { rgb: [60, 60, 60], role: 'none' }
+    ],
+    [ // Palette 1 - Warm
+      { rgb: [255, 140, 60], role: 'line' },
+      { rgb: [20, 10, 5], role: 'background' },
+      { rgb: [255, 90, 120], role: 'line' },
+      { rgb: [200, 180, 50], role: 'line' }
+    ],
+    [ // Palette 2 - Cool
+      { rgb: [120, 200, 255], role: 'line' },
+      { rgb: [5, 10, 20], role: 'background' },
+      { rgb: [80, 255, 180], role: 'line' },
+      { rgb: [160, 120, 255], role: 'none' }
+    ],
+    [ // Palette 3 - Vibrant
+      { rgb: [255, 60, 200], role: 'line' },
+      { rgb: [10, 20, 10], role: 'background' },
+      { rgb: [60, 255, 100], role: 'line' },
+      { rgb: [255, 220, 60], role: 'line' }
+    ]
+  ],
+  activePaletteIndex: 0,
+  colorTransitionDuration: 3.0,
+  colorSlotZOffset: 100, // Z-offset multiplier per color slot (prevents z-fighting)
 
   // Animation
   emitRate: 1.5,

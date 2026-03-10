@@ -3,7 +3,8 @@
 // Represents a single zigzag ribbon in 3D space
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { SEGMENTS, FADE_IN_DURATION, FADE_OUT_DISTANCE } from '../config/constants.js';
+import { SEGMENTS } from '../config/constants.js';
+import { lerpColor } from './colorUtils.js';
 
 export class ZigzagLine {
   constructor({
@@ -13,9 +14,11 @@ export class ZigzagLine {
     segmentLength,
     lineThickness,
     lineColor,
+    colorSlotIndex,
     vy,
     canvasWidth,
     canvasHeight,
+    params,
     getSpawnDistanceFn,
     buildRibbonSidesFn
   }) {
@@ -24,8 +27,19 @@ export class ZigzagLine {
     this.y = y;
     this.segmentLength = segmentLength;
     this.lineThickness = lineThickness;
-    this.lineColor = [...lineColor];
+    
+    // Color transition system
+    this.currentColor = [...lineColor];  // Cached display color
+    this.startColor = [...lineColor];     // Start of transition
+    this.targetColor = [...lineColor];    // Target of transition
+    this.colorTransitionProgress = 1.0;
+    this.isTransitioning = false;
+    
+    // Z-offset to prevent z-fighting between color slots (dynamic multiplier)
+    this.zOffset = (colorSlotIndex - 2) * params.colorSlotZOffset;
+    
     this.vy = vy;
+    this.params = params;
     this.segments = SEGMENTS;
     this.step = segmentLength / Math.SQRT2;
     this.totalWidth = this.segments * this.step;
@@ -37,6 +51,16 @@ export class ZigzagLine {
     this.canvasHeight = canvasHeight;
     this.getSpawnDistance = getSpawnDistanceFn;
     this.buildRibbonSides = buildRibbonSidesFn;
+  }
+
+  /**
+   * Start transitioning to a new color
+   */
+  transitionToColor(newColor) {
+    this.startColor = [...this.currentColor];  // Remember where we started
+    this.targetColor = [...newColor];
+    this.colorTransitionProgress = 0.0;
+    this.isTransitioning = true;
   }
 
   _buildVertices() {
@@ -58,17 +82,38 @@ export class ZigzagLine {
     const worldY = this.y - this.canvasHeight / 2;
     const dist = this.getSpawnDistance(this.segmentLength);
     if (worldY > dist || worldY < -dist) this.alive = false;
+    
+    // Update color transition (only if actively transitioning)
+    if (this.isTransitioning) {
+      this.colorTransitionProgress += dt / this.params.colorTransitionDuration;
+      if (this.colorTransitionProgress >= 1.0) {
+        this.colorTransitionProgress = 1.0;
+        this.currentColor = [...this.targetColor]; // Snap to final color
+        this.isTransitioning = false; // Stop checking
+      } else {
+        // Cache lerped color: interpolate from start to target
+        this.currentColor = lerpColor(this.startColor, this.targetColor, this.colorTransitionProgress);
+      }
+    }
   }
 
   _alpha() {
-    const fadeIn = Math.min(this.age / FADE_IN_DURATION, 1);
+    const fadeDuration = this.params.fadeDuration;
+    
+    // Fade in based on age
+    const fadeIn = Math.min(this.age / fadeDuration, 1);
+    
+    // Fade out based on time-to-boundary (distance / velocity)
     const spawnDist = this.getSpawnDistance(this.segmentLength);
     const worldY = this.y - this.canvasHeight / 2;
     const distToBoundary = Math.min(
       Math.abs(worldY - (-spawnDist)),
       Math.abs(worldY - spawnDist)
     );
-    const fadeOut = Math.min(distToBoundary / FADE_OUT_DISTANCE, 1);
+    // Convert distance to time: how many seconds until reaching boundary
+    const timeToBoundary = distToBoundary / Math.abs(this.vy);
+    const fadeOut = Math.min(timeToBoundary / fadeDuration, 1);
+    
     return Math.min(fadeIn, fadeOut);
   }
 
@@ -85,14 +130,15 @@ export class ZigzagLine {
       this.y - this.canvasHeight / 2,
       0
     );
-    p.fill(...this.lineColor, alpha);
+    // Use cached currentColor (updated in update())
+    p.fill(...this.currentColor, alpha);
     p.noStroke();
     p.beginShape();
     for (const pt of leftSide) {
-      p.vertex(pt.x, pt.y, 0);
+      p.vertex(pt.x, pt.y, this.zOffset);
     }
     for (let i = rightSide.length - 1; i >= 0; i--) {
-      p.vertex(rightSide[i].x, rightSide[i].y, 0);
+      p.vertex(rightSide[i].x, rightSide[i].y, this.zOffset);
     }
     p.endShape(p.CLOSE);
     p.pop();
