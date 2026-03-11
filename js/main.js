@@ -15,6 +15,7 @@ import { getSpawnDistance, buildRibbonSides } from './core/utils.js';
 
 // Import storage
 import { loadFromLocalStorage, saveToLocalStorage, downloadJSON, loadJSON } from './storage/localStorage.js';
+import { initializeStateManager } from './storage/StateManager.js';
 
 // Import rendering
 import { attachToZM } from './rendering/SketchFactory.js';
@@ -73,9 +74,24 @@ window.ZigMap26 = {
     }
     return false;
   },
-  downloadJSON: () => downloadJSON(window.ZigMap26.params),
-  loadJSON: (file) => loadJSON(file, (loadedParams) => {
-    Object.assign(window.ZigMap26.params, loadedParams);
+  downloadJSON: () => downloadJSON(window.ZigMap26),
+  loadJSON: (file) => loadJSON(file, (loadedData) => {
+    // Update params
+    Object.assign(window.ZigMap26.params, loadedData.params);
+    
+    // Restore states if present (v2 format)
+    if (loadedData.states && Array.isArray(loadedData.states)) {
+      window.ZigMap26.stateManager.states = loadedData.states;
+      window.ZigMap26.stateManager.activeStateId = loadedData.activeStateId;
+      window.ZigMap26.stateManager.saveToStorage();
+      
+      // Update state UI
+      if (window.ZigMap26.updateStatePanel) {
+        window.ZigMap26.updateStatePanel();
+      }
+    }
+    
+    // Sync main UI
     window.ZigMap26.syncUIFromParams();
   }),
   
@@ -109,6 +125,9 @@ function init() {
   
   // Load saved settings
   const hadSavedSettings = ZM.loadFromLocalStorage();
+  
+  // Initialize preset manager
+  initializeStateManager(ZM);
   
   // Attach rendering functions
   attachToZM(ZM);

@@ -9,6 +9,7 @@ export function initializeUI(ZM) {
   loadUIConfigs().then(() => {
     initializeAllControls(ZM);
     setupExportButtons(ZM);
+    setupStatePanel(ZM);
     setupCollapsibleSections();
     setupLanguageFilter();
     setupDocumentationButtons();
@@ -17,6 +18,8 @@ export function initializeUI(ZM) {
   // Store sync function
   ZM.syncUIFromParams = () => syncUIFromParams(ZM);
   ZM.updatePaletteUI = () => updatePaletteUI(ZM);
+  ZM.updateStatePanel = () => updateStatePanel(ZM);
+  ZM.showToast = (message, type) => showToast(message, type);
 }
 
 /**
@@ -42,7 +45,7 @@ async function loadUIConfigs() {
 function initializeAllControls(ZM) {
   // Standard sliders
   wireSlider(ZM, 'thickness', 'thickness-val', 'lineThickness', 1);
-  wireSlider(ZM, 'emit-rate', 'emit-rate-val', 'emitRate');
+  wireSlider(ZM, 'emit-rate', 'emit-rate-val', 'emitRate', 1);
   wireSlider(ZM, 'speed', 'speed-val', 'speed');
   wireSlider(ZM, 'emitter-rotation', 'emitter-rotation-val', 'emitterRotation');
   wireSlider(ZM, 'geometry-scale', 'geometry-scale-val', 'geometryScale');
@@ -108,6 +111,13 @@ function wireSlider(ZM, sliderId, displayId, paramKey, decimals = 0) {
     display.textContent = decimals > 0 ? 
       ZM.params[paramKey].toFixed(decimals) : 
       ZM.params[paramKey];
+    
+    // Cancel emitter rotation transition if user manually adjusts it
+    if (paramKey === 'emitterRotation' && ZM.emitterRotationTransition) {
+      ZM.emitterRotationTransition.isTransitioning = false;
+      ZM.emitterRotationTransition.current = ZM.params[paramKey];
+    }
+    
     ZM.saveToLocalStorage();
   });
 }
@@ -139,6 +149,16 @@ function setupFOVControl(ZM) {
   display.textContent = ZM.params.fov.toFixed(2);
   
   slider.addEventListener('input', () => {
+    // Cancel any active FOV transition
+    if (ZM.fovTransition && ZM.fovTransition.isTransitioning) {
+      ZM.fovTransition.isTransitioning = false;
+    }
+    
+    // Cancel any active camera transition when FOV changes
+    if (ZM.camera.transition.isActive) {
+      ZM.camera.transition.isActive = false;
+    }
+    
     const oldFOV = ZM.params.fov;
     const newFOV = parseFloat(slider.value);
     const oldFOVRad = oldFOV * Math.PI / 180;
@@ -147,6 +167,7 @@ function setupFOVControl(ZM) {
     const newDist = Math.max(50, Math.min(10000, ZM.camera.distance * ratio));
     
     ZM.params.fov = newFOV;
+    ZM.fovTransition.current = newFOV;
     ZM.camera.distance = newDist;
     ZM.params.cameraDistance = newDist;
     display.textContent = newFOV.toFixed(2);
@@ -689,3 +710,278 @@ function syncUIFromParams(ZM) {
     ZM.initializeSketches();
   }
 }
+
+/**
+ * Setup state panel UI
+ */
+function setupStatePanel(ZM) {
+  const stateContainer = document.getElementById('state-list-container');
+  if (!stateContainer) {
+    console.warn('State container not found');
+    return;
+  }
+  
+  // Initial render
+  updateStatePanel(ZM);
+  
+  // New state button - direct save with auto-generated name
+  const newStateBtn = document.getElementById('new-state-btn');
+  if (newStateBtn) {
+    newStateBtn.addEventListener('click', () => {
+      const name = `State ${ZM.stateManager.states.length + 1}`;
+      ZM.stateManager.save(name);
+      // Show toast notification
+      showToast('State created! Click to rename.');
+    });
+  }
+  
+  // Export all button
+  const exportAllBtn = document.getElementById('export-all-states-btn');
+  if (exportAllBtn) {
+    exportAllBtn.addEventListener('click', () => {
+      ZM.stateManager.exportAll();
+    });
+  }
+  
+  // Import state button
+  const importStateBtn = document.getElementById('import-state-btn');
+  if (importStateBtn) {
+    importStateBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            try {
+              const data = JSON.parse(event.target.result);
+              ZM.stateManager.importState(data);
+              showToast('✓ State(s) imported successfully!', 'success');
+            } catch (err) {
+              showToast('Failed to import state. Invalid file format.');
+              console.error(err);
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    });
+  }
+}
+
+/**
+ * Update state panel UI
+ */
+function updateStatePanel(ZM) {
+  const stateContainer = document.getElementById('state-list-container');
+  if (!stateContainer) return;
+  
+  const states = ZM.stateManager.getAllStates();
+  const activeId = ZM.stateManager.activeStateId;
+  
+  if (states.length === 0) {
+    stateContainer.innerHTML = '<div class="state-empty-state">No states yet. Create one!</div>';
+    return;
+  }
+  
+  stateContainer.innerHTML = states.map(state => {
+    const isActive = state.id === activeId;
+    const date = new Date(state.timestamp);
+    const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    return `
+      <div class="state-item ${isActive ? 'active' : ''}" data-state-id="${state.id}">
+        <div class="state-info">
+          <div class="state-name">${escapeHtml(state.name)}</div>
+          <div class="state-timestamp">${timeStr}</div>
+        </div>
+        <div class="state-actions">
+          <button class="state-action-btn update" data-action="update" title="Update">
+            <span class="icon-update"></span>
+          </button>
+          <button class="state-action-btn duplicate" data-action="duplicate" title="Duplicate">
+            <span class="icon-duplicate"></span>
+          </button>
+          <button class="state-action-btn rename" data-action="rename" title="Rename">
+            <span class="icon-rename"></span>
+          </button>
+          <button class="state-action-btn delete" data-action="delete" title="Delete">
+            <span class="icon-delete"></span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  // Wire up state item clicks
+  stateContainer.querySelectorAll('.state-item').forEach(item => {
+    const stateId = item.dataset.stateId;
+    
+    // Click on item to load
+    item.addEventListener('click', (e) => {
+      // Ignore if clicking on action buttons or in edit mode
+      if (e.target.closest('.state-action-btn')) return;
+      if (e.target.closest('.state-name.editing')) return;
+      ZM.stateManager.load(stateId);
+    });
+    
+    // Inline editing for state name
+    const nameElement = item.querySelector('.state-name');
+    nameElement.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      enableInlineEdit(ZM, stateId, nameElement);
+    });
+    
+    // Action buttons
+    item.querySelectorAll('.state-action-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const action = btn.dataset.action;
+        
+        if (action === 'update') {
+          // Direct update with toast notification
+          ZM.stateManager.update(stateId);
+          showToast('✓ State Updated', 'success');
+        } else if (action === 'duplicate') {
+          ZM.stateManager.duplicate(stateId);
+          showToast('State duplicated!');
+        } else if (action === 'rename') {
+          // Trigger inline editing
+          const nameElement = item.querySelector('.state-name');
+          enableInlineEdit(ZM, stateId, nameElement);
+        } else if (action === 'delete') {
+          // Show confirmation bar
+          showDeleteConfirmation(ZM, stateId, item);
+        }
+      });
+    });
+  });
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/**
+ * Enable inline editing for state name
+ */
+function enableInlineEdit(ZM, stateId, nameElement) {
+  if (nameElement.classList.contains('editing')) return;
+  
+  const originalName = nameElement.textContent;
+  nameElement.classList.add('editing');
+  nameElement.contentEditable = true;
+  nameElement.focus();
+  
+  // Select all text
+  const range = document.createRange();
+  range.selectNodeContents(nameElement);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+  
+  const saveEdit = () => {
+    const newName = nameElement.textContent.trim();
+    nameElement.classList.remove('editing');
+    nameElement.contentEditable = false;
+    
+    if (newName && newName !== originalName) {
+      ZM.stateManager.rename(stateId, newName);
+      showToast('✓ State Renamed', 'success');
+    } else {
+      nameElement.textContent = originalName;
+    }
+  };
+  
+  const cancelEdit = () => {
+    nameElement.classList.remove('editing');
+    nameElement.contentEditable = false;
+    nameElement.textContent = originalName;
+  };
+  
+  // Save on Enter, cancel on Escape
+  nameElement.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelEdit();
+    }
+  });
+  
+  // Save on blur
+  nameElement.addEventListener('blur', saveEdit, { once: true });
+}
+
+/**
+ * Show delete confirmation bar
+ */
+function showDeleteConfirmation(ZM, stateId, stateItem) {
+  // Remove any existing confirmation bars
+  document.querySelectorAll('.state-confirm-bar').forEach(bar => bar.remove());
+  
+  const state = ZM.stateManager.getStateById(stateId);
+  const confirmBar = document.createElement('div');
+  confirmBar.className = 'state-confirm-bar';
+  confirmBar.innerHTML = `
+    <div class="state-confirm-message">
+      Delete "${escapeHtml(state.name)}"?
+    </div>
+    <div class="state-confirm-actions">
+      <button class="state-confirm-btn confirm">Delete</button>
+      <button class="state-confirm-btn cancel">Cancel</button>
+    </div>
+  `;
+  
+  // Insert after state item
+  stateItem.insertAdjacentElement('afterend', confirmBar);
+  
+  // Wire up buttons
+  confirmBar.querySelector('.confirm').addEventListener('click', () => {
+    ZM.stateManager.delete(stateId);
+    confirmBar.remove();
+    showToast('State deleted');
+  });
+  
+  confirmBar.querySelector('.cancel').addEventListener('click', () => {
+    confirmBar.remove();
+  });
+  
+  // Auto-hide on click outside
+  setTimeout(() => {
+    const closeHandler = (e) => {
+      if (!confirmBar.contains(e.target) && !stateItem.contains(e.target)) {
+        confirmBar.remove();
+        document.removeEventListener('click', closeHandler);
+      }
+    };
+    document.addEventListener('click', closeHandler);
+  }, 100);
+}
+
+/**
+ * Show toast notification
+ */
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `toast-notification ${type}`;
+  toast.textContent = message;
+  
+  document.body.appendChild(toast);
+  
+  // Auto-remove after 2.5 seconds
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+

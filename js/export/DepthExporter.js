@@ -189,7 +189,7 @@ function rasterizeDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {
  */
 export function exportDepthMap(ZM) {
   if (!ZM.emitterInstance || ZM.emitterInstance.lines.length === 0) {
-    alert('No lines to render — let the emitter run for a moment first.');
+    if (ZM.showToast) ZM.showToast('No lines to render — let the emitter run for a moment first.');
     return;
   }
   
@@ -202,7 +202,7 @@ export function exportDepthMap(ZM) {
       renderDepthMap(ZM);
     } catch (e) {
       console.error('Depth map export failed:', e);
-      alert('Depth map export failed: ' + e.message);
+      if (ZM.showToast) ZM.showToast('Depth map export failed: ' + e.message);
     } finally {
       btn.disabled = false;
       btn.textContent = 'Export Depth Map';

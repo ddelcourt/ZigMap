@@ -1,0 +1,375 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ZIGMAP26 - State Panel Styles
+   Layer-style state management UI
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* State Panel Container */
+.state-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* State List Container */
+.state-list-container {
+  background: rgba(20, 20, 25, 0.6);
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.state-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.state-list-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.state-list-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.state-list-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Individual State Item */
+.state-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  position: relative;
+}
+
+.state-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.state-item.active {
+  background: rgba(100, 150, 255, 0.2);
+  border-left: 3px solid #6496ff;
+}
+
+.state-item:last-child {
+  border-bottom: none;
+}
+
+/* State Info */
+.state-info {
+  flex: 1;
+  min-width: 0;
+  margin-right: 8px;
+}
+
+.state-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e0e0e0;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: text;
+  padding: 2px 4px;
+  border-radius: 2px;
+  transition: background 0.15s ease;
+}
+
+.state-name:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.state-name.editing {
+  background: rgba(100, 150, 255, 0.2);
+  border: 1px solid #6496ff;
+  outline: none;
+  white-space: normal;
+  overflow: visible;
+}
+
+.state-item.active .state-name {
+  color: #6496ff;
+  font-weight: 600;
+}
+
+.state-timestamp {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* State Actions - 2x2 Grid */
+.state-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.state-item:hover .state-actions {
+  opacity: 1;
+}
+
+.state-item.active .state-actions {
+  opacity: 0.8;
+}
+
+.state-action-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0;
+}
+
+.state-action-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.state-action-btn.update:hover {
+  background: rgba(100, 200, 100, 0.3);
+  border-color: #64c864;
+}
+
+.state-action-btn.duplicate:hover {
+  background: rgba(100, 150, 255, 0.3);
+  border-color: #6496ff;
+}
+
+.state-action-btn.rename:hover {
+  background: rgba(255, 200, 100, 0.3);
+  border-color: #ffc864;
+}
+
+.state-action-btn.delete:hover {
+  background: rgba(255, 80, 80, 0.3);
+  border-color: #ff5050;
+}
+
+/* State Panel Controls */
+.state-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.state-control-btn {
+  flex: 1;
+  min-width: 100px;
+  padding: 8px 12px;
+  background: rgba(100, 150, 255, 0.15);
+  border: 1px solid rgba(100, 150, 255, 0.3);
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.state-control-btn:hover {
+  background: rgba(100, 150, 255, 0.25);
+  border-color: rgba(100, 150, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.state-control-btn:active {
+  transform: translateY(0);
+}
+
+.state-control-btn.new-state {
+  background: rgba(100, 200, 100, 0.15);
+  border-color: rgba(100, 200, 100, 0.3);
+}
+
+.state-control-btn.new-state:hover {
+  background: rgba(100, 200, 100, 0.25);
+  border-color: rgba(100, 200, 100, 0.5);
+}
+
+/* Empty State */
+.state-empty-state {
+  padding: 30px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+}
+
+/* Rename Input */
+.state-rename-input {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(100, 150, 255, 0.5);
+  border-radius: 3px;
+  color: #e0e0e0;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 4px 8px;
+  width: 100%;
+  outline: none;
+}
+
+.state-rename-input:focus {
+  border-color: #6496ff;
+  box-shadow: 0 0 0 2px rgba(100, 150, 255, 0.2);
+}
+
+/* Icons (using simple text symbols/emoji) */
+.icon-update::before { content: "↻"; font-size: 13px; }
+.icon-duplicate::before { content: "⧉"; }
+.icon-rename::before { content: "✎"; }
+.icon-delete::before { content: "✕"; }
+.icon-export::before { content: "↓"; }
+.icon-import::before { content: "↑"; }
+.icon-new::before { content: "+"; font-size: 16px; }
+
+/* Confirmation Bar */
+.state-confirm-bar {
+  background: rgba(255, 80, 80, 0.15);
+  border-left: 3px solid #ff5050;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: slideDown 0.2s ease-out;
+  margin-top: -1px;
+}
+
+.state-confirm-message {
+  color: #ffaaaa;
+  font-size: 12px;
+  flex: 1;
+}
+
+.state-confirm-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.state-confirm-btn {
+  padding: 4px 12px;
+  border: 1px solid;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.state-confirm-btn.confirm {
+  background: rgba(255, 80, 80, 0.3);
+  border-color: #ff5050;
+  color: #fff;
+}
+
+.state-confirm-btn.confirm:hover {
+  background: rgba(255, 80, 80, 0.5);
+  transform: translateY(-1px);
+}
+
+.state-confirm-btn.cancel {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ccc;
+}
+
+.state-confirm-btn.cancel:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(40, 40, 45, 0.95);
+  border: 1px solid rgba(100, 150, 255, 0.5);
+  border-radius: 6px;
+  padding: 12px 16px;
+  color: #e0e0e0;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 10000;
+  animation: toastSlideIn 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast-notification.success {
+  border-color: rgba(100, 200, 100, 0.5);
+}
+
+.toast-notification.success::before {
+  content: "✓";
+  color: #64c864;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.toast-notification.fade-out {
+  animation: toastFadeOut 0.3s ease-out forwards;
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    max-height: 50px;
+    opacity: 1;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toastFadeOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}

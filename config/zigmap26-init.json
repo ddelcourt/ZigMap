@@ -1,0 +1,386 @@
+{
+  "version": "2.0",
+  "params": {
+    "segmentLength": 240,
+    "lineThickness": 25,
+    "emitterRotation": 0,
+    "geometryScale": 100,
+    "fadeDuration": 3,
+    "palettes": [
+      [
+        {
+          "rgb": [
+            192,
+            192,
+            192
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            145,
+            145,
+            145
+          ],
+          "role": "none"
+        },
+        {
+          "rgb": [
+            66,
+            66,
+            66
+          ],
+          "role": "none"
+        },
+        {
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "role": "background"
+        }
+      ],
+      [
+        {
+          "rgb": [
+            86,
+            113,
+            255
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            255,
+            127,
+            63
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            0,
+            249,
+            0
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            55,
+            50,
+            200
+          ],
+          "role": "background"
+        }
+      ],
+      [
+        {
+          "rgb": [
+            120,
+            200,
+            255
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            0,
+            29,
+            51
+          ],
+          "role": "background"
+        },
+        {
+          "rgb": [
+            80,
+            255,
+            180
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            160,
+            120,
+            255
+          ],
+          "role": "line"
+        }
+      ],
+      [
+        {
+          "rgb": [
+            117,
+            213,
+            255
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            255,
+            64,
+            255
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            82,
+            27,
+            146
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            127,
+            0,
+            2
+          ],
+          "role": "background"
+        }
+      ]
+    ],
+    "activePaletteIndex": 0,
+    "colorTransitionDuration": 3,
+    "colorSlotZOffset": 10,
+    "emitRate": 6.4,
+    "speed": 372,
+    "ambientSpeedMaster": 100,
+    "randomThickness": false,
+    "randomSpeed": false,
+    "thicknessRangeMin": 10,
+    "thicknessRangeMax": 400,
+    "speedRangeMin": 50,
+    "speedRangeMax": 200,
+    "fov": 87.01,
+    "near": 0.01,
+    "far": 20000,
+    "cameraRotationX": -0.009999999999999763,
+    "cameraRotationY": -0.02,
+    "cameraDistance": 600,
+    "cameraOffsetX": 0,
+    "cameraOffsetY": 0,
+    "stereoscopicMode": true,
+    "eyeSeparation": 30,
+    "framebufferMode": true,
+    "framebufferPreset": "3840x3840",
+    "framebufferWidth": 3840,
+    "framebufferHeight": 3840,
+    "videoDuration": 60,
+    "videoFPS": 30,
+    "videoFormat": "webm",
+    "depthInvert": true,
+    "lineColor": [
+      200,
+      80,
+      255
+    ],
+    "fadeInDuration": 3,
+    "fadeOutDistance": 500
+  },
+  "states": [
+    {
+      "id": "state_1773205506546_ho03muer0",
+      "name": "Initial State",
+      "timestamp": 1773205506546,
+      "params": {
+        "segmentLength": 240,
+        "lineThickness": 25,
+        "emitterRotation": 0,
+        "geometryScale": 100,
+        "fadeDuration": 3,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                192,
+                192,
+                192
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                145,
+                145,
+                145
+              ],
+              "role": "none"
+            },
+            {
+              "rgb": [
+                66,
+                66,
+                66
+              ],
+              "role": "none"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                86,
+                113,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                127,
+                63
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                249,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                55,
+                50,
+                200
+              ],
+              "role": "background"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                120,
+                200,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                29,
+                51
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                160,
+                120,
+                255
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                117,
+                213,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                64,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                82,
+                27,
+                146
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                127,
+                0,
+                2
+              ],
+              "role": "background"
+            }
+          ]
+        ],
+        "activePaletteIndex": 0,
+        "colorTransitionDuration": 3,
+        "colorSlotZOffset": 10,
+        "emitRate": 6.4,
+        "speed": 372,
+        "ambientSpeedMaster": 100,
+        "randomThickness": false,
+        "randomSpeed": false,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 400,
+        "speedRangeMin": 50,
+        "speedRangeMax": 200,
+        "fov": 87.01,
+        "near": 0.01,
+        "far": 20000,
+        "cameraRotationX": -0.3,
+        "cameraRotationY": 0,
+        "cameraDistance": 600,
+        "cameraOffsetX": 0,
+        "cameraOffsetY": 0,
+        "stereoscopicMode": true,
+        "eyeSeparation": 30,
+        "framebufferMode": true,
+        "framebufferPreset": "3840x3840",
+        "framebufferWidth": 3840,
+        "framebufferHeight": 3840,
+        "videoDuration": 60,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": true,
+        "lineColor": [
+          200,
+          80,
+          255
+        ],
+        "fadeInDuration": 3,
+        "fadeOutDistance": 500
+      },
+      "camera": {
+        "rotationX": -0.3,
+        "rotationY": 0,
+        "distance": 600,
+        "offsetX": 0,
+        "offsetY": 0
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    }
+  ],
+  "activeStateId": "state_1773205506546_ho03muer0",
+  "saveDate": "2026-03-11T05:18:52.983Z"
+}

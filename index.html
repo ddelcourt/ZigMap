@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/canvas.css">
   <link rel="stylesheet" href="css/controls.css">
+  <link rel="stylesheet" href="css/states.css">
   
   <!-- External Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
@@ -46,10 +47,40 @@
       </div>
       <div class="section-content">
         <div class="section-body">
+          <!-- Save/Load JSON -->
           <div style="display: flex; gap: 8px;">
             <button id="save-json" style="flex:1;padding:10px;background:#1a3a1a;border:1px solid #2d5f2d;color:#aaffaa;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Save</button>
             <button id="load-json" style="flex:1;padding:10px;background:#1a1a3a;border:1px solid #2d2d5f;color:#aaaaff;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Load</button>
             <input type="file" id="load-json-input" accept=".json" style="display:none;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- States -->
+    <div class="section">
+      <div class="section-header" data-section="states">
+        <span class="section-title">States</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <!-- State Management -->
+          <div class="state-panel">
+            <div id="state-list-container" class="state-list-container">
+              <!-- States will be dynamically inserted here -->
+            </div>
+            <div class="state-controls">
+              <button id="new-state-btn" class="state-control-btn new-state">
+                <span class="icon-new"></span> New
+              </button>
+              <button id="import-state-btn" class="state-control-btn">
+                <span class="icon-import"></span> Import
+              </button>
+              <button id="export-all-states-btn" class="state-control-btn">
+                <span class="icon-export"></span> Export All
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -136,7 +167,7 @@
           <div class="control-group">
             <label>Line Thickness</label>
             <div class="slider-row">
-              <input type="range" id="thickness" min="2" max="40" value="24"/>
+              <input type="range" id="thickness" min="2" max="40" step="0.1" value="24"/>
               <span class="value-display" id="thickness-val">24</span>
             </div>
           </div>
@@ -259,7 +290,7 @@
           <div class="control-group">
             <label>Emit Rate <span style="color:#444">(lines/sec)</span></label>
             <div class="slider-row">
-              <input type="range" id="emit-rate" min="0.1" max="10" value="1.5"/>
+              <input type="range" id="emit-rate" min="0.1" max="10" step="0.1" value="1.5"/>
               <span class="value-display" id="emit-rate-val">1.5</span>
             </div>
           </div>

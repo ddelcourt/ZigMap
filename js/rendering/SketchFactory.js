@@ -24,6 +24,30 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
     };
   }
   
+  // FOV transition state (shared across stereo pair via ZM)
+  if (!ZM.fovTransition) {
+    ZM.fovTransition = {
+      current: ZM.params.fov,
+      start: ZM.params.fov,
+      target: ZM.params.fov,
+      progress: 1.0,
+      isTransitioning: false,
+      duration: 4.5 // seconds
+    };
+  }
+  
+  // Emitter rotation transition state (shared across stereo pair via ZM)
+  if (!ZM.emitterRotationTransition) {
+    ZM.emitterRotationTransition = {
+      current: ZM.params.emitterRotation,
+      start: ZM.params.emitterRotation,
+      target: ZM.params.emitterRotation,
+      progress: 1.0,
+      isTransitioning: false,
+      duration: 4.5 // seconds
+    };
+  }
+  
   return (p) => {
     let emitter = null;
     const isPrimary = canvasId === 'left-canvas' || canvasId === 'mono-canvas';
@@ -70,6 +94,51 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
         // Update emitter (only on primary canvas)
         emitter.update(dt);
         
+        // Update camera transition
+        if (ZM.camera.transition.isActive) {
+          ZM.camera.updateTransition(dt);
+          // Sync to params for consistency
+          ZM.params.cameraRotationX = ZM.camera.rotationX;
+          ZM.params.cameraRotationY = ZM.camera.rotationY;
+          ZM.params.cameraDistance = ZM.camera.distance;
+          ZM.params.cameraOffsetX = ZM.camera.offsetX;
+          ZM.params.cameraOffsetY = ZM.camera.offsetY;
+        }
+        
+        // Update FOV transition
+        if (ZM.fovTransition.isTransitioning) {
+          ZM.fovTransition.progress += dt / ZM.fovTransition.duration;
+          if (ZM.fovTransition.progress >= 1.0) {
+            ZM.fovTransition.progress = 1.0;
+            ZM.fovTransition.current = ZM.fovTransition.target;
+            ZM.params.fov = ZM.fovTransition.target;
+            ZM.fovTransition.isTransitioning = false;
+          } else {
+            // Ease-in-out cubic
+            const t = ZM.fovTransition.progress < 0.5
+              ? 4 * ZM.fovTransition.progress * ZM.fovTransition.progress * ZM.fovTransition.progress
+              : 1 - Math.pow(-2 * ZM.fovTransition.progress + 2, 3) / 2;
+            ZM.fovTransition.current = ZM.fovTransition.start + (ZM.fovTransition.target - ZM.fovTransition.start) * t;
+          }
+        }
+        
+        // Update emitter rotation transition
+        if (ZM.emitterRotationTransition.isTransitioning) {
+          ZM.emitterRotationTransition.progress += dt / ZM.emitterRotationTransition.duration;
+          if (ZM.emitterRotationTransition.progress >= 1.0) {
+            ZM.emitterRotationTransition.progress = 1.0;
+            ZM.emitterRotationTransition.current = ZM.emitterRotationTransition.target;
+            ZM.params.emitterRotation = ZM.emitterRotationTransition.target;
+            ZM.emitterRotationTransition.isTransitioning = false;
+          } else {
+            // Ease-in-out cubic
+            const t = ZM.emitterRotationTransition.progress < 0.5
+              ? 4 * ZM.emitterRotationTransition.progress * ZM.emitterRotationTransition.progress * ZM.emitterRotationTransition.progress
+              : 1 - Math.pow(-2 * ZM.emitterRotationTransition.progress + 2, 3) / 2;
+            ZM.emitterRotationTransition.current = ZM.emitterRotationTransition.start + (ZM.emitterRotationTransition.target - ZM.emitterRotationTransition.start) * t;
+          }
+        }
+        
         // Update background color transition (only if actively transitioning)
         if (ZM.bgTransition.isTransitioning) {
           ZM.bgTransition.progress += dt / ZM.params.colorTransitionDuration;
@@ -91,8 +160,8 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       // Clear background with cached color (no per-frame lerp)
       p.background(...ZM.bgTransition.current);
       
-      // Setup camera
-      const fovRad = ZM.params.fov * (Math.PI / 180);
+      // Setup camera with transitioning FOV
+      const fovRad = ZM.fovTransition.current * (Math.PI / 180);
       const cameraZ = (ZM.H / 2) / Math.tan(fovRad / 2);
       const eyeOffsetX = eyeOffset * ZM.params.eyeSeparation;
       
@@ -103,7 +172,7 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       p.translate(ZM.camera.offsetX, ZM.camera.offsetY, -ZM.camera.distance);
       p.rotateX(ZM.camera.rotationX);
       p.rotateY(ZM.camera.rotationY);
-      p.rotateZ(ZM.params.emitterRotation * Math.PI / 180);
+      p.rotateZ(ZM.emitterRotationTransition.current * Math.PI / 180);
       
       // Apply geometry scale
       const scaleVal = ZM.params.geometryScale / 100;

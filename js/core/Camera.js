@@ -14,6 +14,114 @@ export class Camera {
     this.isPanning = false;
     this.lastMouseX = 0;
     this.lastMouseY = 0;
+    
+    // Camera transition state
+    this.transition = {
+      isActive: false,
+      progress: 1.0,
+      duration: 4.5, // seconds
+      start: {
+        rotationX: this.rotationX,
+        rotationY: this.rotationY,
+        distance: this.distance,
+        offsetX: this.offsetX,
+        offsetY: this.offsetY
+      },
+      target: {
+        rotationX: this.rotationX,
+        rotationY: this.rotationY,
+        distance: this.distance,
+        offsetX: this.offsetX,
+        offsetY: this.offsetY
+      }
+    };
+  }
+
+  /**
+   * Start transitioning camera to new position
+   */
+  transitionTo(targetRotationX, targetRotationY, targetDistance, targetOffsetX, targetOffsetY) {
+    this.transition.start = {
+      rotationX: this.rotationX,
+      rotationY: this.rotationY,
+      distance: this.distance,
+      offsetX: this.offsetX,
+      offsetY: this.offsetY
+    };
+    
+    // Normalize target angles to ensure shortest path
+    this.transition.target = {
+      rotationX: this.normalizeAngleForTransition(this.rotationX, targetRotationX),
+      rotationY: this.normalizeAngleForTransition(this.rotationY, targetRotationY),
+      distance: targetDistance,
+      offsetX: targetOffsetX,
+      offsetY: targetOffsetY
+    };
+    
+    this.transition.progress = 0.0;
+    this.transition.isActive = true;
+  }
+
+  /**
+   * Update camera transition
+   */
+  updateTransition(dt) {
+    if (!this.transition.isActive) return;
+    
+    this.transition.progress += dt / this.transition.duration;
+    
+    if (this.transition.progress >= 1.0) {
+      // Snap to final values
+      this.transition.progress = 1.0;
+      this.rotationX = this.transition.target.rotationX;
+      this.rotationY = this.transition.target.rotationY;
+      this.distance = this.transition.target.distance;
+      this.offsetX = this.transition.target.offsetX;
+      this.offsetY = this.transition.target.offsetY;
+      this.transition.isActive = false;
+    } else {
+      // Smooth easing (ease-in-out)
+      const t = this.easeInOutCubic(this.transition.progress);
+      
+      this.rotationX = this.lerp(this.transition.start.rotationX, this.transition.target.rotationX, t);
+      this.rotationY = this.lerp(this.transition.start.rotationY, this.transition.target.rotationY, t);
+      this.distance = this.lerp(this.transition.start.distance, this.transition.target.distance, t);
+      this.offsetX = this.lerp(this.transition.start.offsetX, this.transition.target.offsetX, t);
+      this.offsetY = this.lerp(this.transition.start.offsetY, this.transition.target.offsetY, t);
+    }
+  }
+
+  /**
+   * Linear interpolation
+   */
+  lerp(start, end, t) {
+    return start + (end - start) * t;
+  }
+
+  /**
+   * Normalize target angle to ensure shortest rotation path
+   * Takes the current angle and a target angle, returns normalized target
+   * that is within PI of the current angle (shortest path)
+   */
+  normalizeAngleForTransition(current, target) {
+    // Calculate the difference
+    let diff = target - current;
+    
+    // Normalize to [-PI, PI] range for shortest path
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    
+    // Return the normalized target
+    return current + diff;
+  }
+
+  /**
+   * Ease-in-out cubic easing function for smooth transitions
+   */
+  easeInOutCubic(t) {
+    return t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
   syncToParams(params) {

@@ -7,6 +7,11 @@ export function setupMouseHandlers(ZM) {
   
   // Mouse down
   container.addEventListener('mousedown', (e) => {
+    // Cancel any active camera transition
+    if (ZM.camera.transition.isActive) {
+      ZM.camera.transition.isActive = false;
+    }
+    
     if (e.button === 0) {
       ZM.camera.isDragging = true;
       ZM.camera.isPanning = false;
@@ -68,6 +73,11 @@ export function setupMouseHandlers(ZM) {
   // Mouse wheel for zoom
   container.addEventListener('wheel', (e) => {
     e.preventDefault();
+    
+    // Cancel any active camera transition
+    if (ZM.camera.transition.isActive) {
+      ZM.camera.transition.isActive = false;
+    }
     
     const delta = e.deltaY;
     const zoomSpeed = 2;
