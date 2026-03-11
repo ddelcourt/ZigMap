@@ -133,30 +133,46 @@ function executeAction(action, ZM) {
     
     // Color Palette Selection
     selectPalette1: () => {
+      document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector('.palette-btn[data-palette="0"]');
+      if (btn) btn.classList.add('active');
+      
       ZM.params.activePaletteIndex = 0;
+      if (ZM.updatePaletteUI) ZM.updatePaletteUI();
       triggerPaletteChange(ZM);
-      if (ZM.syncUIFromParams) ZM.syncUIFromParams();
       ZM.saveToLocalStorage();
     },
     
     selectPalette2: () => {
+      document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector('.palette-btn[data-palette="1"]');
+      if (btn) btn.classList.add('active');
+      
       ZM.params.activePaletteIndex = 1;
+      if (ZM.updatePaletteUI) ZM.updatePaletteUI();
       triggerPaletteChange(ZM);
-      if (ZM.syncUIFromParams) ZM.syncUIFromParams();
       ZM.saveToLocalStorage();
     },
     
     selectPalette3: () => {
+      document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector('.palette-btn[data-palette="2"]');
+      if (btn) btn.classList.add('active');
+      
       ZM.params.activePaletteIndex = 2;
+      if (ZM.updatePaletteUI) ZM.updatePaletteUI();
       triggerPaletteChange(ZM);
-      if (ZM.syncUIFromParams) ZM.syncUIFromParams();
       ZM.saveToLocalStorage();
     },
     
     selectPalette4: () => {
+      document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector('.palette-btn[data-palette="3"]');
+      if (btn) btn.classList.add('active');
+      
       ZM.params.activePaletteIndex = 3;
+      if (ZM.updatePaletteUI) ZM.updatePaletteUI();
       triggerPaletteChange(ZM);
-      if (ZM.syncUIFromParams) ZM.syncUIFromParams();
       ZM.saveToLocalStorage();
     }
   };

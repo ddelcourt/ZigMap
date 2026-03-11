@@ -16,6 +16,7 @@ export function initializeUI(ZM) {
   
   // Store sync function
   ZM.syncUIFromParams = () => syncUIFromParams(ZM);
+  ZM.updatePaletteUI = () => updatePaletteUI(ZM);
 }
 
 /**
