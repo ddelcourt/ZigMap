@@ -29,7 +29,7 @@ This document provides a comprehensive overview of the codebase structure, archi
 
 ## Architecture Overview
 
-The Zigzag Emitter follows a **single-file architecture** with clear separation of concerns through code organization and namespacing. The application is structured as follows:
+The Zigzag Emitter follows a **modular ES6 architecture** with clear separation of concerns through dedicated files for each major component. The application is structured as follows:
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -41,43 +41,66 @@ The Zigzag Emitter follows a **single-file architecture** with clear separation 
 │          JavaScript Application             │
 │                                             │
 │  ┌───────────────────────────────────────┐ │
-│  │     Global State & Parameters         │ │
-│  │  (params, camera, instances)          │ │
+│  │     Main Entry Point (main.js)        │ │
+│  │  • Initialization                     │ │
+│  │  • First-time preset loading          │ │
+│  │  • Module orchestration               │ │
+│  └───────────────────────────────────────┘ │
+│                    ↓                        │
+│  ┌───────────────────────────────────────┐ │
+│  │      Configuration Layer              │ │
+│  │  • constants.js (System constants)    │ │
+│  │  • defaults.js (Default parameters)   │ │
 │  └───────────────────────────────────────┘ │
 │                    ↓                        │
 │  ┌───────────────────────────────────────┐ │
 │  │      Core Classes                     │ │
-│  │  • ZigzagLine                         │ │
-│  │  • Emitter                            │ │
+│  │  • ZigzagLine (Line geometry)         │ │
+│  │  • Emitter (Line management)          │ │
+│  │  • Camera (Position & projection)     │ │
+│  │  • Projection (Matrix transforms)     │ │
 │  └───────────────────────────────────────┘ │
 │                    ↓                        │
 │  ┌───────────────────────────────────────┐ │
-│  │      p5.js Sketch Factory             │ │
-│  │  (createSketch function)              │ │
+│  │      Rendering Layer                  │ │
+│  │  • SketchFactory (p5.js instances)    │ │
 │  └───────────────────────────────────────┘ │
 │                    ↓                        │
 │  ┌───────────────────────────────────────┐ │
-│  │      Utility Functions                │ │
-│  │  • Geometry helpers                   │ │
-│  │  • Export functions                   │ │
-│  │  • State persistence                  │ │
+│  │      Export System                    │ │
+│  │  • PNGExporter (Composite canvas)     │ │
+│  │  • SVGExporter (Vector export)        │ │
+│  │  • DepthExporter (Depth maps)         │ │
+│  │  • VideoRecorder (CCapture.js)        │ │
 │  └───────────────────────────────────────┘ │
 │                    ↓                        │
 │  ┌───────────────────────────────────────┐ │
-│  │      UI Event Handlers                │ │
-│  │  • Slider wiring                      │ │
-│  │  • Button handlers                    │ │
-│  │  • Keyboard shortcuts                 │ │
+│  │      Storage & State Layer            │ │
+│  │  • StateManager (Capture/restore)     │ │
+│  │  • localStorage (Persistence)         │ │
+│  └───────────────────────────────────────┘ │
+│                    ↓                        │
+│  ┌───────────────────────────────────────┐ │
+│  │      Input Handlers                   │ │
+│  │  • KeyboardHandler (Shortcuts)        │ │
+│  │  • MouseHandler (Orbit controls)      │ │
+│  └───────────────────────────────────────┘ │
+│                    ↓                        │
+│  ┌───────────────────────────────────────┐ │
+│  │      UI Layer                         │ │
+│  │  • UIController (Control wiring)      │ │
 │  └───────────────────────────────────────┘ │
 └─────────────────────────────────────────────┘
 ```
 
 ### Design Patterns
 
-1. **Factory Pattern**: `createSketch()` generates p5.js instances
-2. **Observer Pattern**: UI controls update `params` object, triggering automatic persistence
-3. **Singleton Pattern**: Single `Emitter` instance shared between stereo views
-4. **Module Pattern**: Logical grouping of related functions with clear comments
+1. **ES6 Module Pattern**: Each class/system in separate file with explicit imports
+2. **Factory Pattern**: `SketchFactory.js` generates p5.js instances
+3. **Observer Pattern**: UI controls update parameters object, triggering renders
+4. **Singleton Pattern**: Single `Emitter` instance shared between stereo views
+5. **Strategy Pattern**: Multiple exporters with common interface
+6. **Bidirectional Data Sync**: Camera class syncs both to/from parameters
 
 ---
 
@@ -89,6 +112,7 @@ The Zigzag Emitter follows a **single-file architecture** with clear separation 
   - Creative coding framework
   - Provides WebGL renderer and canvas management
   - Handles drawing, transformations, and perspective projection
+  - Dynamic pixelDensity for high-resolution displays
   
 - **[CCapture.js](https://github.com/spite/ccapture.js/) v1.1.0**
   - Frame-by-frame video capture
@@ -97,17 +121,20 @@ The Zigzag Emitter follows a **single-file architecture** with clear separation 
 
 ### Browser APIs
 
-- **Canvas 2D API**: PNG export via `toDataURL()`
+- **Canvas 2D API**: PNG export via `toDataURL()` with compositing
 - **WebGL**: Hardware-accelerated 3D rendering via p5.js
-- **LocalStorage**: Settings persistence
+- **LocalStorage**: Settings persistence with backward compatibility
 - **File API**: JSON configuration import/export
 - **Fullscreen API**: Fullscreen mode toggle
+- **Fetch API**: Async loading of initial presets
 
 ### Language Features
 
 - **ES6+ JavaScript**
+  - ES6 Modules with import/export
   - Classes and constructors
   - Arrow functions
+  - Async/await for preset loading
   - Destructuring assignment
   - Template literals
   - Spread operator
@@ -118,35 +145,45 @@ The Zigzag Emitter follows a **single-file architecture** with clear separation 
 ## File Structure
 
 ```
-ZigzagEmitter_10.html    (Single-file application)
-├── <!DOCTYPE html>
-├── <head>
-│   ├── Meta tags
-│   ├── External library imports (p5.js, CCapture.js)
-│   └── <style> (CSS)
-├── <body>
-│   ├── .controls (Left sidebar)
-│   │   ├── UI section
-│   │   ├── File section
-│   │   ├── Camera section
-│   │   ├── Geometry section
-│   │   ├── Behavior section
-│   │   ├── Modulations section
-│   │   ├── Colors section
-│   │   └── Export section
-│   └── #canvas-container
-│       └── #canvas-wrapper (Dynamic content)
-└── <script>
-    ├── Global constants & state
-    ├── Helper functions
-    ├── ZigzagLine class
-    ├── Emitter class
-    ├── createSketch factory
-    ├── Sketch lifecycle
-    ├── State management
-    ├── Export functions
-    └── UI initialization
-```
+index.html                          (Main HTML entry point)
+├── config/
+│   ├── appInfo.json               (App metadata)
+│   ├── keyboardShortcuts.json     (Keyboard mappings)
+│   ├── uiPresets.json             (UI configuration)
+│   └── presets/
+│       └── zigmap26-init.json     (First-time user preset)
+├── css/
+│   ├── main.css                   (Base styles)
+│   ├── controls.css               (Control panel styling)
+│   ├── canvas.css                 (Canvas container)
+│   └── states.css                 (State management UI)
+├── js/
+│   ├── main.js                    (Entry point & initialization)
+│   ├── config/
+│   │   ├── constants.js           (System constants)
+│   │   └── defaults.js            (Default parameters)
+│   ├── core/
+│   │   ├── ZigzagLine.js          (Line geometry & behavior)
+│   │   ├── Emitter.js             (Line pool management)
+│   │   ├── Camera.js              (Camera position & sync)
+│   │   ├── Projection.js          (Projection matrix)
+│   │   ├── colorUtils.js          (Color manipulation)
+│   │   └── utils.js               (Math utilities)
+│   ├── rendering/
+│   │   └── SketchFactory.js       (p5.js sketch creation)
+│   ├── export/
+│   │   ├── PNGExporter.js         (PNG with overlay composite)
+│   │   ├── SVGExporter.js         (Vector export)
+│   │   ├── DepthExporter.js       (Depth map export)
+│   │   └── VideoRecorder.js       (Video with overlay)
+│   ├── storage/
+│   │   ├── StateManager.js        (State capture/restore)
+│   │   └── localStorage.js        (Persistence layer)
+│   ├── input/
+│   │   ├── KeyboardHandler.js     (Keyboard shortcuts)
+│   │   └── MouseHandler.js        (Orbit controls)
+│   └── ui/
+│       └── UIController.js        (Control panel wiring)
 
 ---
 
@@ -782,7 +819,237 @@ Adjusts canvas resolution and scaling.
 
 ---
 
+#### `loadInitialPreset()` **NEW**
+
+Automatically loads a curated starter project for first-time users.
+
+**File:** `js/main.js`
+
+**Purpose:** Enhance onboarding by providing users with an example project instead of default blank settings.
+
+**Implementation:**
+```javascript
+async function loadInitialPreset(ZM) {
+  try {
+    const response = await fetch('config/presets/zigmap26-init.json');
+    if (!response.ok) {
+      console.warn('Initial preset not found');
+      return false;
+    }
+    
+    const preset = await response.json();
+    
+    // Validate preset structure
+    if (!preset.params || !preset.states) {
+      console.warn('Invalid preset structure');
+      return false;
+    }
+    
+    // Load parameters
+    Object.assign(ZM.params, preset.params);
+    
+    // Load states
+    if (preset.states && Array.isArray(preset.states)) {
+      ZM.states = preset.states;
+      ZM.currentStateIndex = 0;
+    }
+    
+    // Save to localStorage for persistence
+    saveParams(ZM);
+    saveStates(ZM);
+    
+    // Sync UI
+    syncUIFromParams(ZM);
+    updateStateList(ZM);
+    
+    console.log('Initial preset loaded successfully');
+    return true;
+  } catch (error) {
+    console.error('Error loading initial preset:', error);
+    return false;
+  }
+}
+```
+
+**Trigger Logic (in `init()` function):**
+```javascript
+async function init() {
+  // Initialize ZM object
+  const ZM = {
+    params: { ...getDefaultParams() },
+    states: [],
+    camera: new Camera(),
+    // ...
+  };
+  
+  // Check if first-time user (no localStorage data)
+  const hasExistingData = localStorage.getItem('zigmap_params') !== null;
+  
+  if (!hasExistingData) {
+    // First-time user: load preset
+    await loadInitialPreset(ZM);
+  } else {
+    // Returning user: load saved settings
+    loadParams(ZM);
+    loadStates(ZM);
+  }
+  
+  // Continue initialization...
+  initUI(ZM);
+  createSketches(ZM);
+}
+```
+
+**First-Time Detection:**
+- Checks for absence of `localStorage` key
+- Single check on page load
+- Subsequent visits use normal localStorage loading
+
+**Preset File Format:**
+```json
+{
+  "version": "2.0",
+  "params": {
+    "segmentLength": 30,
+    "lineThickness": 12,
+    "emitRate": 2.0,
+    "speed": 100,
+    "geometryScale": 120,
+    "fadeDuration": 1.5,
+    "palettes": [ ... ],
+    "activePaletteIndex": 0,
+    "stateTransitionDuration": 5.0,
+    "colorTransitionDuration": 3.0,
+    "autoTriggerEnabled": false,
+    "autoTriggerFrequency": 30,
+    "fov": 70,
+    "stereoscopicEnabled": false,
+    "cameraRotationX": -0.3,
+    "cameraRotationY": 0,
+    "cameraDistance": 600,
+    // ... all parameters
+  },
+  "states": [
+    {
+      "name": "Welcome State",
+      "params": { ... }
+    },
+    {
+      "name": "Variation 1",
+      "params": { ... }
+    },
+    {
+      "name": "Variation 2",
+      "params": { ... }
+    }
+  ]
+}
+```
+
+**Benefits:**
+- **Immediate Gratification**: Users see interesting animation immediately
+- **Learning by Example**: States demonstrate parameter effects
+- **Professional Appearance**: Curated settings vs. default blank canvas
+- **Reduced Friction**: No setup required to start exploring
+
+**Fallback Behavior:**
+- If preset file not found: Uses default parameters
+- If preset invalid: Logs warning, uses defaults
+- If fetch fails: Silent fallback to defaults
+- Always non-blocking (no error dialogs)
+
+---
+
 ### State Management
+
+**NEW IN v26:** Enhanced state system with transition duration controls and auto-trigger random state switching.
+
+#### State Architecture
+
+States capture complete snapshots of parameters and camera position for instant recall with smooth transitions.
+
+**State Object Structure:**
+```javascript
+{
+  name: "State Name",
+  params: {
+    // All parameters except project-wide settings
+    segmentLength: 30,
+    lineThickness: 12,
+    emitRate: 1.5,
+    speed: 80,
+    cameraRotationX: 0.2,
+    cameraRotationY: 0.5,
+    cameraDistance: 800,
+    // ... all other parameters
+    
+    // Project-wide (excluded from state capture):
+    // - overlayImageSrc, overlayVisible, overlayScale, overlayOpacity, overlayX, overlayY
+    // - stateTransitionDuration, colorTransitionDuration
+    // - autoTriggerEnabled, autoTriggerFrequency
+  }
+}
+```
+
+#### Transition Duration Controls **NEW**
+
+Two independent transition timers control smooth morphing between states:
+
+1. **State Transition Duration** (0-30 seconds):
+   - Controls: geometry, camera, modulations, speed, emit rate
+   - Parameter: `stateTransitionDuration` (seconds)
+   - Affects: All numeric parameters except colors
+   
+2. **Color Transition Duration** (0-30 seconds):
+   - Controls: palette transitions
+   - Parameter: `colorTransitionDuration` (seconds)
+   - Affects: Color interpolation only
+
+**Storage:** Both are **project-wide** settings (not saved per-state).
+
+#### Auto-Trigger System **NEW**
+
+Automatically switches between states at random intervals.
+
+**Parameters:**
+```javascript
+autoTriggerEnabled: false,      // ☑️ Enable/disable
+autoTriggerFrequency: 30,       // Seconds between switches (5-120)
+```
+
+**Implementation (js/main.js):**
+```javascript
+function updateAutoTrigger(ZM) {
+  if (!ZM.params.autoTriggerEnabled || ZM.states.length < 2) {
+    return;
+  }
+  
+  const now = Date.now();
+  if (!ZM.lastAutoTriggerTime) {
+    ZM.lastAutoTriggerTime = now;
+    return;
+  }
+  
+  const elapsed = (now - ZM.lastAutoTriggerTime) / 1000;
+  if (elapsed >= ZM.params.autoTriggerFrequency) {
+    // Get random state (exclude current)
+    const otherStates = ZM.states.filter((_, i) => i !== ZM.currentStateIndex);
+    const randomState = otherStates[Math.floor(Math.random() * otherStates.length)];
+    const newIndex = ZM.states.indexOf(randomState);
+    
+    // Load state
+    loadState(ZM, newIndex);
+    ZM.lastAutoTriggerTime = now;
+  }
+}
+```
+
+**Characteristics:**
+- **Truly Random**: Uses `Math.random()` with no sequence or pattern
+- **Excludes Current**: Never switches to the currently active state
+- **Requires 2+ States**: Automatically disabled if fewer than 2 states exist
+- **Timer Reset**: Resets when manually switching states
+- **Frequency Range**: 5-120 seconds (adjustable via slider)
 
 #### `saveToLocalStorage()`
 
@@ -812,55 +1079,50 @@ Loads saved settings from localStorage.
 2. If not found, return false
 3. Parse JSON string
 4. Merge into `params` via `Object.assign()`
-5. Validate and fix problematic values:
-   - `near < 0.01` → `0.01`
-   - `cameraDistance < 50` → `600`
-   - `cameraOffsetX/Y === undefined` → `0`
-6. Return true
+5. Apply backward compatibility defaults
+6. Validate and fix problematic values
+7. Return true
+
+**Backward Compatibility (js/storage/localStorage.js):**
+```javascript
+export function ensureBackwardCompatibility(params) {
+  // New overlay parameters
+  if (params.overlayImageSrc === undefined) params.overlayImageSrc = null;
+  if (params.overlayVisible === undefined) params.overlayVisible = false;
+  if (params.overlayScale === undefined) params.overlayScale = 100;
+  if (params.overlayOpacity === undefined) params.overlayOpacity = 100;
+  if (params.overlayX === undefined) params.overlayX = 50;
+  if (params.overlayY === undefined) params.overlayY = 50;
+  
+  // Legacy validation
+  if (params.near < 0.01) params.near = 0.01;
+  if (params.cameraDistance < 50) params.cameraDistance = 600;
+  if (params.cameraOffsetX === undefined) params.cameraOffsetX = 0;
+  if (params.cameraOffsetY === undefined) params.cameraOffsetY = 0;
+}
+```
 
 **Trigger:** Called once on page load.
 
 ---
 
-#### `syncUIFromParams()`
+#### `syncUIFromParams()` **UPDATED**
 
 Updates all UI controls to match current `params` values.
 
-**Purpose:** Keeps UI in sync when params are loaded from file or localStorage.
+**Purpose:** Keeps UI in sync when params are loaded from file, localStorage, or state switch.
 
-**Steps:**
+**Camera Sync (js/ui/UIController.js):**
+```javascript
+export function syncUIFromParams(ZM) {
+  // ... sync all sliders, checkboxes, inputs, dropdowns...
+  
+  // Camera state uses syncFromParams for bidirectional sync
+  ZM.camera.syncFromParams(ZM.params);
+}
+```
 
-1. **Sliders:** For each slider:
-   ```javascript
-   slider.value = params[key];
-   display.textContent = formatValue(params[key]);
-   ```
-
-2. **Checkboxes:**
-   ```javascript
-   checkbox.checked = params[key];
-   ```
-
-3. **Number inputs:**
-   ```javascript
-   input.value = params[key];
-   ```
-
-4. **Dropdowns:**
-   ```javascript
-   select.value = params[key];
-   ```
-
-5. **Button toggles:** Set `active` class based on `params[key]`
-
-6. **Camera state:**
-   ```javascript
-   camera.rotationX = params.cameraRotationX;
-   camera.rotationY = params.cameraRotationY;
-   camera.distance = max(50, params.cameraDistance);
-   camera.offsetX = params.cameraOffsetX || 0;
-   camera.offsetY = params.cameraOffsetY || 0;
-   ```
+**Key Change:** Now uses `camera.syncFromParams()` instead of manual property assignment, ensuring consistent bidirectional synchronization.
 
 7. **Canvas update:** Call `updateCanvasSize()` if needed
 
@@ -1377,6 +1639,78 @@ newDistance = oldDistance × tan(oldFOV/2) / tan(newFOV/2)
 
 ## Camera System
 
+**NEW IN v26:** Bidirectional camera synchronization with `syncToParams()` and `syncFromParams()` methods.
+
+### Camera Class
+
+**File:** `js/core/Camera.js`
+
+The Camera class manages 3D camera position, rotation, and smooth transitions for orbit controls.
+
+**Properties:**
+```javascript
+class Camera {
+  rotationX = 0;               // Pitch (radians)
+  rotationY = 0;               // Yaw (radians)
+  distance = 600;              // Zoom distance
+  offsetX = 0;                 // Pan X
+  offsetY = 0;                 // Pan Y
+  
+  targetRotationX = 0;         // Smooth transition targets
+  targetRotationY = 0;
+  targetDistance = 600;
+  targetOffsetX = 0;
+  targetOffsetY = 0;
+}
+```
+
+**Methods:**
+
+#### `syncToParams(params)`
+Saves current camera state to parameters object:
+```javascript
+syncToParams(params) {
+  params.cameraRotationX = this.rotationX;
+  params.cameraRotationY = this.rotationY;
+  params.cameraDistance = this.distance;
+  params.cameraOffsetX = this.offsetX;
+  params.cameraOffsetY = this.offsetY;
+}
+```
+
+Called when: 
+- Saving states
+- Exporting projects
+- Manual camera updates
+
+#### `syncFromParams(params)` **NEW**
+Loads camera state from parameters object:
+```javascript
+syncFromParams(params) {
+  this.rotationX = params.cameraRotationX || 0;
+  this.rotationY = params.cameraRotationY || 0;
+  this.distance = Math.max(50, params.cameraDistance || 600);
+  this.offsetX = params.cameraOffsetX || 0;
+  this.offsetY = params.cameraOffsetY || 0;
+  
+  // Set targets to match (no transition)
+  this.targetRotationX = this.rotationX;
+  this.targetRotationY = this.rotationY;
+  this.targetDistance = this.distance;
+  this.targetOffsetX = this.offsetX;
+  this.targetOffsetY = this.offsetY;
+}
+```
+
+Called when:
+- Loading projects (uses first state's camera)
+- Restoring states (with smooth transitions)
+- Syncing UI on page load
+
+**Key Difference:**
+- `syncToParams`: Camera → Params (save)
+- `syncFromParams`: Params → Camera (load)
+
 ### Transform Hierarchy
 
 Transforms are applied in this order (inside-out):
@@ -1467,7 +1801,117 @@ distance = clamp(distance, 50, 10000);
 | **File Size** | ~100KB - 2MB | ~10KB - 500KB | ~50KB - 1MB | ~5MB - 100MB+ |
 | **Animation** | Single frame | Single frame | Single frame | Full animation |
 | **Quality** | Lossy (resize) | Lossless | Lossless greyscale | Compressed |
+| **Overlay Composite** | Yes | No | No | Yes |
 | **Best Use** | Quick share | Design work | Post-processing | Presentation |
+
+### PNG Export with Overlay Compositing
+
+**NEW IN v26:** Automatic overlay image compositing with pixelDensity correction.
+
+PNG exports now automatically composite the overlay image (if enabled) onto the p5.js canvas, accounting for high-resolution (Retina) displays.
+
+**Implementation (js/export/PNGExporter.js):**
+
+```javascript
+export function createCompositeCanvas(ZM, sourceCanvas) {
+  const { params } = ZM;
+  
+  // Get actual rendered dimensions
+  const actualWidth = sourceCanvas.width;
+  const actualHeight = sourceCanvas.height;
+  const pixelDensity = actualWidth / params.W;  // e.g., 2.0 for Retina
+  
+  // Create composite canvas at actual pixel dimensions
+  const composite = document.createElement('canvas');
+  composite.width = actualWidth;
+  composite.height = actualHeight;
+  const ctx = composite.getContext('2d');
+  
+  // 1. Draw p5 canvas
+  ctx.drawImage(sourceCanvas, 0, 0);
+  
+  // 2. Draw overlay if visible
+  const overlayImg = document.getElementById('overlay-image');
+  if (params.overlayVisible && overlayImg && overlayImg.src && overlayImg.complete) {
+    // Calculate scaled dimensions with pixelDensity
+    const scale = params.overlayScale / 100;
+    const overlayWidth = overlayImg.naturalWidth * scale * pixelDensity;
+    const overlayHeight = overlayImg.naturalHeight * scale * pixelDensity;
+    
+    // Calculate position (0-100% → pixel coordinates)
+    const x = (params.overlayX / 100) * actualWidth - overlayWidth / 2;
+    const y = (params.overlayY / 100) * actualHeight - overlayHeight / 2;
+    
+    // Apply opacity and composite
+    ctx.globalAlpha = params.overlayOpacity / 100;
+    ctx.drawImage(overlayImg, x, y, overlayWidth, overlayHeight);
+    ctx.globalAlpha = 1.0;
+  }
+  
+  return composite;
+}
+
+export function exportPNG(ZM) {
+  const p5Instance = ZM.p5Instances[0];
+  const composite = createCompositeCanvas(ZM, p5Instance.canvas);
+  
+  composite.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `zigzag-${Date.now()}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
+```
+
+**Key Features:**
+- **PixelDensity Aware**: Correctly scales overlay for Retina/high-DPI displays
+- **Transparent Overlay**: Respects opacity setting (0-100%)
+- **Precise Positioning**: Position X/Y (0-100%) mapped to pixel coordinates
+- **Scale Support**: Overlay scale (10-200%) applied correctly
+- **Export Quality**: Uses actual rendered resolution (e.g., 3840px on 1920px Retina canvas)
+
+### Video Export with Overlay Compositing
+
+**Implementation (js/export/VideoRecorder.js):**
+
+Video recording uses the same `createCompositeCanvas()` function to composite overlay on every frame:
+
+```javascript
+export function captureVideoFrame(ZM) {
+  const { p5Instances, videoRecorder } = ZM;
+  
+  // Create composite canvas with overlay
+  const composite = createCompositeCanvas(ZM, p5Instances[0].canvas);
+  
+  // Capture composite frame
+  videoRecorder.capturer.capture(composite);
+  videoRecorder.recordedFrames++;
+  
+  // Update progress
+  const progress = (videoRecorder.recordedFrames / videoRecorder.totalFrames) * 100;
+  updateProgressBar(progress);
+  
+  // Stop when complete
+  if (videoRecorder.recordedFrames >= videoRecorder.totalFrames) {
+    stopVideoRecording(ZM);
+  }
+}
+```
+
+**Process:**
+1. Each frame: p5.js renders to canvas
+2. Composite canvas created with overlay applied
+3. CCapture.js captures composite frame
+4. Overlay settings (position, scale, opacity) maintained throughout recording
+5. Final video includes overlay on all frames
+
+**Performance Consideration:**
+- Overlay compositing adds ~1-2ms per frame
+- Negligible impact on video recording speed
+- No quality degradation
 
 ### Video Export Technical Details
 
@@ -1556,6 +2000,169 @@ function exportDepthMap() {
     const poly = [...leftProj, ...[...rightProj].reverse()];
     rasteriseDepthPolygon(ctx, poly, minDepth, maxDepth, params.depthInvert, line._alpha());
   }\n  \n  // 6. Download as PNG\n  offCanvas.toBlob(blob => {\n    const url = URL.createObjectURL(blob);\n    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);\n    const a = document.createElement('a');\n    a.href = url;\n    a.download = `zigzag-depthmap-${ts}.png`;\n    a.click();\n    URL.revokeObjectURL(url);\n  }, 'image/png');\n}\n```\n\n**Auto-Ranging Algorithm:**\n\n```javascript\nfunction scanDepthRange(lines) {\n  let minD = Infinity;\n  let maxD = -Infinity;\n  \n  for (const line of lines) {\n    if (line._alpha() <= 0) continue;\n    for (const pt of line._buildVertices()) {\n      const p = depthProjectVertex(line, pt.x, pt.y);\n      if (!p) continue;  // Clipped\n      if (p.depth < minD) minD = p.depth;\n      if (p.depth > maxD) maxD = p.depth;\n    }\n  }\n  \n  // Nudge minDepth down 3% to ensure nearest geometry maps to pure white\n  const nudge = (maxD - minD) * 0.03;\n  return { minDepth: Math.max(0.01, minD - nudge), maxDepth: maxD };\n}\n```\n\n**Depth Encoding:**\n\n```javascript\nfunction rasteriseDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {\n  // Average depth across polygon vertices\n  let depthSum = 0;\n  for (const p of pts) depthSum += p.depth;\n  const avgDepth = depthSum / pts.length;\n  \n  // Normalize to [0, 1]\n  let t = (avgDepth - minDepth) / (maxDepth - minDepth);\n  t = Math.max(0, Math.min(1, t));\n  \n  // Apply power curve for contrast enhancement\n  t = Math.pow(t, 0.6);  // Gamma 0.6 boosts midtones toward white\n  \n  // Encode as greyscale\n  const grey = Math.round((invert ? t : 1 - t) * 255);\n  \n  // Rasterize polygon\n  ctx.fillStyle = `rgba(${grey},${grey},${grey},${alpha.toFixed(4)})`;\n  ctx.beginPath();\n  ctx.moveTo(pts[0].sx, pts[0].sy);\n  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sx, pts[i].sy);\n  ctx.closePath();\n  ctx.fill();\n}\n```\n\n**Key Features:**\n- **Auto-ranging**: No manual near/far cutoff needed\n- **Power curve**: Gamma 0.6 enhances contrast in midtones\n- **Inversion**: Optional black = near, white = far\n- **Alignment**: Exact pixel correspondence with PNG export\n- **Performance**: CPU-based, works on all browsers\n\n---
+
+## Overlay System
+
+**NEW IN v26:** Static image overlay composited on top of canvas for branding, watermarks, or design elements.
+
+### Architecture
+
+The overlay system uses HTML image elements positioned absolutely over the canvas, then composited into PNG/video exports.
+
+**HTML Structure (index.html):**
+```html
+<img id="overlay-image" alt="Overlay" style="position: absolute; z-index: 1000; pointer-events: none; display: none;">
+```
+
+**Key Attributes:**
+- `position: absolute`: Positioned over canvas in 2D space
+- `z-index: 1000`: Always on top layer
+- `pointer-events: none`: Doesn't block mouse interaction with canvas
+- `display: none`: Hidden by default
+
+### Parameter Storage
+
+Overlay settings are **project-wide** (not saved per-state):
+
+```javascript
+// js/config/defaults.js
+overlayImageSrc: null,        // Image URL/data URI
+overlayVisible: false,        // Toggle visibility
+overlayScale: 100,           // Size (10-200%)
+overlayOpacity: 100,         // Transparency (0-100%)
+overlayX: 50,               // Horizontal position (0-100%)
+overlayY: 50,               // Vertical position (0-100%)
+```
+
+### State Management Exclusion
+
+**Implementation (js/storage/StateManager.js):**
+```javascript
+export function captureCurrentState(ZM) {
+  const state = { ...ZM.params };
+  
+  // Remove project-wide settings
+  delete state.overlayImageSrc;
+  delete state.overlayVisible;
+  delete state.overlayScale;
+  delete state.overlayOpacity;
+  delete state.overlayX;
+  delete state.overlayY;
+  
+  return state;
+}
+```
+
+Overlay settings persist across state switches, allowing consistent branding across all states.
+
+### Image Loading
+
+**Implementation (js/ui/UIController.js):**
+```javascript
+function setupOverlayControls(ZM) {
+  const loadBtn = document.getElementById('load-overlay-btn');
+  const overlayImg = document.getElementById('overlay-image');
+  
+  loadBtn.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/svg+xml';
+    
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const dataURL = evt.target.result;
+        
+        // Set image source
+        overlayImg.src = dataURL;
+        ZM.params.overlayImageSrc = dataURL;
+        ZM.params.overlayVisible = true;
+        
+        // Update UI
+        document.getElementById('show-overlay').checked = true;
+        updateOverlayVisibility(ZM);
+        
+        // Persist
+        saveParams(ZM);
+      };
+      reader.readAsDataURL(file);
+    };
+    
+    input.click();
+  });
+}
+```
+
+**Supported Formats:**
+- PNG (recommended for transparency)
+- JPEG (opaque backgrounds)
+- SVG (vector graphics, rasterized in exports)
+
+**Data Storage:**
+- Image encoded as Base64 data URI
+- Stored in `params.overlayImageSrc`
+- Automatically saved to localStorage
+- Included in project JSON exports
+
+### Display Synchronization
+
+**Position & Scale Update:**
+```javascript
+function updateOverlayPosition(ZM) {
+  const overlayImg = document.getElementById('overlay-image');
+  const { params } = ZM;
+  
+  // Calculate CSS position
+  overlayImg.style.left = `${params.overlayX}%`;
+  overlayImg.style.top = `${params.overlayY}%`;
+  overlayImg.style.transform = `translate(-50%, -50%) scale(${params.overlayScale / 100})`;
+  overlayImg.style.opacity = params.overlayOpacity / 100;
+}
+```
+
+**CSS Transform Chain:**
+1. `translate(-50%, -50%)`: Centers overlay on position point
+2. `scale(${overlayScale / 100})`: Applies size scaling
+3. `left/top`: Positions center point (0-100% of canvas)
+4. `opacity`: Transparency (0-1)
+
+### Export Compositing
+
+See **Export System** section above for details on:
+- PixelDensity correction
+- Overlay positioning in exports
+- Frame-by-frame video compositing
+
+### UI Controls
+
+**Overlay Control Panel:**
+- **Show Overlay**: ☑️ Checkbox to toggle visibility
+- **Load Image**: Button to import PNG/JPG/SVG
+- **Scale** (10-200%): Resize overlay
+- **Opacity** (0-100%): Transparency
+- **Position X/Y** (0-100%): Place overlay anywhere
+- **Clear Image**: Remove overlay and reset
+
+### Workflow
+
+**Typical Usage:**
+1. Load overlay image (e.g., logo, watermark)
+2. Adjust scale and position
+3. Set opacity (e.g., 50% for subtle watermark)
+4. Create multiple states with different animations
+5. Export PNG/video - overlay included automatically
+
+**Best Practices:**
+- Use PNG with transparency for logos
+- Set opacity 30-50% for subtle watermarks
+- Position in corners (X/Y: 10% or 90%) for branding
+- Center (X/Y: 50%) for main design elements
+- Scale down (50-80%) for non-intrusive overlays
+
+---
 
 ## Performance Considerations
 

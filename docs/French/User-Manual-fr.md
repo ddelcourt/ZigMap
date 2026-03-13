@@ -30,12 +30,12 @@ Startup Guide
 
 | Touche | Ce Qu'elle Fait |
 |--------|-----------------|
-| **Tab** | Masquer/afficher le panneau de contrôle |
+| **H** | Masquer/afficher le panneau de contrôle |
 | **Entrée** | Mode plein écran |
-| **p** | Enregistrer l'image actuelle en PNG |
-| **s** | Enregistrer l'image actuelle en SVG (vectoriel) |
+| **p** | Enregistrer l'image actuelle en PNG (inclut l'overlay) |
+| **s** | Enregistrer l'image actuelle en SVG (vectoriel uniquement) |
 | **d** | Enregistrer carte de profondeur |
-| **v** | Démarrer/arrêter enregistrement vidéo |
+| **v** | Démarrer/arrêter enregistrement vidéo (inclut l'overlay) |
 | **r** | Réinitialiser caméra à position par défaut |
 | **0** (zéro) | Réinitialiser niveau de zoom |
 | **1** | Basculer vers Palette de Couleurs 1 |
@@ -44,42 +44,101 @@ Startup Guide
 | **4** | Basculer vers Palette de Couleurs 4 |
 | **y** | Basculer vue stéréoscopique (VR/3D) |
 
+💡 **Astuce** : Les exports PNG et vidéo incluent automatiquement votre image overlay!
+
 ---
 
 ## Contrôles Principaux (Panneau Gauche)
 
+### 💾 Projet
+
+- **Bouton Save** : Télécharger votre projet complet avec états et positions caméra en fichier JSON
+- **Bouton Load** : Ouvrir un projet sauvegardé précédemment
+
+💡 **Nouvel utilisateur** : Lors de la première ouverture, l'application charge automatiquement un projet de démarrage avec des états d'exemple !
+
+### 🎭 États (States) **NOUVEAU**
+
+Sauvegardez et rappelez des instantanés complets de vos paramètres :
+
+- **Liste des États** : Tous vos états sauvegardés apparaissent ici
+- **Cliquer sur un état** pour le charger (transitions douces !)
+- **Bouton Save** : Capturer la configuration actuelle comme nouvel état
+- **Bouton Update** : Écraser l'état sélectionné
+- **Bouton Delete** : Supprimer l'état sélectionné
+- **Renommer** : Cliquer sur le nom de l'état pour le modifier
+
+**Contrôles de Transition** :
+- **State Transition** (0-30s) : Durée de transition entre états
+- **Color Transition** (0-30s) : Durée de transition des palettes de couleurs
+
+**Auto-Trigger** :
+- ☑️ Cocher **Auto-Trigger** pour changer automatiquement d'état
+- **Curseur Frequency** (5-120s) : Fréquence de changement aléatoire
+- 💡 Sélection vraiment aléatoire - pas de motifs ou séquences
+
 ### 🎨 Palettes de Couleurs
+
 **Quatre palettes de couleurs distinctes**, chacune avec 4 emplacements de couleur :
 - **Cliquez sur les boutons de palette (1-4)** en haut pour basculer entre les palettes (ou utilisez les touches 1-2-3-4)
 - **Cliquez sur les sélecteurs de couleur** pour personnaliser chaque couleur
-- **Définissez les rôles** pour chaque couleur : Line (utilisé pour les lignes zigzag) / Background (arrière-plan) / None (désactivé)
-- **Color Depth Separation** : Curseur qui contrôle l'espacement sur l'axe Z entre les lignes de différentes couleurs (empêche le chevauchement visuel)
+- **Définissez les rôles** pour chaque couleur : Line (lignes zigzag) / Background (arrière-plan) / None (désactivé)
+- **Color Depth Separation** : Espacement Z entre lignes de différentes couleurs
 
-💡 **Astuce** : Lors du changement de palette, toutes les lignes existantes passent en douceur aux nouvelles couleurs en 3 secondes.
+💡 **Astuce** : Les lignes existantes passent en douceur aux nouvelles couleurs.
 
-### 📐 Paramètres de Base
+### 🎬 Rendu (Rendering)
 
-- **Geometry Height** : Hauteur de chaque zigzag (plus grand = motifs plus hauts)
-- **Line Thickness** : Épaisseur des lignes (plus grand = plus épais)
-- **Emit Rate** : Combien de nouvelles lignes apparaissent par seconde (plus élevé = plus chargé)
-- **Speed** : Vitesse de déplacement des lignes (plus élevé = animation plus rapide)
+Contrôles de résolution de sortie (affecte les exports) :
 
-### 🎬 Effets d'Animation
+- **Framebuffer Resolution** : ☑️ Cocher pour résolution fixe
+- **Menu déroulant Preset** : Tailles communes (HD, 4K, formats Instagram)
+- **Champs Resolution** : Largeur × hauteur personnalisées en pixels
 
-- **Random Thickness** : ☑️ Cocher pour varier l'épaisseur aléa (ou appuyez sur **y**)toirement
-- **Random Speed** : ☑️ Cocher pour varier la vitesse aléatoirement
-- **Ambient Speed Master** : Ralentir ou accélérer tout (curseur)
+### 👁️ Vue (View)
 
-### 📷 Caméra & Vue
+Paramètres caméra et affichage :
 
-- **Stereoscopic View** : ☑️ Cocher pour mode VR/3D côte-à-côte
-- **Field of View** : Ajuster l'angle de "l'objectif" (60° est normal)
-- **Z-Plane Rotation** : Faire pivoter le motif entier
+- **Field of View** : Angle de "l'objectif" (60° normal, 90°+ dramatique)
+- **Clipping Planes** : Plages de visibilité Near/Far
+- **Stereoscopic View (VR)** : ☑️ Cocher pour mode VR côte-à-côte 3D
+- **Eye Separation** : Distance entre caméras stéréo
 
-### 💾 Sauvegarder & Charger
+### 📐 Géométrie
 
-- **Bouton Save** : Télécharger vos paramètres dans un fichier
-- **Bouton Load** : Ouvrir un fichier de paramètres sauvegardé précédemment
+- **Segment Length** : Longueur de chaque segment zigzag
+- **Line Thickness** : Épaisseur des lignes
+- **Emitter Rotation** : Rotation du motif d'émission
+- **Geometry Scale** : Multiplicateur de taille globale
+- **Fade Duration** : Durée de fondu entrée/sortie
+
+### 🎪 Animation
+
+- **Emit Rate** : Nouvelles lignes par seconde
+- **Speed** : Vitesse de déplacement des lignes
+- **Ambient Speed Master** : Multiplicateur de vitesse global
+
+### 🎲 Modulations
+
+Ajoutez de la variété à vos animations :
+
+- **Random Thickness** : ☑️ Épaisseur variable aléatoire
+- **Random Speed** : ☑️ Vitesse variable aléatoire  
+- **Thickness Range** : Valeurs min/max pour épaisseur aléatoire
+- **Speed Range** : Valeurs min/max pour vitesse aléatoire
+
+### 🖼️ Overlay **NOUVEAU**
+
+Ajoutez des images statiques par-dessus l'animation :
+
+- **Case Show Overlay** : Basculer visibilité overlay
+- **Bouton Load Image** : Importer fichiers PNG, JPG ou SVG
+- **Scale** (10-200%) : Redimensionner l'image overlay
+- **Opacity** (0-100%) : Niveau de transparence
+- **Position X/Y** (0-100%) : Placer l'image n'importe où à l'écran
+- **Bouton Clear Image** : Supprimer l'overlay actuel
+
+💡 **Astuce** : Les overlays sont inclus dans les exports PNG et vidéo !
 
 ---
 
@@ -89,15 +148,33 @@ Startup Guide
 
 1. **Image PNG** : Appuyez sur **p** (ou cliquez sur bouton "Export PNG")
    - Bon pour : réseaux sociaux, partage rapide
+   - **Inclut l'image overlay** si activée
+   - Correction automatique pour écrans haute résolution (Retina)
    - Le fichier se télécharge automatiquement
 
 2. **Vecteur SVG** : Appuyez sur **s** (ou cliquez sur bouton "Export SVG")
    - Bon pour : impression, travail de design, logos
    - Peut être édité dans Illustrator, Inkscape, etc.
+   - N'inclut pas l'overlay (vectoriel uniquement)
 
 3. **Carte de Profondeur** : Appuyez sur **d** (ou cliquez sur bouton "Export Depth Map")
    - Bon pour : effets 3D, post-production
    - Blanc = proche de la caméra, Noir = loin
+
+💡 **Astuce Overlay** : Les exports PNG composent automatiquement votre image overlay avec l'échelle, l'opacité et la position correctes !
+
+### Enregistrement Vidéo
+
+1. Définir **Duration** (combien de secondes)
+2. Définir **Frame Rate** (30 FPS standard)
+3. Cliquer bouton **Record Video** (ou appuyez sur **v**)
+4. **Attendre** - ne touchez à rien pendant l'enregistrement
+5. La vidéo se télécharge automatiquement quand terminée
+
+⚠️ **Important** : 
+- Ne cliquez pas et n'interagissez pas avec la page pendant l'enregistrement !
+- **Les images overlay sont incluses** dans les exports vidéo
+- L'enregistrement compose l'overlay sur chaque frame
 
 ### Enregistrement Vidéo
 
