@@ -668,30 +668,26 @@ Cette sauvegarde contient la version fonctionnelle complète d'avant la modulari
 
 ## Historique des Versions
 
-### Version 13 (Mars 2026) - Architecture Modulaire
-- **NOUVEAU** : Refactorisation complète en 25 fichiers modulaires
-  - 1 HTML (330 lignes)
-  - 3 CSS (≈400 lignes)
-  - 15 modules JavaScript (≈1500 lignes)
-  - 3 fichiers de configuration JSON
-- **NOUVEAU** : Documentation complète (README, manuels, guides techniques)
-- **AMÉLIORATION** : Séparation claire des responsabilités
-- **AMÉLIORATION** : Développement et maintenance plus faciles
-- **FIXÉ** : Tous les bugs de la version monolithique
+### Version 26 (Mars 2026) - Architecture Modulaire & Système d'États
+- **NOUVEAU** : Système de gestion d'états avec transitions fluides
+- **NOUVEAU** : Système d'overlay d'images avec compositing
+- **NOUVEAU** : Expérience première utilisation avec preset auto-chargé
+- **NOUVEAU** : Sections de contrôle séparées (Rendu / Vue)
+- **AMÉLIORATION** : Architecture ES6 modulaire (25 fichiers)
+- **AMÉLIORATION** : Synchronisation bidirectionnelle de la caméra
+- **AMÉLIORATION** : Chargement de projet avec première état
 
-### Version 12 (2025)
-- **NOUVEAU** : Système de raccourcis clavier centralisés
-  - Tous les 22 raccourcis définis dans un tableau de configuration
-  - Plus facile à modifier et documenter
-- **NOUVEAU** : Export carte de profondeur
-  - Encodage de profondeur en niveaux de gris
-  - Applications compositing et VFX
-  - Ajustement automatique de la plage de profondeur
-- **NOUVEAU** : Compensation de distance FOV
-  - Les changements de FOV ajustent la distance de caméra automatiquement
-  - Les ajustements de FOV ne font plus l'échelle de la géométrie
-- **FIXÉ** : Maximum FOV limité à 180° (était 240°)
-- **AMÉLIORATION** : Gestion de la sensibilité de défilement
+### Versions Antérieures (v13 et inférieur)
+- Architecture modulaire complète (15 modules JavaScript)
+- Export carte de profondeur avec ajustement automatique
+- Système de raccourcis clavier centralisés
+- Compensation automatique distance FOV
+- Contrôles caméra souris (orbite, déplacement, zoom)
+- Mode visualisation stéréoscopique
+- Contrôle résolution du framebuffer
+- Modulations aléatoires épaisseur/vitesse
+- Capacités export SVG/PNG/Vidéo
+- Persistance localStorage
 
 ---
 
@@ -719,9 +715,8 @@ Cette sauvegarde contient la version fonctionnelle complète d'avant la modulari
 - Modules JavaScript ES6
 - WebGL pour le rendu 3D accéléré
 
-**Version monolithique originale** : ZigzagEmitter v1-12  
-**Architecture modulaire** : ZigMap26 v13  
-**Date de refactorisation** : 9 mars 2026
+**Version** : ZigMap26  
+**Date** : Mars 2026
 
 **Licence** : MIT
 

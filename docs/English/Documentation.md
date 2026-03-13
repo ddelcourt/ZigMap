@@ -1,7 +1,7 @@
 # Zigzag Emitter - Technical Documentation
 ddelcourt2026
 
-**Version 12** - Code Architecture & Implementation Guide
+**Version 26** - Code Architecture & Implementation Guide
 
 This document provides a comprehensive overview of the codebase structure, architecture patterns, and implementation details for developers who want to understand, modify, or extend the Zigzag Emitter.
 
@@ -1306,107 +1306,7 @@ document.querySelectorAll('.section-header').forEach(header => {
 
 **Behavior:** Click section title to expand/collapse controls.
 
----
-
-#### Keyboard Shortcuts
-
-**v12 Centralized System:**
-
-All keyboard shortcuts are defined in a single configuration array:
-
-```javascript
-const KEYBOARD_SHORTCUTS = [
-  // UI Navigation
-  { key: 'Tab',   action: 'toggleControls',       description: 'Toggle controls panel',          preventDefault: true },
-  { key: 'Enter', action: 'toggleFullscreen',     description: 'Toggle fullscreen',              preventDefault: true },
-  { key: 'h',     action: 'toggleControls',       description: 'Hide/show controls',             preventDefault: true },
-  { key: 'f',     action: 'toggleFullscreen',     description: 'Fullscreen',                     preventDefault: true },
-  
-  // Export Actions
-  { key: 'p',     action: 'exportPNG',            description: 'Export PNG',                     preventDefault: true },
-  { key: 'P',     action: 'exportPNG',            description: 'Export PNG (Shift+P)',           preventDefault: true, shift: true },
-  { key: 's',     action: 'exportSVG',            description: 'Export SVG',                     preventDefault: true },
-  { key: 'S',     action: 'exportSVG',            description: 'Export SVG (Shift+S)',           preventDefault: true, shift: true },
-  { key: 'd',     action: 'exportDepthMap',       description: 'Export depth map',               preventDefault: true },
-  { key: 'D',     action: 'exportDepthMap',       description: 'Export depth map (Shift+D)',     preventDefault: true, shift: true },
-  { key: 'v',     action: 'toggleVideoRecording', description: 'Start/stop recording',          preventDefault: true },
-  { key: 'j',     action: 'downloadJSON',         description: 'Save settings JSON (J)',         preventDefault: true },
-  { key: 's',     action: 'downloadJSON',         description: 'Save settings JSON (Ctrl+S)',    preventDefault: true, ctrl: true },
-  
-  // Camera Controls
-  { key: 'r',     action: 'resetCamera',          description: 'Reset camera position',          preventDefault: true },
-  { key: 'R',     action: 'resetCamera',          description: 'Reset camera (Shift+R)',         preventDefault: true, shift: true },
-  { key: '0',     action: 'resetZoom',            description: 'Reset zoom to default',          preventDefault: true },
-  
-  // Color Palette Selection
-  { key: '1',     action: 'selectPalette1',       description: 'Switch to color palette 1',      preventDefault: true },
-  { key: '2',     action: 'selectPalette2',       description: 'Switch to color palette 2',      preventDefault: true },
-  { key: '3',     action: 'selectPalette3',       description: 'Switch to color palette 3',      preventDefault: true },
-  { key: '4',     action: 'selectPalette4',       description: 'Switch to color palette 4',      preventDefault: true },
-  
-  // Modulation Toggles
-  { key: 't',     action: 'toggleRandomThickness', description: 'Toggle random thickness',      preventDefault: true },
-  { key: 'm',     action: 'toggleRandomSpeed',     description: 'Toggle random speed',          preventDefault: true },
-  
-  // View Modes
-  { key: 'y',     action: 'toggleStereoMode',     description: 'Toggle stereoscopic view',       preventDefault: true },
-  { key: 'b',     action: 'toggleFramebuffer',    description: 'Toggle framebuffer mode',        preventDefault: true }
-];
-```
-
-**Keyboard Event Handler:**
-
-```javascript
-document.addEventListener('keydown', e => {
-  // Find matching shortcut with modifier key support
-  const shortcut = KEYBOARD_SHORTCUTS.find(sc => {
-    if (sc.key !== e.key) return false;
-    
-    // Check modifier keys (default to false if not specified)
-    const ctrlMatch = (sc.ctrl || false) === (e.ctrlKey || e.metaKey); // metaKey = Cmd on Mac
-    const shiftMatch = (sc.shift || false) === e.shiftKey;
-    const altMatch = (sc.alt || false) === e.altKey;
-    
-    return ctrlMatch && shiftMatch && altMatch;
-  });
-  
-  if (shortcut) {
-    if (shortcut.preventDefault) e.preventDefault();
-    
-    // Call the action function by name
-    const actionName = shortcut.action;
-    if (typeof window[actionName] === 'function') {
-      window[actionName]();
-    }
-  }
-});
-```
-
-**Action Functions (Examples):**
-
-```javascript
-function toggleControls() {
-  document.querySelector('.controls').classList.toggle('hidden');
-  document.body.classList.toggle('ui-hidden');
-}
-
-function exportPNG() {
-  // Delegates to button click handler for consistency
-  document.getElementById('export-png')?.click();
-}
-
-function resetCamera() {
-  camera.rotationX = -0.3;
-  camera.rotationY = 0;
-  camera.offsetX = 0;
-  camera.offsetY = 0;
-  params.cameraRotationX = camera.rotationX;
-  params.cameraRotationY = camera.rotationY;
-  params.cameraOffsetX = camera.offsetX;
-  params.cameraOffsetY = camera.offsetY;
-  saveToLocalStorage();
-}
-```
+**Keyboard Shortcuts:** See User Manual for complete list. All shortcuts are handled by `js/input/KeyboardHandler.js` with mappings defined in `config/keyboardShortcuts.json`.
 
 **Benefits:**
 - Single source of truth for all shortcuts
@@ -1522,7 +1422,7 @@ farSlider.addEventListener('input', () => {
 
 ---
 
-#### FOV with Distance Compensation (v10 Feature)
+#### FOV with Distance Compensation
 
 **Implementation:**
 ```javascript
@@ -1954,7 +1854,7 @@ export function captureVideoFrame(ZM) {
 
 ### Depth Map Export Technical Details
 
-**NEW IN v12:** CPU-based depth map generation with auto-ranging.
+**Architecture:**
 
 **Architecture:**
 1. Uses exact same camera projection math as SVG export

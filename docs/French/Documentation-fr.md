@@ -1,7 +1,7 @@
 # Émetteur Zigzag - Documentation Technique
 ddelcourt2026
 
-**Version 12** - Architecture du Code & Guide d'Implémentation
+**Version 26** - Architecture du Code & Guide d'Implémentation
 
 Ce document fournit une vue d'ensemble complète de la structure du code, des modèles d'architecture et des détails d'implémentation pour les développeurs qui souhaitent comprendre, modifier ou étendre l'Émetteur Zigzag.
 
@@ -1054,7 +1054,9 @@ document.querySelectorAll('.section-header').forEach(header => {
 
 #### Raccourcis Clavier
 
-**NOUVEAU EN v12 :** Architecture de raccourcis clavier centralisée et extensible.
+**Architecture de raccourcis clavier :**
+
+Tous les raccourcis clavier sont gérés par `js/input/KeyboardHandler.js` avec les mappages définis dans `config/keyboardShortcuts.json`.
 
 **Définition de Tableaux :**
 ```javascript
@@ -1247,7 +1249,7 @@ farSlider.addEventListener('input', () => {
 
 ---
 
-#### FOV avec Compensation de Distance (Fonctionnalité v10)
+#### FOV avec Compensation de Distance
 
 **Implémentation :**
 ```javascript
@@ -1502,7 +1504,7 @@ distance = clamp(distance, 50, 10000);
 
 ### Détails Techniques Export Carte de Profondeur
 
-**NOUVEAU EN v12 :** Génération de carte de profondeur basée CPU avec auto-ajustement de plage.
+**Architecture :**
 
 **Architecture :**
 1. Capture position polygones 3D actuels (coordonnées monde)

@@ -625,33 +625,16 @@ Export your creations as images or videos.
   - Removed Interface control pane (functions kept as shortcuts)
   - Keyboard shortcuts disabled during state renaming
 
-### v12
-- **NEW**: Depth map export feature
-  - CPU-based depth projection with auto-ranging
-  - Greyscale PNG output with gamma correction
-  - Pixel-perfect alignment with main PNG export
-  - Invertible depth encoding
-- **IMPROVED**: Centralized keyboard shortcuts system
-  - All shortcuts defined in one configuration array
-  - Support for modifier keys (Ctrl, Shift)
-- **FIXED**: Code cleanup and security improvements
-
-### v10
-- **NEW**: FOV changes automatically compensate camera distance
-  - Field of view adjustments no longer scale geometry
-  - Only perspective distortion changes
-
-### v9
+### Earlier Versions (v12 and below)
+- Depth map export with auto-ranging
+- CPU-based projection for depth maps
+- Centralized keyboard shortcuts system
+- FOV compensation for camera distance
 - Mouse-based camera controls (orbit, pan, zoom)
-- Enhanced panning sensitivity
-
-### Earlier Versions
 - Stereoscopic viewing mode
 - Framebuffer resolution control
 - Random thickness/speed modulations
-- SVG export capability
-- Video recording with CCapture.js
-- Real-time parameter adjustment
+- SVG/PNG/Video export capabilities
 - LocalStorage persistence
 
 ---
@@ -733,25 +716,7 @@ ZigMap26/
 Total: 25 modular files (from 1 monolithic 2,334-line HTML file)
 ```
 
-## ⌨️ Keyboard Shortcuts
-
-| Key | Action |
-|-----|--------|
-| **Tab** / **h** | Toggle control panel |
-| **Enter** / **f** | Fullscreen |
-| **p** | Export PNG |
-| **s** | Export SVG |
-| **Cmd/Ctrl+S** | Save settings JSON |
-| **d** | Export depth map |
-| **v** | Start/stop video recording |
-| **r** | Reset camera |
-| **0** | Reset zoom |
-| **t** | Toggle random thickness |
-| **m** | Toggle random speed |
-| **3** | Toggle stereoscopic mode |
-| **b** | Toggle framebuffer mode |
-
-Full list: See `config/keyboardShortcuts.json`
+**Note:** Keyboard shortcuts and mouse controls are documented in the [User Manual](docs/English/User-Manual.md#essential-keyboard-shortcuts).
 
 ## 🖱️ Mouse Controls
 
@@ -876,7 +841,7 @@ Original monolithic version preserved:
 
 **Version**: ZigMap26 v1.0  
 **Migration Date**: March 9, 2026  
-**Original**: ZigzagEmitter v12 (2,334 lines → 25 modular files)
+**Original**: ZigzagEmitter monolithic file (2,334 lines → 25 modular files)
 
 .
 .
