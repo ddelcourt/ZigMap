@@ -130,11 +130,12 @@ Save and load your complete projects with states and camera positions.
 #### Auto-Trigger **NEW**
 - **Checkbox**: Enable/disable automatic state switching
 - **Frequency**: 5–120 seconds between switches
-- Automatically switches to a **random state** at set intervals
-- Uses truly random selection (no patterns or sequences)
+- Automatically switches through states using a **shuffle algorithm**
+- **Shuffle Pool System**: Creates a randomized list of all states, visits each one once, then reshuffles
+- **No Short-Term Repetition**: Each state guaranteed to appear once per cycle before any state repeats
 - Requires 2+ states to function
 - Timer resets when manually switching states
-- Perfect for unattended displays or presentations
+- Perfect for unattended displays or presentations with maximum variety
 
 ---
 

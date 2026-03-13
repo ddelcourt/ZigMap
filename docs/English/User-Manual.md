@@ -75,8 +75,8 @@ Save and recall complete snapshots of your parameters, colors, and camera positi
 
 **Auto-Trigger**:
 - ☑️ Check **Auto-Trigger** to automatically switch between states
-- **Frequency slider** (5-120s): How often to switch to a random state
-- 💡 Uses truly random selection - no patterns or sequences
+- **Frequency slider** (5-120s): How often to switch to the next state
+- 💡 Uses shuffle algorithm - visits each state once before repeating (no short-term repetition)
 
 ### 🎨 Color Palettes
 

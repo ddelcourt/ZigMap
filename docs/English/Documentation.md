@@ -1009,7 +1009,7 @@ Two independent transition timers control smooth morphing between states:
 
 #### Auto-Trigger System **NEW**
 
-Automatically switches between states at random intervals.
+Automatically switches between states using a shuffle pool algorithm to eliminate short-term repetition.
 
 **Parameters:**
 ```javascript
@@ -1017,39 +1017,57 @@ autoTriggerEnabled: false,      // ☑️ Enable/disable
 autoTriggerFrequency: 30,       // Seconds between switches (5-120)
 ```
 
-**Implementation (js/main.js):**
+**Implementation (js/storage/StateManager.js):**
+
+**Shuffle Pool Algorithm:**
 ```javascript
-function updateAutoTrigger(ZM) {
-  if (!ZM.params.autoTriggerEnabled || ZM.states.length < 2) {
-    return;
-  }
+function loadRandomState(ZM) {
+  const states = ZM.stateManager.states;
+  const activeId = ZM.stateManager.activeStateId;
   
-  const now = Date.now();
-  if (!ZM.lastAutoTriggerTime) {
-    ZM.lastAutoTriggerTime = now;
-    return;
-  }
-  
-  const elapsed = (now - ZM.lastAutoTriggerTime) / 1000;
-  if (elapsed >= ZM.params.autoTriggerFrequency) {
-    // Get random state (exclude current)
-    const otherStates = ZM.states.filter((_, i) => i !== ZM.currentStateIndex);
-    const randomState = otherStates[Math.floor(Math.random() * otherStates.length)];
-    const newIndex = ZM.states.indexOf(randomState);
+  // If shuffle pool is empty, create a new shuffled pool
+  if (!ZM.shufflePool || ZM.shufflePool.length === 0) {
+    // Get all states except the currently active one
+    const availableStates = states.filter(state => state.id !== activeId);
     
-    // Load state
-    loadState(ZM, newIndex);
-    ZM.lastAutoTriggerTime = now;
+    // Shuffle using Fisher-Yates algorithm
+    ZM.shufflePool = shuffleArray(availableStates);
+    console.log(`New shuffle cycle: [${ZM.shufflePool.map(s => s.name).join(', ')}]`);
   }
+  
+  // Pop the next state from the shuffled pool
+  const nextState = ZM.shufflePool.shift();
+  
+  // Load the next state
+  return loadState(ZM, nextState.id);
+}
+
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 }
 ```
 
 **Characteristics:**
-- **Truly Random**: Uses `Math.random()` with no sequence or pattern
-- **Excludes Current**: Never switches to the currently active state
+- **Shuffle Pool System**: Creates randomized array of all available states
+- **No Short-Term Repetition**: Each state visited exactly once per cycle before any repeat
+- **Auto-Reshuffle**: Pool automatically refills and reshuffles when exhausted
+- **Fisher-Yates Algorithm**: True random shuffle (unbiased distribution)
+- **Excludes Current**: Current active state never included in pool
 - **Requires 2+ States**: Automatically disabled if fewer than 2 states exist
 - **Timer Reset**: Resets when manually switching states
 - **Frequency Range**: 5-120 seconds (adjustable via slider)
+
+**Example with 4 states (A, B, C, D):**
+- Currently on state A
+- Shuffle creates pool: [C, D, B] (random order)
+- Auto-trigger visits: C → D → B
+- Pool now empty, reshuffle creates: [A, D, C] (new random order)
+- Continue: A → D → C → (reshuffle) → ...
 
 #### `saveToLocalStorage()`
 

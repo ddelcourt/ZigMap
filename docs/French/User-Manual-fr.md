@@ -74,8 +74,8 @@ Sauvegardez et rappelez des instantanés complets de vos paramètres :
 
 **Auto-Trigger** :
 - ☑️ Cocher **Auto-Trigger** pour changer automatiquement d'état
-- **Curseur Frequency** (5-120s) : Fréquence de changement aléatoire
-- 💡 Sélection vraiment aléatoire - pas de motifs ou séquences
+- **Curseur Frequency** (5-120s) : Fréquence de changement entre états
+- 💡 Algorithme de mélange - visite chaque état une fois avant répétition (pas de répétition à court terme)
 
 ### 🎨 Palettes de Couleurs
 

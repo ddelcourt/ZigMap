@@ -46,6 +46,9 @@ export function initializeStateManager(ZM) {
     lastTriggerTime: 0
   };
   
+  // Initialize shuffle pool for auto-trigger (ensures no repetition within cycle)
+  ZM.shufflePool = [];
+  
   // Create initial state if none exist
   if (ZM.stateManager.states.length === 0) {
     const initialState = captureCurrentState(ZM, 'Initial State');
@@ -177,7 +180,7 @@ function restoreState(ZM, state) {
   console.log('ZM.params.palettes:', ZM.params.palettes);
   
   // Trigger camera transition (4.5 seconds)
-  if (state.camera) {
+  if (state.camera && ZM.camera) {
     ZM.camera.transitionTo(
       state.camera.rotationX,
       state.camera.rotationY,
@@ -187,31 +190,40 @@ function restoreState(ZM, state) {
     );
   }
   
-  // Trigger FOV transition
+  // Trigger FOV transition (only if sketch has been initialized)
   if (ZM.fovTransition && state.params.fov !== undefined) {
     ZM.fovTransition.start = ZM.fovTransition.current;
     ZM.fovTransition.target = state.params.fov;
     ZM.fovTransition.progress = 0.0;
     ZM.fovTransition.duration = ZM.params.stateTransitionDuration; // Use current transition duration
     ZM.fovTransition.isTransitioning = true;
+  } else if (!ZM.fovTransition && state.params.fov !== undefined) {
+    // Sketches not initialized yet - directly set FOV
+    ZM.params.fov = state.params.fov;
   }
   
-  // Trigger emitter rotation transition
+  // Trigger emitter rotation transition (only if sketch has been initialized)
   if (ZM.emitterRotationTransition && state.params.emitterRotation !== undefined) {
     ZM.emitterRotationTransition.start = ZM.emitterRotationTransition.current;
     ZM.emitterRotationTransition.target = state.params.emitterRotation;
     ZM.emitterRotationTransition.progress = 0.0;
     ZM.emitterRotationTransition.duration = ZM.params.stateTransitionDuration; // Use current transition duration
     ZM.emitterRotationTransition.isTransitioning = true;
+  } else if (!ZM.emitterRotationTransition && state.params.emitterRotation !== undefined) {
+    // Sketches not initialized yet - directly set rotation
+    ZM.params.emitterRotation = state.params.emitterRotation;
   }
   
-  // Trigger geometry scale transition
+  // Trigger geometry scale transition (only if sketch has been initialized)
   if (ZM.geometryScaleTransition && state.params.geometryScale !== undefined) {
     ZM.geometryScaleTransition.start = ZM.geometryScaleTransition.current;
     ZM.geometryScaleTransition.target = state.params.geometryScale;
     ZM.geometryScaleTransition.progress = 0.0;
     ZM.geometryScaleTransition.duration = ZM.params.stateTransitionDuration; // Use current transition duration
     ZM.geometryScaleTransition.isTransitioning = true;
+  } else if (!ZM.geometryScaleTransition && state.params.geometryScale !== undefined) {
+    // Sketches not initialized yet - directly set scale
+    ZM.params.geometryScale = state.params.geometryScale;
   }
   
   // Check if palette changed - trigger smooth transition
@@ -767,10 +779,24 @@ function saveActiveStateId(id) {
 }
 
 /**
- * Load a random state (excluding current active state)
- * TRULY RANDOM: Uses Math.random() with fresh generation each call.
- * NO SEQUENCE: No history or pattern tracking - each selection is independent.
- * ALWAYS DIFFERENT: Filters out the currently active state before random selection.
+ * Shuffle an array using Fisher-Yates algorithm (true random shuffle)
+ * @param {Array} array - Array to shuffle (modifies in place)
+ * @returns {Array} Shuffled array
+ */
+function shuffleArray(array) {
+  const shuffled = [...array]; // Create copy to avoid mutating original
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
+ * Load next state from shuffle pool (ensures all states visited before repetition)
+ * SHUFFLE ALGORITHM: Creates a shuffled pool of all available states, then visits each once.
+ * NO REPETITION: Each state is guaranteed to be visited once per cycle.
+ * AUTO-REFRESH: When pool is exhausted, automatically creates a new shuffled pool.
  * 
  * @param {Object} ZM - Main application object
  * @returns {Boolean} Success status
@@ -779,23 +805,47 @@ function loadRandomState(ZM) {
   const states = ZM.stateManager.states;
   const activeId = ZM.stateManager.activeStateId;
   
-  // Need at least 2 states to select a different one
+  // Need at least 2 states for meaningful shuffling
   if (states.length < 2) {
+    console.warn('[Auto-Trigger] Need at least 2 states for shuffle selection');
     return false;
   }
   
-  // Filter out the currently active state (ensures we NEVER pick the same state)
-  const availableStates = states.filter(state => state.id !== activeId);
-  
-  if (availableStates.length === 0) {
-    return false;
+  // If shuffle pool is empty or undefined, create a new shuffled pool
+  if (!ZM.shufflePool || ZM.shufflePool.length === 0) {
+    // Get all states except the currently active one
+    const availableStates = states.filter(state => state.id !== activeId);
+    
+    if (availableStates.length === 0) {
+      console.warn('[Auto-Trigger] No available states after filtering');
+      return false;
+    }
+    
+    // Shuffle the available states into a random order
+    ZM.shufflePool = shuffleArray(availableStates);
+    
+    console.log(`[Auto-Trigger] New shuffle cycle created: [${ZM.shufflePool.map(s => `"${s.name}"`).join(', ')}]`);
   }
   
-  // Generate fresh random number (0 to 1) and select state
-  // This is TRUE RANDOM - no memory, no sequence, no pattern
-  const randomIndex = Math.floor(Math.random() * availableStates.length);
-  const randomState = availableStates[randomIndex];
+  // Pop the next state from the shuffled pool
+  const nextState = ZM.shufflePool.shift(); // Remove and return first element
   
-  // Load the random state (this updates activeStateId for next call)
-  return loadState(ZM, randomState.id);
+  // Find current state name for logging
+  const currentState = states.find(s => s.id === activeId);
+  const currentName = currentState ? currentState.name : 'Unknown';
+  
+  // Debug logging
+  console.log(`[Auto-Trigger] Shuffle Selection:
+    Current: "${currentName}"
+    Selected: "${nextState.name}"
+    Remaining in cycle: [${ZM.shufflePool.map(s => `"${s.name}"`).join(', ')}]
+    ${ZM.shufflePool.length === 0 ? '(Cycle complete - will shuffle on next trigger)' : ''}`);
+  
+  // Load the next state (this updates activeStateId for next call)
+  const success = loadState(ZM, nextState.id);
+  
+  // If pool is now empty, it will auto-refill on next call
+  // This ensures all states are visited before any repeat
+  
+  return success;
 }
