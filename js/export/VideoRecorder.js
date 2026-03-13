@@ -2,10 +2,13 @@
  * VideoRecorder — Video export using CCapture.js
  */
 
+import { createCompositeCanvas } from './PNGExporter.js';
+
 let capturer = null;
 let isRecording = false;
 let recordingFrameCount = 0;
 let recordingTotalFrames = 0;
+let compositeCanvas = null;
 
 export function isRecording_() {
   return isRecording;
@@ -70,7 +73,11 @@ function renderVideoFrame(ZM) {
   }
   
   ZM.p5Instance.redraw();
-  capturer.capture(ZM.p5Instance.canvas);
+  
+  // Create composite with overlay
+  compositeCanvas = createCompositeCanvas(ZM, ZM.p5Instance.canvas);
+  capturer.capture(compositeCanvas);
+  
   recordingFrameCount++;
   
   const progress = Math.round((recordingFrameCount / recordingTotalFrames) * 100);
@@ -89,6 +96,7 @@ export function stopVideoRecording(ZM) {
   
   isRecording = false;
   recordingFrameCount = 0;
+  compositeCanvas = null;
   
   // Re-enable UI
   document.querySelectorAll('.controls input, .controls button').forEach(el => {

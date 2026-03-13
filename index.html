@@ -19,26 +19,6 @@
 
   <div class="controls">
 
-    <!-- UI -->
-    <div class="section">
-      <div class="section-header" data-section="view">
-        <span class="section-title">Interface</span>
-        <span class="section-toggle">▼</span>
-      </div>
-      <div class="section-content">
-        <div class="section-body">
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <button id="hide-controls-btn" style="width:100%;padding:8px;background:#222;border:1px solid #444;color:#fff;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
-              <span>Hide controls</span>
-            </button>
-            <button id="fullscreen-btn" style="width:100%;padding:8px;background:#222;border:1px solid #444;color:#fff;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
-              <span>Fullscreen</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- File -->
     <div class="section">
       <div class="section-header" data-section="file">
@@ -70,6 +50,39 @@
             <div id="state-list-container" class="state-list-container">
               <!-- States will be dynamically inserted here -->
             </div>
+            
+            <!-- Transition Duration Controls -->
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #333;">
+              <div class="control-group">
+                <label>State Transition <span style="color:#444">(seconds)</span></label>
+                <div class="slider-row">
+                  <input type="range" id="state-transition-duration" min="0" max="30" step="0.5" value="4.5"/>
+                  <span class="value-display" id="state-transition-duration-val">4.5</span>
+                </div>
+              </div>
+              <div class="control-group">
+                <label>Color Transition <span style="color:#444">(seconds)</span></label>
+                <div class="slider-row">
+                  <input type="range" id="color-transition-duration" min="0" max="30" step="0.5" value="3.0"/>
+                  <span class="value-display" id="color-transition-duration-val">3.0</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Auto-Trigger Controls -->
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #333;">
+              <div class="control-group">
+                <label><input type="checkbox" id="auto-trigger-states"> Auto-Trigger Frq (s)</label>
+              </div>
+              <div class="control-group">
+                <!-- <label> Frq<span style="color:#444">(s)</span></label> -->
+                <div class="slider-row">
+                  <input type="range" id="auto-trigger-frequency" min="5" max="120" step="1" value="30"/>
+                  <span class="value-display" id="auto-trigger-frequency-val">30</span>
+                </div>
+              </div>
+            </div>
+            
             <div class="state-controls">
               <button id="new-state-btn" class="state-control-btn new-state">
                 <span class="icon-new"></span> New
@@ -86,15 +99,14 @@
       </div>
     </div>
 
-    <!-- Camera -->
+    <!-- Rendering -->
     <div class="section">
       <div class="section-header" data-section="rendering">
-        <span class="section-title">Rendering View / Camera</span>
+        <span class="section-title">Rendering</span>
         <span class="section-toggle">▼</span>
       </div>
       <div class="section-content">
         <div class="section-body">
-
           <div class="control-group">
             <label><input type="checkbox" id="framebuffer-mode">Framebuffer Resolution</label>
           </div>
@@ -122,6 +134,18 @@
               <input type="number" id="framebuffer-height" value="1080" min="240" step="1" style="flex:1;min-width:0;background:#1a1a1a;border:1px solid #333;color:#ccc;padding:6px;border-radius:3px;font-size:0.85rem;" placeholder="Height"/>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View -->
+    <div class="section">
+      <div class="section-header" data-section="view">
+        <span class="section-title">View</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
           <div class="control-group">
             <label>Field of View</label>
             <div class="slider-row">
@@ -129,7 +153,7 @@
               <span class="value-display" id="fov-val">60</span>
             </div>
           </div>
-                    <div class="control-group">
+          <div class="control-group">
             <label>Clipping Planes</label>
             <div class="range-slider-container">
               <div class="slider-track-line"></div>
@@ -141,8 +165,7 @@
               <span>Far: <span id="far-val">20000</span></span>
             </div>
           </div>
-
-                    <div class="control-group">
+          <div class="control-group">
             <label><input type="checkbox" id="stereoscopic-mode">Stereoscopic View (VR)</label>
           </div>
           <div class="control-group">
@@ -354,6 +377,54 @@
       </div>
     </div>
 
+    <!-- Overlay -->
+    <div class="section">
+      <div class="section-header" data-section="overlay">
+        <span class="section-title">Overlay</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <div class="control-group">
+            <label><input type="checkbox" id="overlay-visible"> Show Overlay</label>
+          </div>
+          <div style="margin-top:12px;">
+            <button id="load-overlay-btn" style="width:100%;padding:10px;background:#1a1a3a;border:1px solid #2d2d5f;color:#aaaaff;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Load Image</button>
+            <input type="file" id="load-overlay-input" accept=".png,.jpg,.jpeg,.svg" style="display:none;">
+          </div>
+          <div class="control-group" style="margin-top:12px;">
+            <label>Scale <span style="color:#444">(%)</span></label>
+            <div class="slider-row">
+              <input type="range" id="overlay-scale" min="10" max="200" step="1" value="100"/>
+              <span class="value-display" id="overlay-scale-val">100</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Opacity <span style="color:#444">(%)</span></label>
+            <div class="slider-row">
+              <input type="range" id="overlay-opacity" min="0" max="100" step="1" value="100"/>
+              <span class="value-display" id="overlay-opacity-val">100</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Position X <span style="color:#444">(%)</span></label>
+            <div class="slider-row">
+              <input type="range" id="overlay-x" min="0" max="100" step="1" value="50"/>
+              <span class="value-display" id="overlay-x-val">50</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Position Y <span style="color:#444">(%)</span></label>
+            <div class="slider-row">
+              <input type="range" id="overlay-y" min="0" max="100" step="1" value="50"/>
+              <span class="value-display" id="overlay-y-val">50</span>
+            </div>
+          </div>
+          <button id="clear-overlay-btn" style="width:100%;padding:8px;margin-top:8px;background:#3a1a1a;border:1px solid #5f2d2d;color:#ffaaaa;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Clear Image</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Export -->
     <div class="section">
       <div class="section-header" data-section="export">
@@ -430,6 +501,7 @@
 
   <div id="canvas-container">
     <div id="canvas-wrapper"></div>
+    <img id="overlay-image" style="position:absolute;pointer-events:none;display:none;z-index:1000;" />
   </div>
 
   <!-- Main Application Module -->

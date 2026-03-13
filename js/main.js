@@ -89,10 +89,19 @@ window.ZigMap26 = {
       if (window.ZigMap26.updateStatePanel) {
         window.ZigMap26.updateStatePanel();
       }
+      
+      // Load the first state in the list to ensure proper state initialization
+      if (loadedData.states.length > 0) {
+        const firstState = loadedData.states[0];
+        window.ZigMap26.stateManager.load(firstState.id);
+      }
+    } else {
+      // No states in project - sync camera from loaded params
+      window.ZigMap26.camera.syncFromParams(window.ZigMap26.params);
+      
+      // Sync main UI
+      window.ZigMap26.syncUIFromParams();
     }
-    
-    // Sync main UI
-    window.ZigMap26.syncUIFromParams();
   }),
   
   // Export functions
@@ -117,17 +126,68 @@ window.ZigMap26 = {
 // INITIALIZATION
 // ═══════════════════════════════════════════════════════════════════════════
 
-function init() {
+/**
+ * Load initial preset for first-time users
+ */
+async function loadInitialPreset(ZM) {
+  try {
+    const response = await fetch('config/presets/zigmap_init.json');
+    if (!response.ok) {
+      console.warn('Initial preset not found, using defaults');
+      return false;
+    }
+    
+    const loadedData = await response.json();
+    
+    // Update params
+    Object.assign(ZM.params, loadedData.params);
+    
+    // Restore states if present
+    if (loadedData.states && Array.isArray(loadedData.states)) {
+      ZM.stateManager.states = loadedData.states;
+      ZM.stateManager.activeStateId = loadedData.activeStateId;
+      ZM.stateManager.saveToStorage();
+      
+      // Load the first state
+      if (loadedData.states.length > 0) {
+        const firstState = loadedData.states[0];
+        // Store for later use after UI initialization
+        ZM._initialStateId = firstState.id;
+      }
+      
+      // Update state panel UI will be called after UI initialization
+    } else {
+      // Sync camera from loaded params
+      ZM.camera.syncFromParams(ZM.params);
+    }
+    
+    // Save to localStorage so this only happens once
+    ZM.saveToLocalStorage();
+    
+    console.log('✓ Loaded initial preset from config/presets/zigmap_init.json');
+    return true;
+  } catch (err) {
+    console.warn('Could not load initial preset:', err);
+    return false;
+  }
+}
+
+async function init() {
   const ZM = window.ZigMap26;
   
   // Initialize camera
   ZM.camera = new Camera(ZM.params);
   
-  // Load saved settings
+  // Load saved settings or initial preset
   const hadSavedSettings = ZM.loadFromLocalStorage();
   
   // Initialize preset manager
   initializeStateManager(ZM);
+  
+  // Load initial preset for first-time users
+  if (!hadSavedSettings) {
+    await loadInitialPreset(ZM);
+  }
   
   // Attach rendering functions
   attachToZM(ZM);
@@ -135,11 +195,20 @@ function init() {
   // Initialize UI
   initializeUI(ZM);
   
-  // Sync UI if we loaded saved settings (this will call initializeSketches)
-  if (hadSavedSettings && ZM.syncUIFromParams) {
+  // Load initial state if we loaded the preset
+  if (!hadSavedSettings && ZM._initialStateId && ZM.stateManager.load) {
+    // Update state panel UI first
+    if (ZM.updateStatePanel) {
+      ZM.updateStatePanel();
+    }
+    // Then load the first state
+    ZM.stateManager.load(ZM._initialStateId);
+    delete ZM._initialStateId;
+  } else if (hadSavedSettings && ZM.syncUIFromParams) {
+    // Sync UI if we loaded saved settings
     ZM.syncUIFromParams();
   } else {
-    // Create p5 sketches only if we didn't sync from saved settings
+    // Create p5 sketches
     ZM.initializeSketches();
   }
   

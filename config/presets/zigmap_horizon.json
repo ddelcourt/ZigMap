@@ -1,0 +1,2001 @@
+{
+  "version": "2.0",
+  "params": {
+    "segmentLength": 120,
+    "lineThickness": 10,
+    "emitterRotation": 180,
+    "geometryScale": 168,
+    "fadeDuration": 1,
+    "palettes": [
+      [
+        {
+          "rgb": [
+            255,
+            255,
+            255
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            0,
+            0,
+            0
+          ],
+          "role": "background"
+        },
+        {
+          "rgb": [
+            180,
+            180,
+            180
+          ],
+          "role": "none"
+        },
+        {
+          "rgb": [
+            60,
+            60,
+            60
+          ],
+          "role": "none"
+        }
+      ],
+      [
+        {
+          "rgb": [
+            255,
+            140,
+            60
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            20,
+            10,
+            5
+          ],
+          "role": "background"
+        },
+        {
+          "rgb": [
+            255,
+            90,
+            120
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            200,
+            180,
+            50
+          ],
+          "role": "line"
+        }
+      ],
+      [
+        {
+          "rgb": [
+            117,
+            213,
+            255
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            101,
+            37,
+            174
+          ],
+          "role": "background"
+        },
+        {
+          "rgb": [
+            80,
+            255,
+            180
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            255,
+            147,
+            0
+          ],
+          "role": "line"
+        }
+      ],
+      [
+        {
+          "rgb": [
+            255,
+            60,
+            200
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            10,
+            20,
+            10
+          ],
+          "role": "background"
+        },
+        {
+          "rgb": [
+            60,
+            255,
+            100
+          ],
+          "role": "line"
+        },
+        {
+          "rgb": [
+            255,
+            220,
+            60
+          ],
+          "role": "line"
+        }
+      ]
+    ],
+    "activePaletteIndex": 2,
+    "colorTransitionDuration": 16,
+    "stateTransitionDuration": 12,
+    "colorSlotZOffset": 10,
+    "autoTriggerStates": true,
+    "autoTriggerFrequency": 25,
+    "emitRate": 1.9,
+    "speed": 80,
+    "ambientSpeedMaster": 100,
+    "randomThickness": true,
+    "randomSpeed": true,
+    "thicknessRangeMin": 10,
+    "thicknessRangeMax": 371,
+    "speedRangeMin": 50,
+    "speedRangeMax": 200,
+    "fov": 60,
+    "near": 0.01,
+    "far": 20000,
+    "cameraRotationX": 0.3188266165141415,
+    "cameraRotationY": -0.6418635471045118,
+    "cameraDistance": 59.38454883348146,
+    "cameraOffsetX": 0.07003394651851837,
+    "cameraOffsetY": -5.882851507555543,
+    "stereoscopicMode": false,
+    "eyeSeparation": 30,
+    "framebufferMode": false,
+    "framebufferPreset": "1080x1080",
+    "framebufferWidth": 1080,
+    "framebufferHeight": 1080,
+    "videoDuration": 10,
+    "videoFPS": 30,
+    "videoFormat": "webm",
+    "depthInvert": false,
+    "overlayImageSrc": null,
+    "overlayVisible": false,
+    "overlayScale": 32,
+    "overlayOpacity": 100,
+    "overlayX": 50,
+    "overlayY": 50
+  },
+  "states": [
+    {
+      "id": "state_1773334605756_4m4hmidf7",
+      "name": "InitiCity",
+      "timestamp": 1773363801290,
+      "params": {
+        "segmentLength": 120,
+        "lineThickness": 10.2,
+        "emitterRotation": 181,
+        "geometryScale": 355,
+        "fadeDuration": 1,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                180,
+                180,
+                180
+              ],
+              "role": "none"
+            },
+            {
+              "rgb": [
+                60,
+                60,
+                60
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                140,
+                60
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                20,
+                10,
+                5
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                255,
+                90,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                200,
+                180,
+                50
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                120,
+                200,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                5,
+                10,
+                20
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                160,
+                120,
+                255
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                60,
+                200
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                10,
+                20,
+                10
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                60,
+                255,
+                100
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                220,
+                60
+              ],
+              "role": "line"
+            }
+          ]
+        ],
+        "activePaletteIndex": 0,
+        "colorSlotZOffset": 10,
+        "emitRate": 3.9,
+        "speed": 129,
+        "ambientSpeedMaster": 100,
+        "randomThickness": false,
+        "randomSpeed": false,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 200,
+        "speedRangeMin": 50,
+        "speedRangeMax": 150,
+        "fov": 60,
+        "cameraRotationX": -9.448185307179607,
+        "cameraRotationY": 6.313185307179594,
+        "cameraDistance": 1720,
+        "cameraOffsetX": 3,
+        "cameraOffsetY": -44,
+        "videoDuration": 10,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": false
+      },
+      "camera": {
+        "rotationX": -9.448185307179607,
+        "rotationY": 6.313185307179594,
+        "distance": 1720,
+        "offsetX": 3,
+        "offsetY": -44
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "state_1773334696171_9ek15jejs",
+      "name": "Floating",
+      "timestamp": 1773365960507,
+      "params": {
+        "segmentLength": 120,
+        "lineThickness": 11.7,
+        "emitterRotation": 211,
+        "geometryScale": 158,
+        "fadeDuration": 1,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                180,
+                180,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                60,
+                60,
+                60
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                140,
+                60
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                255,
+                90,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                212,
+                251,
+                120
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                120,
+                200,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                5,
+                10,
+                20
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                160,
+                120,
+                255
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                60,
+                200
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                10,
+                20,
+                10
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                60,
+                255,
+                100
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                220,
+                60
+              ],
+              "role": "line"
+            }
+          ]
+        ],
+        "activePaletteIndex": 1,
+        "colorSlotZOffset": 160,
+        "emitRate": 5.3,
+        "speed": 80,
+        "ambientSpeedMaster": 100,
+        "randomThickness": false,
+        "randomSpeed": false,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 200,
+        "speedRangeMin": 50,
+        "speedRangeMax": 150,
+        "fov": 112.01,
+        "cameraRotationX": 1.7231853071796168,
+        "cameraRotationY": 0.9149999999999991,
+        "cameraDistance": 62.11574178606554,
+        "cameraOffsetX": -34,
+        "cameraOffsetY": 94,
+        "videoDuration": 10,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": false
+      },
+      "camera": {
+        "rotationX": 1.7231853071796168,
+        "rotationY": 0.9149999999999991,
+        "distance": 62.11574178606554,
+        "offsetX": -34,
+        "offsetY": 94
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "state_1773334788644_bjor32bf1",
+      "name": "Segatronic",
+      "timestamp": 1773363566945,
+      "params": {
+        "segmentLength": 120,
+        "lineThickness": 10,
+        "emitterRotation": 147,
+        "geometryScale": 219,
+        "fadeDuration": 1,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                180,
+                180,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                60,
+                60,
+                60
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                140,
+                60
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                20,
+                10,
+                5
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                255,
+                90,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                200,
+                180,
+                50
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                120,
+                200,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                5,
+                10,
+                20
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                160,
+                120,
+                255
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                60,
+                200
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                60,
+                255,
+                100
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                4,
+                50,
+                255
+              ],
+              "role": "line"
+            }
+          ]
+        ],
+        "activePaletteIndex": 3,
+        "colorSlotZOffset": 120,
+        "emitRate": 3.9,
+        "speed": 80,
+        "ambientSpeedMaster": 100,
+        "randomThickness": true,
+        "randomSpeed": true,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 400,
+        "speedRangeMin": 50,
+        "speedRangeMax": 150,
+        "fov": 60,
+        "cameraRotationX": -8.417667196750712,
+        "cameraRotationY": 6.303158565996167,
+        "cameraDistance": 1560,
+        "cameraOffsetX": 35,
+        "cameraOffsetY": -526,
+        "videoDuration": 10,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": false
+      },
+      "camera": {
+        "rotationX": -8.417667196750712,
+        "rotationY": 6.303158565996167,
+        "distance": 1560,
+        "offsetX": 35,
+        "offsetY": -526
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "state_1773339795772_hoybbzdjj",
+      "name": "MyWave",
+      "timestamp": 1773339795772,
+      "params": {
+        "segmentLength": 120,
+        "lineThickness": 6.5,
+        "emitterRotation": 45,
+        "geometryScale": 368,
+        "fadeDuration": 1,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                180,
+                180,
+                180
+              ],
+              "role": "none"
+            },
+            {
+              "rgb": [
+                60,
+                60,
+                60
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                140,
+                60
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                20,
+                10,
+                5
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                255,
+                90,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                200,
+                180,
+                50
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                120,
+                200,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                5,
+                10,
+                20
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                160,
+                120,
+                255
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                60,
+                200
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                10,
+                20,
+                10
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                60,
+                255,
+                100
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                220,
+                60
+              ],
+              "role": "line"
+            }
+          ]
+        ],
+        "activePaletteIndex": 0,
+        "colorSlotZOffset": 10,
+        "emitRate": 5.3,
+        "speed": 80,
+        "ambientSpeedMaster": 100,
+        "randomThickness": false,
+        "randomSpeed": false,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 200,
+        "speedRangeMin": 50,
+        "speedRangeMax": 150,
+        "fov": 60,
+        "cameraRotationX": 0.10499999999999997,
+        "cameraRotationY": -0.45499999999999985,
+        "cameraDistance": 50,
+        "cameraOffsetX": 0,
+        "cameraOffsetY": 0,
+        "videoDuration": 10,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": false
+      },
+      "camera": {
+        "rotationX": 0.10499999999999997,
+        "rotationY": -0.45499999999999985,
+        "distance": 50,
+        "offsetX": 0,
+        "offsetY": 0
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "state_1773340319052_1jppz7sbg",
+      "name": "Sari",
+      "timestamp": 1773363506044,
+      "params": {
+        "segmentLength": 120,
+        "lineThickness": 10,
+        "emitterRotation": 180,
+        "geometryScale": 168,
+        "fadeDuration": 1,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                180,
+                180,
+                180
+              ],
+              "role": "none"
+            },
+            {
+              "rgb": [
+                60,
+                60,
+                60
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                140,
+                60
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                20,
+                10,
+                5
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                255,
+                90,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                200,
+                180,
+                50
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                117,
+                213,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                101,
+                37,
+                174
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                147,
+                0
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                60,
+                200
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                10,
+                20,
+                10
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                60,
+                255,
+                100
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                220,
+                60
+              ],
+              "role": "line"
+            }
+          ]
+        ],
+        "activePaletteIndex": 2,
+        "colorSlotZOffset": 10,
+        "emitRate": 1.9,
+        "speed": 80,
+        "ambientSpeedMaster": 100,
+        "randomThickness": true,
+        "randomSpeed": true,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 371,
+        "speedRangeMin": 50,
+        "speedRangeMax": 200,
+        "fov": 60,
+        "cameraRotationX": -3.1249999999999956,
+        "cameraRotationY": 3.159999999999996,
+        "cameraDistance": 184,
+        "cameraOffsetX": 1,
+        "cameraOffsetY": -84,
+        "videoDuration": 10,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": false
+      },
+      "camera": {
+        "rotationX": -3.1249999999999956,
+        "rotationY": 3.159999999999996,
+        "distance": 184,
+        "offsetX": 1,
+        "offsetY": -84
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "state_1773349180305_srvvfv7fc",
+      "name": "Dehlicious",
+      "timestamp": 1773363459548,
+      "params": {
+        "segmentLength": 120,
+        "lineThickness": 9.5,
+        "emitterRotation": 109,
+        "geometryScale": 185,
+        "fadeDuration": 1,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                0,
+                249,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                225,
+                196
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                0,
+                190
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                25,
+                43
+              ],
+              "role": "background"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                140,
+                60
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                20,
+                10,
+                5
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                255,
+                90,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                200,
+                180,
+                50
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                120,
+                200,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                5,
+                10,
+                20
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                160,
+                120,
+                255
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                60,
+                200
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                10,
+                20,
+                10
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                60,
+                255,
+                100
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                220,
+                60
+              ],
+              "role": "line"
+            }
+          ]
+        ],
+        "activePaletteIndex": 0,
+        "colorSlotZOffset": 70,
+        "emitRate": 5.3,
+        "speed": 243,
+        "ambientSpeedMaster": 50,
+        "randomThickness": true,
+        "randomSpeed": false,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 400,
+        "speedRangeMin": 50,
+        "speedRangeMax": 150,
+        "fov": 60,
+        "cameraRotationX": -2.5750000000000286,
+        "cameraRotationY": 0.0799999999999874,
+        "cameraDistance": 298,
+        "cameraOffsetX": -115,
+        "cameraOffsetY": -226,
+        "videoDuration": 10,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": false
+      },
+      "camera": {
+        "rotationX": -2.5750000000000286,
+        "rotationY": 0.0799999999999874,
+        "distance": 298,
+        "offsetX": -115,
+        "offsetY": -226
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "state_1773349459849_fylhqlyku",
+      "name": "Everbeen",
+      "timestamp": 1773349459849,
+      "params": {
+        "segmentLength": 120,
+        "lineThickness": 21.7,
+        "emitterRotation": 319,
+        "geometryScale": 176,
+        "fadeDuration": 1,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                0,
+                249,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                212,
+                251,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                41,
+                75,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                140,
+                60
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                20,
+                10,
+                5
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                255,
+                90,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                200,
+                180,
+                50
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                120,
+                200,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                5,
+                10,
+                20
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                160,
+                120,
+                255
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                60,
+                200
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                10,
+                20,
+                10
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                60,
+                255,
+                100
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                220,
+                60
+              ],
+              "role": "line"
+            }
+          ]
+        ],
+        "activePaletteIndex": 0,
+        "colorSlotZOffset": 100,
+        "emitRate": 6.3,
+        "speed": 243,
+        "ambientSpeedMaster": 50,
+        "randomThickness": false,
+        "randomSpeed": false,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 200,
+        "speedRangeMin": 50,
+        "speedRangeMax": 150,
+        "fov": 88.01,
+        "cameraRotationX": -8.183185307179828,
+        "cameraRotationY": 6.958185307179535,
+        "cameraDistance": 543.5096719261009,
+        "cameraOffsetX": 95,
+        "cameraOffsetY": -272,
+        "videoDuration": 10,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": false
+      },
+      "camera": {
+        "rotationX": -8.183185307179828,
+        "rotationY": 6.958185307179535,
+        "distance": 543.5096719261009,
+        "offsetX": 95,
+        "offsetY": -272
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "state_1773357137692_npsdvgadd",
+      "name": "Classy",
+      "timestamp": 1773362437655,
+      "params": {
+        "segmentLength": 120,
+        "lineThickness": 26.8,
+        "emitterRotation": 156,
+        "geometryScale": 158,
+        "fadeDuration": 1,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                224,
+                211,
+                188
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                180,
+                180,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                33,
+                33,
+                33
+              ],
+              "role": "background"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                140,
+                60
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                20,
+                10,
+                5
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                255,
+                90,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                200,
+                180,
+                50
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                120,
+                200,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                5,
+                10,
+                20
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                160,
+                120,
+                255
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                60,
+                200
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                10,
+                20,
+                10
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                60,
+                255,
+                100
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                220,
+                60
+              ],
+              "role": "line"
+            }
+          ]
+        ],
+        "activePaletteIndex": 0,
+        "colorSlotZOffset": 90,
+        "emitRate": 1.1,
+        "speed": 69,
+        "ambientSpeedMaster": 100,
+        "randomThickness": true,
+        "randomSpeed": false,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 200,
+        "speedRangeMin": 50,
+        "speedRangeMax": 150,
+        "fov": 99.01,
+        "cameraRotationX": -2.7749999999999786,
+        "cameraRotationY": 2.7200000000000006,
+        "cameraDistance": 105.59770508111095,
+        "cameraOffsetX": 709,
+        "cameraOffsetY": -134,
+        "videoDuration": 10,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": false
+      },
+      "camera": {
+        "rotationX": -2.7749999999999786,
+        "rotationY": 2.7200000000000006,
+        "distance": 105.59770508111095,
+        "offsetX": 709,
+        "offsetY": -134
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "state_1773360069295_1hqgmczzy",
+      "name": "Amigaga",
+      "timestamp": 1773364014787,
+      "params": {
+        "segmentLength": 120,
+        "lineThickness": 6.5,
+        "emitterRotation": 203,
+        "geometryScale": 218,
+        "fadeDuration": 1,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                0,
+                249,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                212,
+                251,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                41,
+                75,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                140,
+                60
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                20,
+                10,
+                5
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                255,
+                90,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                200,
+                180,
+                50
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                120,
+                200,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                5,
+                10,
+                20
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                160,
+                120,
+                255
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                4,
+                50,
+                255
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                60,
+                255,
+                100
+              ],
+              "role": "none"
+            },
+            {
+              "rgb": [
+                255,
+                220,
+                60
+              ],
+              "role": "none"
+            }
+          ]
+        ],
+        "activePaletteIndex": 3,
+        "colorSlotZOffset": 10,
+        "emitRate": 5.3,
+        "speed": 101,
+        "ambientSpeedMaster": 50,
+        "randomThickness": false,
+        "randomSpeed": false,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 200,
+        "speedRangeMin": 50,
+        "speedRangeMax": 150,
+        "fov": 179.01,
+        "cameraRotationX": -9.369900102695787,
+        "cameraRotationY": 6.255442980745405,
+        "cameraDistance": 50,
+        "cameraOffsetX": 1137.8321217092125,
+        "cameraOffsetY": 628.5310985671113,
+        "videoDuration": 10,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": false
+      },
+      "camera": {
+        "rotationX": -9.369900102695787,
+        "rotationY": 6.255442980745405,
+        "distance": 50,
+        "offsetX": 1137.8321217092125,
+        "offsetY": 628.5310985671113
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "state_1773360864122_nhxyul1tr",
+      "name": "Galagaga",
+      "timestamp": 1773361194156,
+      "params": {
+        "segmentLength": 120,
+        "lineThickness": 10.7,
+        "emitterRotation": 179,
+        "geometryScale": 158,
+        "fadeDuration": 1,
+        "palettes": [
+          [
+            {
+              "rgb": [
+                0,
+                249,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                212,
+                251,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                41,
+                75,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                255,
+                140,
+                60
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                20,
+                10,
+                5
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                255,
+                90,
+                120
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                200,
+                180,
+                50
+              ],
+              "role": "line"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                120,
+                200,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                5,
+                10,
+                20
+              ],
+              "role": "background"
+            },
+            {
+              "rgb": [
+                80,
+                255,
+                180
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                160,
+                120,
+                255
+              ],
+              "role": "none"
+            }
+          ],
+          [
+            {
+              "rgb": [
+                3,
+                3,
+                255
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                255,
+                0,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                255,
+                0
+              ],
+              "role": "line"
+            },
+            {
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "role": "background"
+            }
+          ]
+        ],
+        "activePaletteIndex": 3,
+        "colorSlotZOffset": 120,
+        "emitRate": 5.4,
+        "speed": 352,
+        "ambientSpeedMaster": 50,
+        "randomThickness": true,
+        "randomSpeed": true,
+        "thicknessRangeMin": 10,
+        "thicknessRangeMax": 400,
+        "speedRangeMin": 50,
+        "speedRangeMax": 150,
+        "fov": 144.01,
+        "cameraRotationX": 10.891370614359282,
+        "cameraRotationY": 18.859555921538718,
+        "cameraDistance": 103.89537237522464,
+        "cameraOffsetX": 56,
+        "cameraOffsetY": 200,
+        "videoDuration": 10,
+        "videoFPS": 30,
+        "videoFormat": "webm",
+        "depthInvert": false
+      },
+      "camera": {
+        "rotationX": 10.891370614359282,
+        "rotationY": 18.859555921538718,
+        "distance": 103.89537237522464,
+        "offsetX": 56,
+        "offsetY": 200
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    }
+  ],
+  "activeStateId": "state_1773340319052_1jppz7sbg",
+  "saveDate": "2026-03-13T03:07:44.483Z"
+}

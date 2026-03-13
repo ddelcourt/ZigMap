@@ -32,7 +32,7 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       target: ZM.params.fov,
       progress: 1.0,
       isTransitioning: false,
-      duration: 4.5 // seconds
+      duration: ZM.params.stateTransitionDuration // Use parameter instead of hardcoded value
     };
   }
   
@@ -44,7 +44,19 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       target: ZM.params.emitterRotation,
       progress: 1.0,
       isTransitioning: false,
-      duration: 4.5 // seconds
+      duration: ZM.params.stateTransitionDuration // Use parameter instead of hardcoded value
+    };
+  }
+  
+  // Geometry scale transition state (shared across stereo pair via ZM)
+  if (!ZM.geometryScaleTransition) {
+    ZM.geometryScaleTransition = {
+      current: ZM.params.geometryScale,
+      start: ZM.params.geometryScale,
+      target: ZM.params.geometryScale,
+      progress: 1.0,
+      isTransitioning: false,
+      duration: ZM.params.stateTransitionDuration // Use parameter instead of hardcoded value
     };
   }
   
@@ -56,7 +68,13 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       const canvas = p.createCanvas(ZM.W, ZM.H, p.WEBGL);
       canvas.parent(canvasId);
       
-      p.pixelDensity(1);
+      // Use native pixel density for smooth retina rendering when not in framebuffer mode
+      // Use pixelDensity(1) in framebuffer mode to respect exact dimensions
+      if (ZM.params.framebufferMode) {
+        p.pixelDensity(1);
+      } else {
+        p.pixelDensity(p.displayDensity()); // Native retina support
+      }
       p.frameRate(60);
       
       // Create or reuse emitter
@@ -139,6 +157,23 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
           }
         }
         
+        // Update geometry scale transition
+        if (ZM.geometryScaleTransition.isTransitioning) {
+          ZM.geometryScaleTransition.progress += dt / ZM.geometryScaleTransition.duration;
+          if (ZM.geometryScaleTransition.progress >= 1.0) {
+            ZM.geometryScaleTransition.progress = 1.0;
+            ZM.geometryScaleTransition.current = ZM.geometryScaleTransition.target;
+            ZM.params.geometryScale = ZM.geometryScaleTransition.target;
+            ZM.geometryScaleTransition.isTransitioning = false;
+          } else {
+            // Ease-in-out cubic
+            const t = ZM.geometryScaleTransition.progress < 0.5
+              ? 4 * ZM.geometryScaleTransition.progress * ZM.geometryScaleTransition.progress * ZM.geometryScaleTransition.progress
+              : 1 - Math.pow(-2 * ZM.geometryScaleTransition.progress + 2, 3) / 2;
+            ZM.geometryScaleTransition.current = ZM.geometryScaleTransition.start + (ZM.geometryScaleTransition.target - ZM.geometryScaleTransition.start) * t;
+          }
+        }
+        
         // Update background color transition (only if actively transitioning)
         if (ZM.bgTransition.isTransitioning) {
           ZM.bgTransition.progress += dt / ZM.params.colorTransitionDuration;
@@ -153,6 +188,16 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
               ZM.bgTransition.target,
               ZM.bgTransition.progress
             );
+          }
+        }
+        
+        // Auto-trigger random state switching (only on primary canvas to avoid double-triggering)
+        // Each trigger loads a TRULY RANDOM state (excluding current) - no sequence or pattern
+        if (isPrimary && ZM.params.autoTriggerStates && ZM.stateManager.states.length > 1) {
+          ZM.autoTriggerTimer.elapsed += dt;
+          if (ZM.autoTriggerTimer.elapsed >= ZM.params.autoTriggerFrequency) {
+            ZM.autoTriggerTimer.elapsed = 0;
+            ZM.stateManager.loadRandomState(); // Fresh random selection each time
           }
         }
       }
@@ -174,8 +219,8 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       p.rotateY(ZM.camera.rotationY);
       p.rotateZ(ZM.emitterRotationTransition.current * Math.PI / 180);
       
-      // Apply geometry scale
-      const scaleVal = ZM.params.geometryScale / 100;
+      // Apply geometry scale (use transition value)
+      const scaleVal = ZM.geometryScaleTransition.current / 100;
       p.scale(scaleVal);
       
       // Draw emitter (both canvases draw)
@@ -280,6 +325,10 @@ export function updateCanvasSize(ZM) {
     ZM.H = H;
     wrapper.classList.add('framebuffer-mode');
     
+    // Set pixel density to 1 for exact framebuffer dimensions
+    ZM.p5Instance.pixelDensity(1);
+    if (ZM.p5InstanceRight) ZM.p5InstanceRight.pixelDensity(1);
+    
     // Calculate scale to fit canvas in viewport
     const scaleX = window.innerWidth / (ZM.params.stereoscopicMode ? W * 2 : W);
     const scaleY = window.innerHeight / H;
@@ -310,6 +359,10 @@ export function updateCanvasSize(ZM) {
       wrapper.style.height = `${H}px`;
     }
   } else {
+    // Set pixel density to native display density for smooth retina rendering
+    ZM.p5Instance.pixelDensity(ZM.p5Instance.displayDensity());
+    if (ZM.p5InstanceRight) ZM.p5InstanceRight.pixelDensity(ZM.p5InstanceRight.displayDensity());
+    
     wrapper.classList.remove('framebuffer-mode');
     wrapper.style.width = '100%';
     wrapper.style.height = '100%';

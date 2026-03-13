@@ -31,11 +31,20 @@ export function loadFromLocalStorage(defaultParams) {
     const loaded = JSON.parse(stored);
     
     // Ensure critical values are valid
-    if (loaded.near < 0.01) loaded.near = 0.01;
+    if (loaded.near === undefined || loaded.near < 0.01) loaded.near = 0.01;
+    if (loaded.far === undefined) loaded.far = 20000;
     if (loaded.cameraDistance < 50) loaded.cameraDistance = 600;
     if (loaded.cameraOffsetX === undefined) loaded.cameraOffsetX = 0;
     if (loaded.cameraOffsetY === undefined) loaded.cameraOffsetY = 0;
     if (loaded.depthInvert === undefined) loaded.depthInvert = false;
+    
+    // Ensure rendering settings exist (for backward compatibility)
+    if (loaded.framebufferMode === undefined) loaded.framebufferMode = false;
+    if (loaded.framebufferPreset === undefined) loaded.framebufferPreset = '1920x1080';
+    if (loaded.framebufferWidth === undefined) loaded.framebufferWidth = 1920;
+    if (loaded.framebufferHeight === undefined) loaded.framebufferHeight = 1080;
+    if (loaded.stereoscopicMode === undefined) loaded.stereoscopicMode = false;
+    if (loaded.eyeSeparation === undefined) loaded.eyeSeparation = 30;
     
     // Ensure palettes exist (for backward compatibility with old saves)
     if (!loaded.palettes || !Array.isArray(loaded.palettes) || loaded.palettes.length !== 4) {
@@ -43,7 +52,18 @@ export function loadFromLocalStorage(defaultParams) {
     }
     if (loaded.activePaletteIndex === undefined) loaded.activePaletteIndex = 0;
     if (loaded.colorTransitionDuration === undefined) loaded.colorTransitionDuration = 3.0;
+    if (loaded.stateTransitionDuration === undefined) loaded.stateTransitionDuration = 4.5;
+    if (loaded.autoTriggerStates === undefined) loaded.autoTriggerStates = false;
+    if (loaded.autoTriggerFrequency === undefined) loaded.autoTriggerFrequency = 30;
     if (loaded.colorSlotZOffset === undefined) loaded.colorSlotZOffset = 100;
+    
+    // Ensure overlay settings exist (for backward compatibility)
+    if (loaded.overlayImageSrc === undefined) loaded.overlayImageSrc = null;
+    if (loaded.overlayVisible === undefined) loaded.overlayVisible = false;
+    if (loaded.overlayScale === undefined) loaded.overlayScale = 100;
+    if (loaded.overlayOpacity === undefined) loaded.overlayOpacity = 100;
+    if (loaded.overlayX === undefined) loaded.overlayX = 50;
+    if (loaded.overlayY === undefined) loaded.overlayY = 50;
     
     return { ...defaultParams, ...loaded };
   } catch (e) {
@@ -94,7 +114,16 @@ export function loadJSON(file, callback) {
       const params = isV2 ? loaded.params : loaded;
       
       // Validate critical values
-      if (params.near < 0.01) params.near = 0.01;
+      if (params.near === undefined || params.near < 0.01) params.near = 0.01;
+      if (params.far === undefined) params.far = 20000;
+      
+      // Ensure rendering settings exist (for backward compatibility)
+      if (params.framebufferMode === undefined) params.framebufferMode = false;
+      if (params.framebufferPreset === undefined) params.framebufferPreset = '1920x1080';
+      if (params.framebufferWidth === undefined) params.framebufferWidth = 1920;
+      if (params.framebufferHeight === undefined) params.framebufferHeight = 1080;
+      if (params.stereoscopicMode === undefined) params.stereoscopicMode = false;
+      if (params.eyeSeparation === undefined) params.eyeSeparation = 30;
       
       // Ensure palettes exist (for backward compatibility)
       if (!params.palettes || !Array.isArray(params.palettes) || params.palettes.length !== 4) {
@@ -102,6 +131,9 @@ export function loadJSON(file, callback) {
       }
       if (params.activePaletteIndex === undefined) params.activePaletteIndex = 0;
       if (params.colorTransitionDuration === undefined) params.colorTransitionDuration = 3.0;
+      if (params.stateTransitionDuration === undefined) params.stateTransitionDuration = 4.5;
+      if (params.autoTriggerStates === undefined) params.autoTriggerStates = false;
+      if (params.autoTriggerFrequency === undefined) params.autoTriggerFrequency = 30;
       if (params.colorSlotZOffset === undefined) params.colorSlotZOffset = 100;
       
       // Pass back full data structure or just params for v1

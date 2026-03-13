@@ -5,6 +5,7 @@
 
 export class Camera {
   constructor(params) {
+    this.params = params; // Store reference to params for dynamic transition duration
     this.rotationX = params.cameraRotationX;
     this.rotationY = params.cameraRotationY;
     this.distance = params.cameraDistance;
@@ -19,7 +20,7 @@ export class Camera {
     this.transition = {
       isActive: false,
       progress: 1.0,
-      duration: 4.5, // seconds
+      duration: params.stateTransitionDuration, // Use parameter instead of hardcoded value
       start: {
         rotationX: this.rotationX,
         rotationY: this.rotationY,
@@ -58,6 +59,8 @@ export class Camera {
       offsetY: targetOffsetY
     };
     
+    // Use current transition duration from params
+    this.transition.duration = this.params.stateTransitionDuration;
     this.transition.progress = 0.0;
     this.transition.isActive = true;
   }
@@ -130,6 +133,14 @@ export class Camera {
     params.cameraDistance = this.distance;
     params.cameraOffsetX = this.offsetX;
     params.cameraOffsetY = this.offsetY;
+  }
+
+  syncFromParams(params) {
+    this.rotationX = params.cameraRotationX;
+    this.rotationY = params.cameraRotationY;
+    this.distance = params.cameraDistance;
+    this.offsetX = params.cameraOffsetX || 0;
+    this.offsetY = params.cameraOffsetY || 0;
   }
 
   reset() {

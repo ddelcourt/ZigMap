@@ -40,7 +40,12 @@ export const DEFAULT_PARAMS = {
   ],
   activePaletteIndex: 0,
   colorTransitionDuration: 3.0,
+  stateTransitionDuration: 4.5, // Transition time for geometry, behavior, camera, modulations
   colorSlotZOffset: 100, // Z-offset multiplier per color slot (prevents z-fighting)
+  
+  // State Auto-Trigger
+  autoTriggerStates: false,
+  autoTriggerFrequency: 30, // seconds (5-120)
 
   // Animation
   emitRate: 1.5,
@@ -81,5 +86,13 @@ export const DEFAULT_PARAMS = {
   videoFormat: 'webm',
 
   // Depth Map
-  depthInvert: false
+  depthInvert: false,
+
+  // Overlay Image
+  overlayImageSrc: null,
+  overlayVisible: false,
+  overlayScale: 100,
+  overlayOpacity: 100,
+  overlayX: 50,
+  overlayY: 50
 };

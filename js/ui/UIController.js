@@ -55,6 +55,13 @@ function initializeAllControls(ZM) {
   wireSlider(ZM, 'video-duration', 'video-duration-val', 'videoDuration');
   wireSlider(ZM, 'video-fps', 'video-fps-val', 'videoFPS');
   wireSlider(ZM, 'eye-separation', 'eye-separation-val', 'eyeSeparation');
+  wireSlider(ZM, 'state-transition-duration', 'state-transition-duration-val', 'stateTransitionDuration', 1);
+  wireSlider(ZM, 'color-transition-duration', 'color-transition-duration-val', 'colorTransitionDuration', 1);
+  wireSlider(ZM, 'auto-trigger-frequency', 'auto-trigger-frequency-val', 'autoTriggerFrequency');
+  wireSlider(ZM, 'overlay-scale', 'overlay-scale-val', 'overlayScale');
+  wireSlider(ZM, 'overlay-opacity', 'overlay-opacity-val', 'overlayOpacity');
+  wireSlider(ZM, 'overlay-x', 'overlay-x-val', 'overlayX');
+  wireSlider(ZM, 'overlay-y', 'overlay-y-val', 'overlayY');
   
   // FOV with distance compensation
   setupFOVControl(ZM);
@@ -72,6 +79,8 @@ function initializeAllControls(ZM) {
   wireCheckbox(ZM, 'random-thickness', 'randomThickness');
   wireCheckbox(ZM, 'random-speed', 'randomSpeed');
   wireCheckbox(ZM, 'depth-invert', 'depthInvert');
+  wireCheckbox(ZM, 'auto-trigger-states', 'autoTriggerStates');
+  wireCheckbox(ZM, 'overlay-visible', 'overlayVisible');
   
   // Stereoscopic controls
   setupStereoscopicControls(ZM);
@@ -84,6 +93,9 @@ function initializeAllControls(ZM) {
   
   // Video format buttons
   setupVideoFormatButtons(ZM);
+  
+  // Overlay controls
+  setupOverlayControls(ZM);
   
   // File save/load
   setupFileSaveLoad(ZM);
@@ -116,6 +128,12 @@ function wireSlider(ZM, sliderId, displayId, paramKey, decimals = 0) {
     if (paramKey === 'emitterRotation' && ZM.emitterRotationTransition) {
       ZM.emitterRotationTransition.isTransitioning = false;
       ZM.emitterRotationTransition.current = ZM.params[paramKey];
+    }
+    
+    // Cancel geometry scale transition if user manually adjusts it
+    if (paramKey === 'geometryScale' && ZM.geometryScaleTransition) {
+      ZM.geometryScaleTransition.isTransitioning = false;
+      ZM.geometryScaleTransition.current = ZM.params[paramKey];
     }
     
     ZM.saveToLocalStorage();
@@ -517,26 +535,6 @@ function setupFileSaveLoad(ZM) {
  * Setup UI control buttons
  */
 function setupUIButtons(ZM) {
-  const hideBtn = document.getElementById('hide-controls-btn');
-  const fullscreenBtn = document.getElementById('fullscreen-btn');
-  
-  if (hideBtn) {
-    hideBtn.addEventListener('click', () => {
-      document.querySelector('.controls').classList.toggle('hidden');
-      document.body.classList.toggle('ui-hidden');
-    });
-  }
-  
-  if (fullscreenBtn) {
-    fullscreenBtn.addEventListener('click', () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-      } else {
-        document.exitFullscreen();
-      }
-    });
-  }
-  
   // Listen for fullscreen changes to transition background
   document.addEventListener('fullscreenchange', () => {
     if (document.fullscreenElement) {
@@ -545,6 +543,94 @@ function setupUIButtons(ZM) {
       document.body.classList.remove('fullscreen');
     }
   });
+}
+
+/**
+ * Setup overlay image controls
+ */
+function setupOverlayControls(ZM) {
+  const overlayImg = document.getElementById('overlay-image');
+  const loadBtn = document.getElementById('load-overlay-btn');
+  const loadInput = document.getElementById('load-overlay-input');
+  const clearBtn = document.getElementById('clear-overlay-btn');
+  const visibleCheckbox = document.getElementById('overlay-visible');
+  const scaleSlider = document.getElementById('overlay-scale');
+  const opacitySlider = document.getElementById('overlay-opacity');
+  const xSlider = document.getElementById('overlay-x');
+  const ySlider = document.getElementById('overlay-y');
+  
+  // Update overlay image display
+  function updateOverlay() {
+    if (!overlayImg) return;
+    
+    if (ZM.params.overlayVisible && ZM.params.overlayImageSrc) {
+      overlayImg.style.display = 'block';
+      overlayImg.src = ZM.params.overlayImageSrc;
+      overlayImg.style.transform = `translate(-50%, -50%) scale(${ZM.params.overlayScale / 100})`;
+      overlayImg.style.opacity = ZM.params.overlayOpacity / 100;
+      overlayImg.style.left = `${ZM.params.overlayX}%`;
+      overlayImg.style.top = `${ZM.params.overlayY}%`;
+    } else {
+      overlayImg.style.display = 'none';
+    }
+  }
+  
+  // Load button
+  if (loadBtn && loadInput) {
+    loadBtn.addEventListener('click', () => loadInput.click());
+    
+    loadInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        ZM.params.overlayImageSrc = event.target.result;
+        ZM.params.overlayVisible = true;
+        if (visibleCheckbox) visibleCheckbox.checked = true;
+        updateOverlay();
+        ZM.saveToLocalStorage();
+        showToast('Overlay image loaded', 'success');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  
+  // Clear button
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      ZM.params.overlayImageSrc = null;
+      ZM.params.overlayVisible = false;
+      if (visibleCheckbox) visibleCheckbox.checked = false;
+      if (loadInput) loadInput.value = '';
+      updateOverlay();
+      ZM.saveToLocalStorage();
+      showToast('Overlay image cleared', 'info');
+    });
+  }
+  
+  // Update when any parameter changes
+  if (visibleCheckbox) {
+    visibleCheckbox.addEventListener('change', updateOverlay);
+  }
+  if (scaleSlider) {
+    scaleSlider.addEventListener('input', updateOverlay);
+  }
+  if (opacitySlider) {
+    opacitySlider.addEventListener('input', updateOverlay);
+  }
+  if (xSlider) {
+    xSlider.addEventListener('input', updateOverlay);
+  }
+  if (ySlider) {
+    ySlider.addEventListener('input', updateOverlay);
+  }
+  
+  // Initial update
+  updateOverlay();
+  
+  // Store update function for external calls
+  ZM.updateOverlay = updateOverlay;
 }
 
 /**
@@ -684,8 +770,31 @@ function syncUIFromParams(ZM) {
     }
   });
   
+  // Update checkboxes
+  const checkboxMap = {
+    'random-thickness': 'randomThickness',
+    'random-speed': 'randomSpeed',
+    'depth-invert': 'depthInvert',
+    'stereoscopic-mode': 'stereoscopicMode',
+    'framebuffer-mode': 'framebufferMode',
+    'auto-trigger-states': 'autoTriggerStates',
+    'overlay-visible': 'overlayVisible'
+  };
+  
+  Object.entries(checkboxMap).forEach(([checkboxId, paramKey]) => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox && ZM.params[paramKey] !== undefined) {
+      checkbox.checked = ZM.params[paramKey];
+    }
+  });
+  
   // Update palette UI
   updatePaletteUI(ZM);
+  
+  // Update overlay image
+  if (ZM.updateOverlay) {
+    ZM.updateOverlay();
+  }
   
   // Update active palette button
   document.querySelectorAll('.palette-btn').forEach(btn => {
@@ -702,8 +811,8 @@ function syncUIFromParams(ZM) {
     ZM.bgTransition.isTransitioning = false;
   }
   
-  // Sync camera
-  ZM.camera.syncToParams(ZM.params);
+  // Sync camera from params
+  ZM.camera.syncFromParams(ZM.params);
   
   // Reinitialize sketches if needed
   if (ZM.initializeSketches) {
@@ -911,9 +1020,11 @@ function enableInlineEdit(ZM, stateId, nameElement) {
   nameElement.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      e.stopPropagation(); // Prevent global keyboard shortcuts from triggering
       saveEdit();
     } else if (e.key === 'Escape') {
       e.preventDefault();
+      e.stopPropagation();
       cancelEdit();
     }
   });

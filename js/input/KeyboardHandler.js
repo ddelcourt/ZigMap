@@ -21,8 +21,13 @@ export function setupKeyboardHandlers(ZM) {
       }
       
       window.addEventListener('keydown', (e) => {
-        // Skip if typing in input field
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        // Skip if typing in input field, textarea, or contenteditable element
+        const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+        const isContentEditable = e.target.isContentEditable || 
+                                   e.target.contentEditable === 'true' ||
+                                   e.target.getAttribute('contenteditable') === 'true';
+        
+        if (isInput || isContentEditable) {
           return;
         }
         

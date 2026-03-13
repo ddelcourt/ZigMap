@@ -34,7 +34,16 @@ export function initializeStateManager(ZM) {
     getStateById: (id) => getStateById(ZM, id),
     getAllStates: () => ZM.stateManager.states,
     setActive: (id) => setActiveState(ZM, id),
-    saveToStorage: () => saveStatesToStorage(ZM)
+    saveToStorage: () => saveStatesToStorage(ZM),
+    
+    // Auto-trigger
+    loadRandomState: () => loadRandomState(ZM)
+  };
+  
+  // Initialize auto-trigger timer
+  ZM.autoTriggerTimer = {
+    elapsed: 0,
+    lastTriggerTime: 0
   };
   
   // Create initial state if none exist
@@ -55,6 +64,30 @@ export function initializeStateManager(ZM) {
 function captureCurrentState(ZM, name) {
   // Deep clone all parameters
   const params = JSON.parse(JSON.stringify(ZM.params));
+  
+  // Exclude project-wide settings from state capture
+  delete params.stateTransitionDuration;
+  delete params.colorTransitionDuration;
+  delete params.autoTriggerStates;
+  delete params.autoTriggerFrequency;
+  
+  // Exclude overlay settings (these are project-wide, not state-specific)
+  delete params.overlayImageSrc;
+  delete params.overlayVisible;
+  delete params.overlayScale;
+  delete params.overlayOpacity;
+  delete params.overlayX;
+  delete params.overlayY;
+  
+  // Exclude rendering/camera settings (only FOV is state-specific)
+  delete params.near;
+  delete params.far;
+  delete params.framebufferMode;
+  delete params.framebufferPreset;
+  delete params.framebufferWidth;
+  delete params.framebufferHeight;
+  delete params.stereoscopicMode;
+  delete params.eyeSeparation;
   
   // Verify palettes are captured correctly
   if (!params.palettes || params.palettes.length !== 4) {
@@ -110,8 +143,35 @@ function restoreState(ZM, state) {
   
   console.log('Restored params active palette:', restoredParams.activePaletteIndex);
   
+  // Preserve project-wide settings
+  const preservedSettings = {
+    stateTransitionDuration: ZM.params.stateTransitionDuration,
+    colorTransitionDuration: ZM.params.colorTransitionDuration,
+    autoTriggerStates: ZM.params.autoTriggerStates,
+    autoTriggerFrequency: ZM.params.autoTriggerFrequency,
+    // Overlay settings
+    overlayImageSrc: ZM.params.overlayImageSrc,
+    overlayVisible: ZM.params.overlayVisible,
+    overlayScale: ZM.params.overlayScale,
+    overlayOpacity: ZM.params.overlayOpacity,
+    overlayX: ZM.params.overlayX,
+    overlayY: ZM.params.overlayY,
+    // Rendering/camera settings (only FOV is state-specific)
+    near: ZM.params.near,
+    far: ZM.params.far,
+    framebufferMode: ZM.params.framebufferMode,
+    framebufferPreset: ZM.params.framebufferPreset,
+    framebufferWidth: ZM.params.framebufferWidth,
+    framebufferHeight: ZM.params.framebufferHeight,
+    stereoscopicMode: ZM.params.stereoscopicMode,
+    eyeSeparation: ZM.params.eyeSeparation
+  };
+  
   // Update params with deep cloned values
   Object.assign(ZM.params, restoredParams);
+  
+  // Restore preserved project-wide settings
+  Object.assign(ZM.params, preservedSettings);
   
   console.log('ZM.params after assign, active palette:', ZM.params.activePaletteIndex);
   console.log('ZM.params.palettes:', ZM.params.palettes);
@@ -132,6 +192,7 @@ function restoreState(ZM, state) {
     ZM.fovTransition.start = ZM.fovTransition.current;
     ZM.fovTransition.target = state.params.fov;
     ZM.fovTransition.progress = 0.0;
+    ZM.fovTransition.duration = ZM.params.stateTransitionDuration; // Use current transition duration
     ZM.fovTransition.isTransitioning = true;
   }
   
@@ -140,7 +201,17 @@ function restoreState(ZM, state) {
     ZM.emitterRotationTransition.start = ZM.emitterRotationTransition.current;
     ZM.emitterRotationTransition.target = state.params.emitterRotation;
     ZM.emitterRotationTransition.progress = 0.0;
+    ZM.emitterRotationTransition.duration = ZM.params.stateTransitionDuration; // Use current transition duration
     ZM.emitterRotationTransition.isTransitioning = true;
+  }
+  
+  // Trigger geometry scale transition
+  if (ZM.geometryScaleTransition && state.params.geometryScale !== undefined) {
+    ZM.geometryScaleTransition.start = ZM.geometryScaleTransition.current;
+    ZM.geometryScaleTransition.target = state.params.geometryScale;
+    ZM.geometryScaleTransition.progress = 0.0;
+    ZM.geometryScaleTransition.duration = ZM.params.stateTransitionDuration; // Use current transition duration
+    ZM.geometryScaleTransition.isTransitioning = true;
   }
   
   // Check if palette changed - trigger smooth transition
@@ -158,6 +229,11 @@ function restoreState(ZM, state) {
   
   // Save to main localStorage
   ZM.saveToLocalStorage();
+  
+  // Reset auto-trigger timer to prevent immediate re-triggering
+  if (ZM.autoTriggerTimer) {
+    ZM.autoTriggerTimer.elapsed = 0;
+  }
   
   console.log('State restored with camera transition');
 }
@@ -182,7 +258,14 @@ function syncUIWithoutRestart(ZM) {
     'eye-separation': { param: 'eyeSeparation', decimals: 0 },
     'fov': { param: 'fov', decimals: 2 },
     'near': { param: 'near', decimals: 2 },
-    'far': { param: 'far', decimals: 0 }
+    'far': { param: 'far', decimals: 0 },
+    'state-transition-duration': { param: 'stateTransitionDuration', decimals: 1 },
+    'color-transition-duration': { param: 'colorTransitionDuration', decimals: 1 },
+    'auto-trigger-frequency': { param: 'autoTriggerFrequency', decimals: 0 },
+    'overlay-scale': { param: 'overlayScale', decimals: 0 },
+    'overlay-opacity': { param: 'overlayOpacity', decimals: 0 },
+    'overlay-x': { param: 'overlayX', decimals: 0 },
+    'overlay-y': { param: 'overlayY', decimals: 0 }
   };
   
   // Update all sliders
@@ -210,7 +293,9 @@ function syncUIWithoutRestart(ZM) {
     'random-speed': 'randomSpeed',
     'depth-invert': 'depthInvert',
     'stereoscopic-mode': 'stereoscopicMode',
-    'framebuffer-mode': 'framebufferMode'
+    'framebuffer-mode': 'framebufferMode',
+    'auto-trigger-states': 'autoTriggerStates',
+    'overlay-visible': 'overlayVisible'
   };
   
   Object.entries(checkboxMap).forEach(([checkboxId, paramKey]) => {
@@ -220,10 +305,10 @@ function syncUIWithoutRestart(ZM) {
     }
   });
   
-  // Update framebuffer state dropdown
-  const fbState = document.getElementById('framebuffer-state');
-  if (fbState && ZM.params.framebufferState) {
-    fbState.value = ZM.params.framebufferState;
+  // Update framebuffer preset dropdown
+  const fbPreset = document.getElementById('framebuffer-preset');
+  if (fbPreset && ZM.params.framebufferPreset) {
+    fbPreset.value = ZM.params.framebufferPreset;
   }
   
   // Update framebuffer dimensions
@@ -232,9 +317,28 @@ function syncUIWithoutRestart(ZM) {
   if (fbWidth) fbWidth.value = ZM.params.framebufferWidth;
   if (fbHeight) fbHeight.value = ZM.params.framebufferHeight;
   
+  // Update eye separation control state (enable/disable based on stereoscopic mode)
+  const eyeSeparationSlider = document.getElementById('eye-separation');
+  const eyeSeparationDisplay = document.getElementById('eye-separation-val');
+  if (eyeSeparationSlider) {
+    eyeSeparationSlider.disabled = !ZM.params.stereoscopicMode;
+  }
+  if (eyeSeparationDisplay) {
+    if (ZM.params.stereoscopicMode) {
+      eyeSeparationDisplay.classList.remove('disabled');
+    } else {
+      eyeSeparationDisplay.classList.add('disabled');
+    }
+  }
+  
   // Update palette UI
   if (ZM.updatePaletteUI) {
     ZM.updatePaletteUI();
+  }
+  
+  // Update overlay image
+  if (ZM.updateOverlay) {
+    ZM.updateOverlay();
   }
   
   // Update active palette button
@@ -518,11 +622,39 @@ function importStateFromData(ZM, jsonData) {
       jsonData.states.forEach(state => {
         // Generate new ID to avoid conflicts
         state.id = `state_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // Remove project-wide settings if they exist in imported state
+        if (state.params) {
+          delete state.params.stateTransitionDuration;
+          delete state.params.colorTransitionDuration;
+          delete state.params.autoTriggerStates;
+          delete state.params.autoTriggerFrequency;
+          delete state.params.near;
+          delete state.params.far;
+          delete state.params.framebufferMode;
+          delete state.params.framebufferPreset;
+          delete state.params.framebufferWidth;
+          delete state.params.framebufferHeight;
+          delete state.params.stereoscopicMode;
+          delete state.params.eyeSeparation;
+        }
         ZM.stateManager.states.push(state);
       });
     } else if (jsonData.id && jsonData.params) {
       // Single state
       jsonData.id = `state_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Remove project-wide settings if they exist in imported state
+      delete jsonData.params.stateTransitionDuration;
+      delete jsonData.params.colorTransitionDuration;
+      delete jsonData.params.autoTriggerStates;
+      delete jsonData.params.autoTriggerFrequency;
+      delete jsonData.params.near;
+      delete jsonData.params.far;
+      delete jsonData.params.framebufferMode;
+      delete jsonData.params.framebufferPreset;
+      delete jsonData.params.framebufferWidth;
+      delete jsonData.params.framebufferHeight;
+      delete jsonData.params.stereoscopicMode;
+      delete jsonData.params.eyeSeparation;
       ZM.stateManager.states.push(jsonData);
     } else {
       console.error('Invalid state format');
@@ -569,9 +701,29 @@ function setActiveState(ZM, id) {
  */
 function loadStates() {
   try {
-    const stored = localStorage.getItem(PRESETS_STORAGE_KEY);
+    const stored = localStorage.getItem(STATES_STORAGE_KEY);
     if (!stored) return [];
-    return JSON.parse(stored);
+    const states = JSON.parse(stored);
+    
+    // Clean up project-wide settings from states (for backward compatibility)
+    states.forEach(state => {
+      if (state.params) {
+        delete state.params.stateTransitionDuration;
+        delete state.params.colorTransitionDuration;
+        delete state.params.autoTriggerStates;
+        delete state.params.autoTriggerFrequency;
+        delete state.params.near;
+        delete state.params.far;
+        delete state.params.framebufferMode;
+        delete state.params.framebufferPreset;
+        delete state.params.framebufferWidth;
+        delete state.params.framebufferHeight;
+        delete state.params.stereoscopicMode;
+        delete state.params.eyeSeparation;
+      }
+    });
+    
+    return states;
   } catch (e) {
     console.warn('Failed to load states:', e);
     return [];
@@ -584,7 +736,7 @@ function loadStates() {
  */
 function saveStatesToStorage(ZM) {
   try {
-    localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(ZM.stateManager.states));
+    localStorage.setItem(STATES_STORAGE_KEY, JSON.stringify(ZM.stateManager.states));
   } catch (e) {
     console.warn('Failed to save states:', e);
   }
@@ -596,7 +748,7 @@ function saveStatesToStorage(ZM) {
  */
 function loadActiveStateId() {
   try {
-    return localStorage.getItem(ACTIVE_PRESET_KEY);
+    return localStorage.getItem(ACTIVE_STATE_KEY);
   } catch (e) {
     return null;
   }
@@ -608,8 +760,42 @@ function loadActiveStateId() {
  */
 function saveActiveStateId(id) {
   try {
-    localStorage.setItem(ACTIVE_PRESET_KEY, id);
+    localStorage.setItem(ACTIVE_STATE_KEY, id);
   } catch (e) {
     console.warn('Failed to save active state ID:', e);
   }
+}
+
+/**
+ * Load a random state (excluding current active state)
+ * TRULY RANDOM: Uses Math.random() with fresh generation each call.
+ * NO SEQUENCE: No history or pattern tracking - each selection is independent.
+ * ALWAYS DIFFERENT: Filters out the currently active state before random selection.
+ * 
+ * @param {Object} ZM - Main application object
+ * @returns {Boolean} Success status
+ */
+function loadRandomState(ZM) {
+  const states = ZM.stateManager.states;
+  const activeId = ZM.stateManager.activeStateId;
+  
+  // Need at least 2 states to select a different one
+  if (states.length < 2) {
+    return false;
+  }
+  
+  // Filter out the currently active state (ensures we NEVER pick the same state)
+  const availableStates = states.filter(state => state.id !== activeId);
+  
+  if (availableStates.length === 0) {
+    return false;
+  }
+  
+  // Generate fresh random number (0 to 1) and select state
+  // This is TRUE RANDOM - no memory, no sequence, no pattern
+  const randomIndex = Math.floor(Math.random() * availableStates.length);
+  const randomState = availableStates[randomIndex];
+  
+  // Load the random state (this updates activeStateId for next call)
+  return loadState(ZM, randomState.id);
 }
