@@ -195,6 +195,9 @@ async function init() {
   // Initialize UI
   initializeUI(ZM);
   
+  // Initialize sketches
+  ZM.initializeSketches();
+  
   // Load initial state if we loaded the preset
   if (!hadSavedSettings && ZM._initialStateId && ZM.stateManager.load) {
     // Update state panel UI first
@@ -207,9 +210,6 @@ async function init() {
   } else if (hadSavedSettings && ZM.syncUIFromParams) {
     // Sync UI if we loaded saved settings
     ZM.syncUIFromParams();
-  } else {
-    // Create p5 sketches
-    ZM.initializeSketches();
   }
   
   // Setup input handlers
