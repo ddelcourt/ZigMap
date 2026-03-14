@@ -13,7 +13,7 @@
       "fr": "docs/markdown-viewer.html?doc=User-Manual-fr.md"
     },
     "readme": {
-      "en": "docs/markdown-viewer.html?doc=README.md",
+      "en": "docs/markdown-viewer.html?doc=../README.md",
       "fr": "docs/markdown-viewer.html?doc=README-fr.md"
     },
     "technical": {

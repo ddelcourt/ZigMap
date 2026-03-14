@@ -835,7 +835,7 @@ function setupDocumentationButtons() {
   const docButtons = {
     'doc-manual-en': 'User-Manual.md',
     'doc-manual-fr': 'User-Manual-fr.md',
-    'doc-readme-en': 'README.md',
+    'doc-readme-en': '../README.md',
     'doc-readme-fr': 'README-fr.md',
     'doc-tech-en': 'Documentation.md',
     'doc-tech-fr': 'Documentation-fr.md',

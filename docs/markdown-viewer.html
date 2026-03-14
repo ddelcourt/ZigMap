@@ -21,8 +21,8 @@
     // Language-aware doc path
     let docFile = urlParams.get('doc');
     if (!docFile) {
-      // Default to English README
-      docFile = 'English/README.md';
+      // Default to English README at root
+      docFile = '../README.md';
     } else if (!docFile.includes('/')) {
       // If only a filename is given, guess language by prefix
       const lang = urlParams.get('lang');
