@@ -195,6 +195,11 @@ async function init() {
   // Initialize UI
   initializeUI(ZM);
   
+  // Initialize auto-trigger status display
+  if (ZM.stateManager && ZM.stateManager.updateAutoTriggerStatus) {
+    ZM.stateManager.updateAutoTriggerStatus();
+  }
+  
   // Initialize sketches
   ZM.initializeSketches();
   

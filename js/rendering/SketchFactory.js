@@ -194,11 +194,17 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
         // Auto-trigger random state switching (only on primary canvas to avoid double-triggering)
         // Each trigger loads a TRULY RANDOM state (excluding current) - no sequence or pattern
         if (isPrimary && ZM.params.autoTriggerStates && ZM.stateManager.states.length > 1) {
-          ZM.autoTriggerTimer.elapsed += dt;
-          if (ZM.autoTriggerTimer.elapsed >= ZM.params.autoTriggerFrequency) {
-            ZM.autoTriggerTimer.elapsed = 0;
-            ZM.stateManager.loadRandomState(); // Fresh random selection each time
+          // Only increment timer if not paused
+          if (!ZM.autoTriggerTimer.paused) {
+            ZM.autoTriggerTimer.elapsed += dt;
+            if (ZM.autoTriggerTimer.elapsed >= ZM.params.autoTriggerFrequency) {
+              ZM.autoTriggerTimer.elapsed = 0;
+              ZM.stateManager.loadRandomState(); // Fresh random selection each time
+            }
           }
+          
+          // Update auto-trigger status display
+          ZM.stateManager.updateAutoTriggerStatus();
         }
       }
       

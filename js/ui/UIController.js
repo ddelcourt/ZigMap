@@ -141,6 +141,11 @@ function wireSlider(ZM, sliderId, displayId, paramKey, decimals = 0) {
       ZM.geometryScaleTransition.current = ZM.params[paramKey];
     }
     
+    // Update auto-trigger status when frequency changes
+    if (paramKey === 'autoTriggerFrequency' && ZM.stateManager && ZM.stateManager.updateAutoTriggerStatus) {
+      ZM.stateManager.updateAutoTriggerStatus();
+    }
+    
     ZM.saveToLocalStorage();
   });
 }
@@ -156,6 +161,18 @@ function wireCheckbox(ZM, checkboxId, paramKey) {
   checkbox.addEventListener('change', (e) => {
     ZM.params[paramKey] = e.target.checked;
     ZM.saveToLocalStorage();
+    
+    // Special handling for auto-trigger states checkbox
+    if (checkboxId === 'auto-trigger-states') {
+      // Reset timer when toggled
+      if (ZM.autoTriggerTimer) {
+        ZM.autoTriggerTimer.elapsed = 0;
+      }
+      // Update status display immediately
+      if (ZM.stateManager && ZM.stateManager.updateAutoTriggerStatus) {
+        ZM.stateManager.updateAutoTriggerStatus();
+      }
+    }
   });
 }
 

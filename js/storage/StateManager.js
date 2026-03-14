@@ -37,17 +37,23 @@ export function initializeStateManager(ZM) {
     saveToStorage: () => saveStatesToStorage(ZM),
     
     // Auto-trigger
-    loadRandomState: () => loadRandomState(ZM)
+    loadRandomState: () => loadRandomState(ZM),
+    updateAutoTriggerStatus: () => updateAutoTriggerStatus(ZM)
   };
   
   // Initialize auto-trigger timer
   ZM.autoTriggerTimer = {
     elapsed: 0,
-    lastTriggerTime: 0
+    lastTriggerTime: 0,
+    paused: false,
+    pausedAt: 0
   };
   
   // Initialize shuffle pool for auto-trigger (ensures no repetition within cycle)
   ZM.shufflePool = [];
+  
+  // Initialize auto-trigger controls
+  initializeAutoTriggerControls(ZM);
   
   // Create initial state if none exist
   if (ZM.stateManager.states.length === 0) {
@@ -418,6 +424,9 @@ function saveState(ZM, name) {
     ZM.updateStatePanel();
   }
   
+  // Update auto-trigger status (number of states changed)
+  updateAutoTriggerStatus(ZM);
+  
   return state;
 }
 
@@ -442,6 +451,9 @@ function loadState(ZM, id) {
   if (ZM.updateStatePanel) {
     ZM.updateStatePanel();
   }
+  
+  // Update auto-trigger status (next state name may have changed)
+  updateAutoTriggerStatus(ZM);
   
   return true;
 }
@@ -516,6 +528,9 @@ function deleteState(ZM, id) {
     ZM.updateStatePanel();
   }
   
+  // Update auto-trigger status (number of states changed)
+  updateAutoTriggerStatus(ZM);
+  
   return true;
 }
 
@@ -571,6 +586,9 @@ function duplicateState(ZM, id) {
   if (ZM.updateStatePanel) {
     ZM.updateStatePanel();
   }
+  
+  // Update auto-trigger status (number of states changed)
+  updateAutoTriggerStatus(ZM);
   
   return newState;
 }
@@ -794,6 +812,97 @@ function shuffleArray(array) {
 }
 
 /**
+ * Initialize auto-trigger media player controls
+ * @param {Object} ZM - Main application object
+ */
+function initializeAutoTriggerControls(ZM) {
+  // Play/Pause button
+  const playPauseBtn = document.getElementById('auto-trigger-play-pause');
+  if (playPauseBtn) {
+    playPauseBtn.addEventListener('click', () => {
+      if (ZM.autoTriggerTimer.paused) {
+        // Resume: unpause and continue from where we left off
+        ZM.autoTriggerTimer.paused = false;
+        console.log('[Auto-Trigger] Resumed');
+      } else {
+        // Pause: save current elapsed time
+        ZM.autoTriggerTimer.paused = true;
+        ZM.autoTriggerTimer.pausedAt = ZM.autoTriggerTimer.elapsed;
+        console.log('[Auto-Trigger] Paused at', ZM.autoTriggerTimer.pausedAt.toFixed(1), 'seconds');
+      }
+      updateAutoTriggerStatus(ZM);
+    });
+  }
+  
+  // Reset button
+  const resetBtn = document.getElementById('auto-trigger-reset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      ZM.autoTriggerTimer.elapsed = 0;
+      ZM.autoTriggerTimer.pausedAt = 0;
+      console.log('[Auto-Trigger] Timer reset');
+      updateAutoTriggerStatus(ZM);
+    });
+  }
+  
+  // Skip button
+  const skipBtn = document.getElementById('auto-trigger-skip');
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+      // Reset timer and trigger immediately
+      ZM.autoTriggerTimer.elapsed = 0;
+      ZM.autoTriggerTimer.pausedAt = 0;
+      ZM.stateManager.loadRandomState();
+      console.log('[Auto-Trigger] Skipped to next state');
+      updateAutoTriggerStatus(ZM);
+    });
+  }
+  
+  // Progress bar scrubbing (click and drag)
+  const progressBarContainer = document.getElementById('progress-bar-container');
+  if (progressBarContainer) {
+    let isDragging = false;
+    
+    const scrubToPosition = (e) => {
+      const rect = progressBarContainer.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+      const newElapsed = percentage * ZM.params.autoTriggerFrequency;
+      
+      ZM.autoTriggerTimer.elapsed = newElapsed;
+      if (ZM.autoTriggerTimer.paused) {
+        ZM.autoTriggerTimer.pausedAt = newElapsed;
+      }
+      
+      console.log('[Auto-Trigger] Scrubbed to', newElapsed.toFixed(1), 'seconds');
+      updateAutoTriggerStatus(ZM);
+    };
+    
+    progressBarContainer.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      progressBarContainer.style.cursor = 'grabbing';
+      scrubToPosition(e);
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        scrubToPosition(e);
+      }
+    });
+    
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        progressBarContainer.style.cursor = 'pointer';
+      }
+    });
+    
+    // Make it clear the bar is interactive
+    progressBarContainer.style.cursor = 'pointer';
+  }
+}
+
+/**
  * Load next state from shuffle pool (ensures all states visited before repetition)
  * SHUFFLE ALGORITHM: Creates a shuffled pool of all available states, then visits each once.
  * NO REPETITION: Each state is guaranteed to be visited once per cycle.
@@ -850,3 +959,70 @@ function loadRandomState(ZM) {
   
   return success;
 }
+
+/**
+ * Update auto-trigger status display (countdown and next state)
+ * @param {Object} ZM - Main application object
+ */
+function updateAutoTriggerStatus(ZM) {
+  const statusDiv = document.getElementById('auto-trigger-status');
+  const currentStateNameDisplay = document.getElementById('current-state-name');
+  const countdownDisplay = document.getElementById('countdown-display');
+  const progressBarFill = document.getElementById('progress-bar-fill');
+  const progressBarThumb = document.getElementById('progress-bar-thumb');
+  const nextStateNameDisplay = document.getElementById('next-state-name');
+  const playPauseBtn = document.getElementById('auto-trigger-play-pause');
+  
+  if (!statusDiv || !currentStateNameDisplay || !countdownDisplay || !progressBarFill || !nextStateNameDisplay) return;
+  
+  // Show/hide based on auto-trigger state
+  if (ZM.params.autoTriggerStates && ZM.stateManager.states.length > 1) {
+    statusDiv.style.display = 'block';
+    
+    // Update current state name
+    const currentState = ZM.stateManager.states.find(s => s.id === ZM.stateManager.activeStateId);
+    if (currentState) {
+      currentStateNameDisplay.textContent = currentState.name;
+    }
+    
+    // Calculate remaining time (respecting pause state)
+    const elapsed = ZM.autoTriggerTimer.paused ? ZM.autoTriggerTimer.pausedAt : ZM.autoTriggerTimer.elapsed;
+    const frequency = ZM.params.autoTriggerFrequency;
+    const remaining = Math.max(0, frequency - elapsed);
+    const progress = (elapsed / frequency) * 100;
+    
+    // Update countdown display
+    countdownDisplay.textContent = `${Math.ceil(remaining)}s`;
+    
+    // Update progress bar (frozen when paused)
+    progressBarFill.style.width = `${Math.min(100, progress)}%`;
+    
+    // Update playhead thumb position
+    if (progressBarThumb) {
+      progressBarThumb.style.left = `${Math.min(100, progress)}%`;
+    }
+    
+    // Update next state name
+    if (ZM.shufflePool && ZM.shufflePool.length > 0) {
+      // Show the next state in the shuffle pool
+      nextStateNameDisplay.textContent = ZM.shufflePool[0].name;
+    } else {
+      // Pool is empty, will create new shuffle - show "Random State"
+      nextStateNameDisplay.textContent = 'Random State';
+    }
+    
+    // Update play/pause button state
+    if (playPauseBtn) {
+      if (ZM.autoTriggerTimer.paused) {
+        playPauseBtn.textContent = '▶';
+        playPauseBtn.classList.add('paused');
+      } else {
+        playPauseBtn.textContent = '⏸';
+        playPauseBtn.classList.remove('paused');
+      }
+    }
+  } else {
+    statusDiv.style.display = 'none';
+  }
+}
+

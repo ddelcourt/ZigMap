@@ -64,6 +64,10 @@ export function loadFromLocalStorage(defaultParams) {
     if (loaded.overlayOpacity === undefined) loaded.overlayOpacity = 100;
     if (loaded.overlayX === undefined) loaded.overlayX = 50;
     if (loaded.overlayY === undefined) loaded.overlayY = 50;
+    if (loaded.overlayAutoFit === undefined) loaded.overlayAutoFit = false;
+    
+    // Ensure project-level settings exist (for backward compatibility)
+    if (loaded.ambientSpeedMaster === undefined) loaded.ambientSpeedMaster = 100;
     
     return { ...defaultParams, ...loaded };
   } catch (e) {
