@@ -28,18 +28,18 @@ Mouse controls are active only when the cursor is on the animation area, not on 
 
 | Key | Action |
 |--------|--------|
-| H | Hide / show control panel |
+| Tab | Hide / show control panel |
 | Enter | Fullscreen |
-| p | Export PNG (includes overlay) |
-| s | Export SVG (vector only) |
-| d | Export depth map |
-| v | Start / stop video recording (includes overlay) |
-| r | Reset camera |
+| P | Export PNG (includes overlay) |
+| S | Export SVG (vector only) |
+| D | Export depth map |
+| R | Reset camera |
 | 0 | Reset zoom |
 | 1 – 4 | Select color palette |
 | y | Toggle stereoscopic view |
+| Ctrl+S (⌘+S) | Save project |
 
-PNG and video exports automatically include the overlay if active.
+PNG exports automatically include the overlay if active. Video recording is available from the Export section UI.
 
 ---
 
@@ -177,7 +177,7 @@ Press d or click Export Depth Map. Exports depth information as grayscale PNG. W
 ### Video recording
 1. Set Duration (how many seconds).
 2. Set Frame Rate (30 FPS is standard).
-3. Click Record Video button or press v.
+3. Click Record Video button.
 4. Wait without interacting with the page.
 5. Video downloads automatically when complete.
 

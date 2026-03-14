@@ -30,7 +30,7 @@ Real-time generative tool producing animated zigzag patterns in 3D space. Featur
 3. Use left-click + drag to rotate the camera
 4. Use right-click + drag to pan the camera
 5. Scroll the mouse wheel to zoom
-6. Press H to hide or show the control panel
+6. Press Tab to hide or show the control panel
 7. Press Enter for fullscreen mode
 
 ---
@@ -51,13 +51,12 @@ Camera controls are active only when the cursor is on the canvas. In stereoscopi
 
 | Key | Action | Key | Action |
 |-----|--------|-----|--------|
-| Tab / H | Hide/show UI panel | Enter / F | Fullscreen |
-| p / Shift+P | Export PNG | s / Shift+S | Export SVG |
-| d / Shift+D | Export depth map | v | Start/stop video recording |
-| j / Ctrl+S (⌘+S) | Save project JSON | r / Shift+R | Reset camera position |
-| 0 | Reset zoom (600 units) | 1–4 | Select color palette |
-| t | Toggle random thickness | m | Toggle random speed |
-| y | Toggle stereoscopic mode | b | Toggle framebuffer mode |
+| Tab | Hide/show UI panel | Enter | Fullscreen |
+| P | Export PNG | S | Export SVG |
+| D | Export depth map | Ctrl+S (⌘+S) | Save project JSON |
+| R | Reset camera position | 0 | Reset zoom (600 units) |
+| 1–4 | Select color palette | t | Toggle random thickness |
+| m | Toggle random speed | y | Toggle stereoscopic mode |
 
 ---
 
@@ -119,15 +118,15 @@ Supported formats: PNG (recommended for transparency), JPG, SVG.
 
 ### UI section
 
-**Hide controls** (Tab or H): hides the control panel. Press again to show.
+**Hide controls** (Tab): hides the control panel. Press again to show.
 
-**Fullscreen** (Enter or F): activates browser fullscreen mode. Press Escape to exit.
+**Fullscreen** (Enter): activates browser fullscreen mode. Press Escape to exit.
 
 ---
 
 ### Project section
 
-**Save** (j or Ctrl+S / ⌘+S): downloads current parameters to a timestamped `.json` file. All parameters and camera position are included.
+**Save** (Ctrl+S / ⌘+S): downloads current parameters to a timestamped `.json` file. All parameters and camera position are included.
 
 **Load**: opens file picker to load a previously saved `.json` configuration. All parameters are applied immediately and persisted to localStorage.
 
@@ -153,13 +152,13 @@ Parameters are automatically saved to localStorage on every change.
 
 ### Camera section
 
-**Stereoscopic view (VR)** (y) — default: off  
+**Stereoscopic view (VR)** — default: off  
 Divides view into left and right eye perspectives, side by side. Green borders indicate active mode. Each eye occupies half the window width.
 
 **Eye separation** — range: 0–100, default: 30, units: world space  
 Distance between left and right camera positions. Higher values accentuate 3D effect. Active only in stereoscopic mode.
 
-**Framebuffer resolution** (b) — default: off  
+**Framebuffer resolution** — default: off  
 Locks canvas to specific pixel resolution instead of window size. Gray border indicates active mode. Canvas scales down to fit window if necessary.
 
 **Preset** — type: dropdown, default: 1920×1080  
@@ -278,17 +277,17 @@ Overlays are included in PNG, video, and depth map exports. Excluded from SVG ex
 
 ### Export section
 
-**Export PNG** (p / Shift+P) — format: `.png`  
+**Export PNG** (P) — format: `.png`  
 Direct canvas capture with transparency. Dimensions match current canvas (or framebuffer dimensions if enabled).
 
-**Export SVG** (s / Shift+S) — format: `.svg`  
+**Export SVG** (S) — format: `.svg`  
 Vector version of current image, line by line with exact projection. Infinite scaling without quality loss.
 
-**Export depth map** (d / Shift+D) — format: `.png` grayscale  
+**Export depth map** (D) — format: `.png` grayscale  
 Encodes Z depth as brightness: close = white, far = black.
 
-**Video recording** (v) — format: `.webm` or `.mp4`  
-Frame-by-frame capture for smooth, deterministic rendering. Red indicator displays during recording. File automatically exports when stopped.
+**Video recording** — format: `.webm` or `.mp4`  
+Frame-by-frame capture for smooth, deterministic rendering. Start/stop from Export section UI. Red indicator displays during recording. File automatically exports when stopped.
 
 ---
 
@@ -306,13 +305,13 @@ Frame-by-frame capture for smooth, deterministic rendering. Red indicator displa
 ### Quick export
 
 **Current frame:**
-- p: export PNG image (includes overlay)
-- s: export SVG vector file
-- d: export depth map
+- P: export PNG image (includes overlay)
+- S: export SVG vector file
+- D: export depth map
 
 **Video recording:**
-1. v: start recording
-2. v: stop recording (optional, auto-stops at configured duration)
+1. Click Start Recording button in Export section
+2. Click Stop Recording button (optional, auto-stops at configured duration)
 3. Video downloads automatically with overlay included
 
 ---
@@ -321,7 +320,7 @@ Frame-by-frame capture for smooth, deterministic rendering. Red indicator displa
 
 ### Save project
 
-1. Click Save button in Project section (or press j / Ctrl+S / ⌘+S)
+1. Click Save button in Project section (or press Ctrl+S / ⌘+S)
 2. Project JSON file downloads with timestamp
 3. Contains all states, settings, and camera positions
 
@@ -342,7 +341,7 @@ Parameters are automatically saved to localStorage on every change. At first lau
 - Reduce emit rate to improve performance on slower systems
 - High-resolution framebuffer mode (4K) demands more GPU
 - Stereoscopic mode performs two simultaneous renders; reduce resolution if slowdown occurs
-- Hide UI panel (H) for maximum performance
+- Hide UI panel (Tab) for maximum performance
 
 ### Composition
 

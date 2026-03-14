@@ -28,18 +28,18 @@ Les contrôles souris sont actifs uniquement lorsque le curseur se trouve sur la
 
 | Touche | Action |
 |--------|--------|
-| H | Masquer / afficher le panneau de contrôle |
+| Tab | Masquer / afficher le panneau de contrôle |
 | Entrée | Plein écran |
-| p | Exporter PNG (inclut l'overlay) |
-| s | Exporter SVG (vectoriel uniquement) |
-| d | Exporter carte de profondeur |
-| v | Démarrer / arrêter l'enregistrement vidéo (inclut l'overlay) |
-| r | Réinitialiser la caméra |
+| P | Exporter PNG (inclut l'overlay) |
+| S | Exporter SVG (vectoriel uniquement) |
+| D | Exporter carte de profondeur |
+| R | Réinitialiser la caméra |
 | 0 | Réinitialiser le zoom |
 | 1 – 4 | Sélectionner une palette de couleurs |
 | y | Activer / désactiver la vue stéréoscopique |
+| Ctrl+S (⌘+S) | Sauvegarder projet |
 
-Les exports PNG et vidéo incluent automatiquement l'overlay si celui-ci est actif.
+Les exports PNG incluent automatiquement l'overlay si celui-ci est actif. L'enregistrement vidéo est disponible depuis l'interface de la section Export.
 
 ---
 

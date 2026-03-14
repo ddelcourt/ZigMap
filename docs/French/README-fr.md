@@ -30,7 +30,7 @@ Outil génératif en temps réel produisant des motifs zigzag animés dans un es
 3. Utiliser clic gauche + glisser pour faire pivoter la caméra
 4. Utiliser clic droit + glisser pour déplacer la caméra
 5. Faire défiler la molette pour zoomer
-6. Appuyer sur H pour masquer ou afficher le panneau de contrôle
+6. Appuyer sur Tab pour masquer ou afficher le panneau de contrôle
 7. Appuyer sur Entrée pour passer en plein écran
 
 ---
@@ -51,13 +51,12 @@ Les contrôles de caméra sont actifs uniquement lorsque le curseur se trouve su
 
 | Touche | Action | Touche | Action |
 |--------|--------|--------|--------|
-| Tab / H | Masquer/afficher panneau UI | Entrée / F | Plein écran |
-| p / Maj+P | Exporter PNG | s / Maj+S | Exporter SVG |
-| d / Maj+D | Exporter carte de profondeur | v | Démarrer/arrêter enregistrement vidéo |
-| j / Ctrl+S (⌘+S) | Sauvegarder projet JSON | r / Maj+R | Réinitialiser position caméra |
-| 0 | Réinitialiser zoom (600 unités) | 1–4 | Sélectionner palette de couleurs |
-| t | Activer/désactiver épaisseur aléatoire | m | Activer/désactiver vitesse aléatoire |
-| y | Activer/désactiver mode stéréoscopique | b | Activer/désactiver mode framebuffer |
+| Tab | Masquer/afficher panneau UI | Enter | Plein écran |
+| P | Exporter PNG | S | Exporter SVG |
+| D | Exporter carte de profondeur | Ctrl+S (⌘+S) | Sauvegarder projet JSON |
+| R | Réinitialiser position caméra | 0 | Réinitialiser zoom (600 unités) |
+| 1–4 | Sélectionner palette de couleurs | t | Activer/désactiver épaisseur aléatoire |
+| m | Activer/désactiver vitesse aléatoire | y | Activer/désactiver mode stéréoscopique |
 
 ---
 
@@ -119,15 +118,15 @@ Formats pris en charge : PNG (recommandé pour la transparence), JPG, SVG.
 
 ### Section UI
 
-**Masquer les contrôles** (Tab ou H) : masque le panneau de contrôle. Appuyer à nouveau pour l'afficher.
+**Masquer les contrôles** (Tab) : masque le panneau de contrôle. Appuyer à nouveau pour l'afficher.
 
-**Plein écran** (Entrée ou F) : active le mode plein écran du navigateur. Appuyer sur Échap pour quitter.
+**Plein écran** (Entrée) : active le mode plein écran du navigateur. Appuyer sur Échap pour quitter.
 
 ---
 
 ### Section Fichier
 
-**Sauvegarder** (j ou Ctrl+S / ⌘+S) : télécharge les paramètres actuels dans un fichier `.json` horodaté. Tous les paramètres et la position de caméra sont inclus.
+**Sauvegarder** (Ctrl+S / ⌘+S) : télécharge les paramètres actuels dans un fichier `.json` horodaté. Tous les paramètres et la position de caméra sont inclus.
 
 **Charger** : ouvre le sélecteur de fichiers pour charger une configuration `.json` précédemment sauvegardée. Tous les paramètres sont appliqués immédiatement et persistés dans le localStorage.
 
@@ -153,13 +152,13 @@ Les paramètres sont automatiquement sauvegardés dans le localStorage à chaque
 
 ### Section Caméra
 
-**Vue stéréoscopique (VR)** (y) — par défaut : désactivé  
+**Vue stéréoscopique (VR)** — par défaut : désactivé  
 Divise la vue en perspectives œil gauche et œil droit, côte à côte. Des bordures vertes indiquent le mode actif. Chaque œil occupe la moitié de la largeur de fenêtre.
 
 **Séparation des yeux** — plage : 0–100, par défaut : 30, unités : espace monde  
 Distance entre les positions de caméra gauche et droite. Les valeurs élevées accentuent l'effet 3D. Actif uniquement en mode stéréoscopique.
 
-**Résolution framebuffer** (b) — par défaut : désactivé  
+**Résolution framebuffer** — par défaut : désactivé  
 Verrouille le canevas à une résolution en pixels spécifique au lieu de la taille de fenêtre. Une bordure grise indique le mode actif. Le canevas se réduit pour s'adapter à la fenêtre si nécessaire.
 
 **Préréglage** — type : menu déroulant, par défaut : 1920×1080  
@@ -278,17 +277,17 @@ Les incrustations sont incluses dans les exports PNG, vidéo et carte de profond
 
 ### Section Export
 
-**Exporter PNG** (p / Maj+P) — format : `.png`  
+**Exporter PNG** (P) — format : `.png`  
 Capture directe du canevas avec transparence. Les dimensions correspondent au canevas actuel (ou aux dimensions du framebuffer si activé).
 
-**Exporter SVG** (s / Maj+S) — format : `.svg`  
+**Exporter SVG** (S) — format : `.svg`  
 Version vectorielle de l'image actuelle, ligne par ligne avec projection exacte. Mise à l'échelle infinie sans perte de qualité.
 
-**Exporter carte de profondeur** (d / Maj+D) — format : `.png` en niveaux de gris  
+**Exporter carte de profondeur** (D) — format : `.png` en niveaux de gris  
 Encode la profondeur Z en luminosité : proche = blanc, loin = noir.
 
-**Enregistrement vidéo** (v) — format : `.webm` ou `.mp4`  
-Capture image par image pour un rendu fluide et déterministe. Un indicateur rouge s'affiche pendant l'enregistrement. Le fichier s'exporte automatiquement à l'arrêt.
+**Enregistrement vidéo** — format : `.webm` ou `.mp4`  
+Capture image par image pour un rendu fluide et déterministe. Démarrage/arrêt depuis l'interface de la section Export. Un indicateur rouge s'affiche pendant l'enregistrement. Le fichier s'exporte automatiquement à l'arrêt.
 
 ---
 
@@ -306,13 +305,13 @@ Capture image par image pour un rendu fluide et déterministe. Un indicateur rou
 ### Export rapide
 
 **Image actuelle :**
-- p : exporter image PNG (inclut l'incrustation)
-- s : exporter fichier vectoriel SVG
-- d : exporter carte de profondeur
+- P : exporter image PNG (inclut l'incrustation)
+- S : exporter fichier vectoriel SVG
+- D : exporter carte de profondeur
 
 **Enregistrement vidéo :**
-1. v : démarrer l'enregistrement
-2. v : arrêter l'enregistrement (optionnel, arrêt automatique à la durée configurée)
+1. Cliquer sur le bouton Démarrer l'enregistrement dans la section Export
+2. Cliquer sur le bouton Arrêter l'enregistrement (optionnel, arrêt automatique à la durée configurée)
 3. La vidéo se télécharge automatiquement avec l'incrustation incluse
 
 ---
@@ -321,7 +320,7 @@ Capture image par image pour un rendu fluide et déterministe. Un indicateur rou
 
 ### Sauvegarder un projet
 
-1. Cliquer sur le bouton Sauvegarder dans la section Fichier (ou appuyer sur j / Ctrl+S / ⌘+S)
+1. Cliquer sur le bouton Sauvegarder dans la section Fichier (ou appuyer sur Ctrl+S / ⌘+S)
 2. Le fichier JSON du projet se télécharge avec horodatage
 3. Contient tous les états, paramètres et positions de caméra
 
@@ -342,7 +341,7 @@ Les paramètres sont automatiquement sauvegardés dans le localStorage à chaque
 - Réduire le taux d'émission pour améliorer les performances sur les systèmes lents
 - Le mode framebuffer haute résolution (4K) demande davantage de GPU
 - Le mode stéréoscopique effectue deux rendus simultanés ; réduire la résolution en cas de ralentissement
-- Masquer le panneau UI (H) pour des performances maximales
+- Masquer le panneau UI (Tab) pour des performances maximales
 
 ### Composition
 
@@ -450,7 +449,7 @@ S'assurer que le mode de renommage d'état n'est pas actif. Les raccourcis sont 
 - Panneaux de contrôle séparés : Rendu (framebuffer) et Vue (FOV, découpe, stéréoscopique)
 - Le chargement de projet utilise le premier état et synchronise les contrôles de caméra
 - Architecture modulaire ES6 avec fichiers de classe séparés
-- Touche H pour masquer les contrôles
+- Touche Tab pour masquer les contrôles
 - Raccourcis clavier désactivés pendant le renommage d'état
 
 **Versions antérieures (v12 et inférieures)**

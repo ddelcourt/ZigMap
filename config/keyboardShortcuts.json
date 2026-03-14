@@ -13,66 +13,21 @@
       "preventDefault": true
     },
     {
-      "key": "h",
-      "action": "toggleControls",
-      "description": "Hide/show controls",
-      "preventDefault": true
-    },
-    {
-      "key": "f",
-      "action": "toggleFullscreen",
-      "description": "Fullscreen",
-      "preventDefault": true
-    },
-    {
-      "key": "p",
+      "key": "P",
       "action": "exportPNG",
       "description": "Export PNG",
       "preventDefault": true
     },
     {
-      "key": "P",
-      "action": "exportPNG",
-      "description": "Export PNG (Shift+P)",
-      "preventDefault": true,
-      "shift": true
-    },
-    {
-      "key": "s",
+      "key": "S",
       "action": "exportSVG",
       "description": "Export SVG",
       "preventDefault": true
     },
     {
-      "key": "S",
-      "action": "exportSVG",
-      "description": "Export SVG (Shift+S)",
-      "preventDefault": true,
-      "shift": true
-    },
-    {
-      "key": "d",
-      "action": "exportDepthMap",
-      "description": "Export depth map",
-      "preventDefault": true
-    },
-    {
       "key": "D",
       "action": "exportDepthMap",
-      "description": "Export depth map (Shift+D)",
-      "preventDefault": true,
-      "shift": true
-    },
-    {
-      "key": "v",
-      "action": "toggleVideoRecording",
-      "description": "Start/stop recording",
-      "preventDefault": true
-    },
-    {
-      "key": "j",
-      "action": "downloadJSON",
-      "description": "Save settings JSON (J)",
+      "description": "Export depth map",
       "preventDefault": true
     },
     {
@@ -83,17 +38,10 @@
       "ctrl": true
     },
     {
-      "key": "r",
-      "action": "resetCamera",
-      "description": "Reset camera position",
-      "preventDefault": true
-    },
-    {
       "key": "R",
       "action": "resetCamera",
-      "description": "Reset camera (Shift+R)",
-      "preventDefault": true,
-      "shift": true
+      "description": "Reset camera",
+      "preventDefault": true
     },
     {
       "key": "0",
@@ -141,12 +89,6 @@
       "key": "y",
       "action": "toggleStereoMode",
       "description": "Toggle stereoscopic view",
-      "preventDefault": true
-    },
-    {
-      "key": "b",
-      "action": "toggleFramebuffer",
-      "description": "Toggle framebuffer mode",
       "preventDefault": true
     }
   ]
