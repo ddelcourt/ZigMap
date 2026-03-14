@@ -1,165 +1,143 @@
-# Guide des Matrices de Projection : Conversion 3D WebGL vers 2D SVG
+# Matrices de projection : conversion 3D WebGL vers 2D SVG
 
-**Projet ZigzagEmitter - Plongée Technique**  
-*Auteur : ddelcourt*  
-*Date : 9 mars 2026*
+ddelcourt / mars 2026
 
 ---
 
-## 1. Introduction : Le Défi
+## Table des matières
 
-### Le Problème
-
-Dans le monde des graphiques génératifs modernes, nous rendons souvent des scènes 3D complexes en utilisant WebGL accéléré par GPU, mais devons les exporter en graphiques vectoriels (SVG) pour l'impression, l'édition ultérieure ou l'archivage. Cela présente un défi technique fondamental :
-
-**WebGL utilise le pipeline de transformation intégré du GPU**, qui gère :
-- Les transformations de sommets
-- Les multiplications de matrices
-- La division en perspective
-- Le mapping de la fenêtre d'affichage
-
-**SVG est un format vectoriel 2D** qui ne comprend que :
-- Les points de coordonnées 2D
-- Les chemins et polygones
-- Aucun concept de profondeur 3D ou de projection
-
-**Le Défi :** Nous devons répliquer l'intégralité du pipeline de transformation 3D—normalement géré invisiblement par le GPU—en utilisant des calculs JavaScript purs sur CPU pour générer les bonnes coordonnées SVG 2D qui correspondent à la sortie visuelle de la scène WebGL 3D.
-
-### Pourquoi C'est Important
-
-1. **Fidélité Visuelle** : L'export SVG doit être parfait au pixel près avec le rendu WebGL
-2. **Réutilisabilité** : Comprendre les mathématiques permet l'adaptation à d'autres projets
-3. **Débogage** : Quand les exports sont incorrects, il faut savoir quelle transformation a échoué
-4. **Flexibilité** : La projection CPU permet les cartes de profondeur, effets personnalisés et traitement analytique
-
-### Le Cas d'Usage du ZigzagEmitter
-
-Le ZigzagEmitter rend des rubans en zigzag animés dans l'espace 3D avec :
-- Caméra contrôlable par l'utilisateur (rotation, zoom, panoramique)
-- Champ de vision ajustable
-- Plans de découpe proche/lointain
-- Rotations 3D appliquées à la géométrie
-
-L'utilisateur peut exporter n'importe quelle frame en SVG, nécessitant une reconstruction en temps réel de toutes ces transformations.
+- [1. Le défi](#1-le-défi)
+- [2. Le pipeline de transformation](#2-le-pipeline-de-transformation)
+- [3. Implémentation](#3-implémentation)
+- [4. Fondements mathématiques](#4-fondements-mathématiques)
+- [5. Problèmes courants](#5-problèmes-courants)
+- [6. Extension à d'autres projets](#6-extension-à-dautres-projets)
+- [7. Références](#7-références)
+- [8. Résumé](#8-résumé)
 
 ---
 
-## 2. La Logique : Une Explication Littérale
+## 1. Le défi
 
-### Le Pipeline de Transformation
+### Contexte
 
-Pensez au processus 3D vers 2D comme une série de transformations de systèmes de coordonnées, comme changer de référentiels en physique :
+Les scènes 3D sont rendues en WebGL accéléré par GPU, puis exportées en SVG pour l'impression, l'édition ou l'archivage. Ce processus pose un problème technique fondamental.
 
-#### **Étape 1 : Espace Local → Espace Monde**
+**WebGL** s'appuie sur le pipeline de transformation intégré du GPU :
+- transformations de sommets
+- multiplications de matrices
+- division en perspective
+- mapping de la fenêtre d'affichage
 
-Chaque ruban en zigzag existe dans son propre **système de coordonnées local**. Par exemple, un ruban peut avoir des sommets à des positions comme `(-100, 50)` dans son propre espace.
+**SVG** est un format vectoriel 2D qui ne comprend que des coordonnées 2D, des chemins et des polygones — sans notion de profondeur ou de projection.
 
-Pour placer ce ruban dans la scène, nous transformons ces coordonnées locales en **espace monde** :
+L'intégralité du pipeline de transformation 3D — normalement géré par le GPU — doit être répliquée en JavaScript pur pour générer des coordonnées SVG 2D correspondant exactement à la sortie WebGL.
+
+### Pourquoi cette approche
+
+- **Fidélité visuelle** : l'export SVG doit correspondre au rendu WebGL au pixel près
+- **Débogage** : identifier quelle transformation a échoué en cas d'export incorrect
+- **Flexibilité** : la projection CPU permet les cartes de profondeur, les effets personnalisés et le traitement analytique
+
+### Contexte du ZigzagEmitter
+
+Le ZigzagEmitter rend des rubans en zigzag dans l'espace 3D avec caméra contrôlable (rotation, zoom, panoramique), champ de vision ajustable, plans de découpe proche/lointain et rotations 3D appliquées à la géométrie. L'export SVG d'une image quelconque nécessite la reconstruction en temps réel de l'ensemble de ces transformations.
+
+---
+
+## 2. Le pipeline de transformation
+
+Le processus 3D → 2D consiste en une série de changements de systèmes de coordonnées.
+
+### Étape 1 : espace local → espace monde
+
+Chaque ruban existe dans son propre système de coordonnées local. Pour le placer dans la scène :
+
 ```
 mondeX = (ligneX - largeurCanevas/2 + localX) × échelle
 mondeY = (ligneY - hauteurCanevas/2 + localY) × échelle
-mondeZ = 0  (les rubans sont plats dans le plan XY)
+mondeZ = 0  // les rubans sont plats dans le plan XY
 ```
 
-**Pourquoi soustraire le centre du canevas ?** Le mode WEBGL de p5.js place l'origine `(0,0,0)` au centre de l'écran, pas au coin supérieur gauche.
+Le mode WEBGL de p5.js place l'origine `(0,0,0)` au centre de l'écran, pas au coin supérieur gauche — d'où la soustraction du demi-canevas.
 
-#### **Étape 2 : Appliquer les Rotations 3D**
+### Étape 2 : rotations 3D
 
-La géométrie subit **trois rotations séquentielles**, appliquées dans cet ordre spécifique :
+Trois rotations séquentielles, dans cet ordre précis :
 
-1. **rotateZ** (rotation de l'émetteur) : Fait tourner les rubans autour de l'axe Z (comme une roue)
-2. **rotateY** (orbite horizontale de la caméra) : Tourne autour de l'axe vertical (regarder gauche/droite)
-3. **rotateX** (orbite verticale de la caméra) : Tourne autour de l'axe horizontal (regarder haut/bas)
+1. **rotateZ** (rotation de l'émetteur) : rotation autour de l'axe Z (comme une roue)
+2. **rotateY** (orbite horizontale) : rotation autour de l'axe vertical (gauche/droite)
+3. **rotateX** (orbite verticale) : rotation autour de l'axe horizontal (haut/bas)
 
-**Insight critique** : L'ordre de rotation compte ! `rotateX(rotateY(point))` produit des résultats différents de `rotateY(rotateX(point))`.
+L'ordre de rotation est déterminant : `rotateX(rotateY(point))` produit des résultats différents de `rotateY(rotateX(point))`.
 
-Chaque rotation est une **transformation de coordonnées 3D** utilisant des fonctions trigonométriques (sinus et cosinus).
+### Étape 3 : translation de la caméra
 
-#### **Étape 3 : Translation de la Caméra**
-
-Après la rotation, nous simulons la distance de la caméra par rapport à la scène :
+Simulation de la distance caméra par rapport à la scène :
 
 ```
 vueZ = Z_tourné - distanceTotaleCaméra
 ```
 
-**Où :**
-- `distanceTotaleCaméra` = position par défaut de la caméra p5 + distance de zoom de l'utilisateur
-- La soustraction déplace les points "loin" de la caméra en Z négatif
+`distanceTotaleCaméra` = position par défaut de la caméra p5 + distance de zoom utilisateur.
 
-#### **Étape 4 : Découpe du Frustum**
+### Étape 4 : découpe du frustum
 
-Avant la projection, nous vérifions si le point est dans le frustum de vision (la pyramide visible) :
+Vérification que le point se trouve dans le frustum de vision :
 
 ```
 si (vueZ >= -proche || vueZ <= -loin) → rejeter le point
 ```
 
-Les points trop proches (derrière le plan proche) ou trop loin (au-delà du plan lointain) sont éliminés.
+Les points trop proches ou trop lointains sont éliminés.
 
-#### **Étape 5 : Projection en Perspective**
+### Étape 5 : projection en perspective
 
-C'est **l'étape magique** où la 3D devient 2D. Les objets plus éloignés apparaissent plus petits, créant une profondeur réaliste.
+Les objets plus éloignés apparaissent plus petits. Formule :
 
-**La formule de perspective :**
 ```
 échelle = caméraZParDéfaut / -vueZ
 écranX = vueX × échelle + largeurCanevas/2
 écranY = vueY × échelle + hauteurCanevas/2
 ```
 
-**Ce que cela signifie :**
-- Les points plus éloignés (plus grand `vueZ` négatif) ont des facteurs d'échelle plus petits
-- Les points plus proches ont des facteurs d'échelle plus grands (apparaissent plus grands)
-- La division par `vueZ` crée l'effet de "convergence vers un point" de la perspective
+Les points plus éloignés (grand `vueZ` négatif) ont un facteur d'échelle plus petit ; les points proches un facteur plus grand. La division par `vueZ` crée la convergence vers un point de fuite.
 
-#### **Étape 6 : Sortie SVG**
+### Étape 6 : sortie SVG
 
-Les coordonnées finales `(écranX, écranY)` sont écrites dans le fichier SVG comme points 2D. L'information de profondeur est perdue (ou optionnellement stockée pour les cartes de profondeur).
+Les coordonnées finales `(écranX, écranY)` sont écrites dans le fichier SVG comme points 2D. L'information de profondeur est perdue, ou conservée séparément pour les cartes de profondeur.
 
 ---
 
-## 3. L'Algorithme : Implémentation du Code
+## 3. Implémentation
 
-### 3.1 Pseudocode de Haut Niveau
+### 3.1 Pseudocode
 
 ```
-POUR chaque ruban dans la scène:
-  verticesLocaux = ruban.construireVertices()  // ex. points zigzag
-  
-  POUR chaque vertex dans verticesLocaux:
-    // Transformer en espace monde
+POUR chaque ruban dans la scène :
+  verticesLocaux = ruban.construireVertices()
+
+  POUR chaque vertex dans verticesLocaux :
     posMonde = localVersMonde(vertex, ruban.position, échelle)
-    
-    // Appliquer les rotations
-    tourné1 = rotationZ(posMonde, angleÉmetteur)
-    tourné2 = rotationY(tourné1, lacetCaméra)
-    tourné3 = rotationX(tourné2, tangageCaméra)
-    
-    // Déplacer vers l'espace de vue
-    posVue = translation(tourné3, -distanceCaméra)
-    
-    // Découper contre le frustum
-    SI posVue.z hors de [proche, loin]:
+    tourné1  = rotationZ(posMonde, angleÉmetteur)
+    tourné2  = rotationY(tourné1, lacetCaméra)
+    tourné3  = rotationX(tourné2, tangageCaméra)
+    posVue   = translation(tourné3, -distanceCaméra)
+
+    SI posVue.z hors de [proche, loin] :
       IGNORER ce vertex
-    
-    // Division en perspective
+
     posÉcran = projectionPerspective(posVue, fov, tailleCanevas)
-    
-    // Stocker la coordonnée 2D
     pointsSVG.push(posÉcran)
-  
-  // Créer un polygone SVG à partir des points 2D
+
   polygoneSVG = nouveau Polygone(pointsSVG)
   documentSVG.ajouter(polygoneSVG)
 ```
 
-### 3.2 Implémentation JavaScript Réelle
-
-Voici le code de transformation de base du ZigzagEmitter :
+### 3.2 Implémentation JavaScript
 
 ```javascript
-// Fonctions d'aide pour les rotations (matrices de rotation comme fonctions pures)
+// Fonctions de rotation (matrices de rotation comme fonctions pures)
 const rotX = (x, y, z, angle) => ({
   x: x,
   y: y * Math.cos(angle) - z * Math.sin(angle),
@@ -185,24 +163,24 @@ const distanceTotale = caméraZParDéfaut + camera.distance;
 
 // Fonction de projection principale
 function projectPoint(x, y, z) {
-  // Étape 1 : Rotation autour de Z (rotation de l'émetteur)
+  // Étape 1 : rotation Z (rotation de l'émetteur)
   let pt = rotZ(x, y, z, params.emitterRotation * Math.PI / 180);
-  
-  // Étape 2 : Rotation autour de Y (orbite horizontale)
+
+  // Étape 2 : rotation Y (orbite horizontale)
   pt = rotY(pt.x, pt.y, pt.z, camera.rotationY);
-  
-  // Étape 3 : Rotation autour de X (orbite verticale)
+
+  // Étape 3 : rotation X (orbite verticale)
   pt = rotX(pt.x, pt.y, pt.z, camera.rotationX);
-  
-  // Étape 4 : Translation vers l'espace de vue (distance caméra)
+
+  // Étape 4 : translation vers l'espace de vue
   pt.z -= distanceTotale;
-  
-  // Étape 5 : Découpe du frustum
+
+  // Étape 5 : découpe du frustum
   if (pt.z >= -params.near || pt.z <= -params.far) {
-    return null;  // Point hors de la plage visible
+    return null;
   }
-  
-  // Étape 6 : Projection en perspective
+
+  // Étape 6 : projection en perspective
   const échelle = caméraZParDéfaut / -pt.z;
   return {
     x: pt.x * échelle + W / 2,
@@ -210,7 +188,7 @@ function projectPoint(x, y, z) {
   };
 }
 
-// Convertir les coordonnées locales du ruban en espace monde, puis projeter
+// Conversion coordonnées locales → espace monde → projection
 const valÉchelle = params.geometryScale / 100;
 
 const versÉcran = (ligne, pointsLocaux) => pointsLocaux
@@ -225,111 +203,96 @@ const versÉcran = (ligne, pointsLocaux) => pointsLocaux
 // Générer le polygone SVG
 const pointsÉcran = versÉcran(ligne, verticesLocaux);
 const polygoneSVG = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-polygoneSVG.setAttribute('points', 
+polygoneSVG.setAttribute('points',
   pointsÉcran.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ')
 );
 ```
 
-### 3.3 Détails d'Implémentation Clés
+### 3.3 Points d'implémentation clés
 
-#### Conversion du Système de Coordonnées
+**Conversion du système de coordonnées**
 ```javascript
-// p5.js WEBGL utilise l'origine centrale, mais les positions de ligne sont stockées en coordonnées canvas
 mondeX = (ligne.x - W/2 + localX) * échelle
 mondeY = (ligne.y - H/2 + localY) * échelle
 ```
 
-#### L'Ordre de Rotation est Critique
-L'ordre **Z → Y → X** correspond à la pile de transformation de p5.js WEBGL. Changer cet ordre produira des résultats incorrects.
+**Ordre de rotation**
+L'ordre **Z → Y → X** correspond à la pile de transformation de p5.js WEBGL. Tout autre ordre produit des résultats incorrects.
 
-#### Convention Z Négatif
-OpenGL (et p5.js) utilise un **système de coordonnées à droite** où :
-- +X = droite
-- +Y = haut  
-- **-Z = avant** (vers l'écran)
+**Convention Z négatif**
+OpenGL (et p5.js) utilise un système de coordonnées à droite : +X = droite, +Y = haut, **−Z = avant** (vers l'écran). D'où l'utilisation de `−vueZ` dans les divisions et la condition `z <= −loin`.
 
-C'est pourquoi nous utilisons `-vueZ` dans les divisions et vérifions `z <= -loin`.
-
-#### Calcul de la Distance de la Caméra
+**Calcul de la distance caméra**
 ```javascript
-// La caméra par défaut de p5.js WEBGL est positionnée à z = (hauteur/2) / tan(fov/2)
+// Position par défaut de la caméra p5.js WEBGL
 caméraZParDéfaut = (hauteur / 2) / Math.tan(fovRad / 2)
 
-// Le zoom de l'utilisateur s'ajoute à cela
+// Le zoom utilisateur s'ajoute à cette valeur
 distanceTotale = caméraZParDéfaut + distanceZoomUtilisateur
 ```
 
-Cette formule garantit que le champ de vision se comporte de manière identique au moteur WEBGL de p5.
-
 ---
 
-## 4. Les Mathématiques : Théorie et Preuves
+## 4. Fondements mathématiques
 
-### 4.1 Matrices de Rotation
+### 4.1 Matrices de rotation
 
-Chaque rotation est une multiplication de **matrice orthogonale 3×3**. 
+Chaque rotation est une multiplication de matrice orthogonale 3×3.
 
-#### Rotation Autour de l'Axe X (Tangage)
+#### Rotation autour de l'axe X (tangage)
 ```
 Rₓ(θ) = ┌ 1    0        0     ┐
-        │ 0  cos(θ)  -sin(θ) │
-        └ 0  sin(θ)   cos(θ) ┘
-
-[x']   [1    0        0     ] [x]
-[y'] = [0  cos(θ)  -sin(θ) ] [y]
-[z']   [0  sin(θ)   cos(θ) ] [z]
+         │ 0  cos(θ)  -sin(θ) │
+         └ 0  sin(θ)   cos(θ) ┘
 
 x' = x
 y' = y·cos(θ) - z·sin(θ)
 z' = y·sin(θ) + z·cos(θ)
 ```
 
-#### Rotation Autour de l'Axe Y (Lacet)
+#### Rotation autour de l'axe Y (lacet)
 ```
 Rᵧ(θ) = ┌ cos(θ)   0  sin(θ) ┐
-        │   0      1    0    │
-        └-sin(θ)   0  cos(θ) ┘
+         │   0      1    0    │
+         └-sin(θ)   0  cos(θ) ┘
 
 x' =  x·cos(θ) + z·sin(θ)
 y' =  y
 z' = -x·sin(θ) + z·cos(θ)
 ```
 
-#### Rotation Autour de l'Axe Z (Roulis)
+#### Rotation autour de l'axe Z (roulis)
 ```
 Rᴢ(θ) = ┌ cos(θ)  -sin(θ)  0 ┐
-        │ sin(θ)   cos(θ)  0 │
-        └   0        0     1 ┘
+         │ sin(θ)   cos(θ)  0 │
+         └   0        0     1 ┘
 
 x' = x·cos(θ) - y·sin(θ)
 y' = x·sin(θ) + y·cos(θ)
 z' = z
 ```
 
-### 4.2 Rotation Composite
+### 4.2 Rotation composite
 
-Lors de l'application de rotations en séquence : **Z → Y → X**, la transformation combinée est :
+Application des rotations en séquence **Z → Y → X** :
 
 ```
 R_combinée = Rₓ · Rᵧ · Rᴢ
 
-[x'']   
-[y''] = Rₓ(θₓ) · Rᵧ(θᵧ) · Rᴢ(θᴢ) · [x]
-[z'']                               [y]
-                                    [z]
+[x'']
+[y''] = Rₓ(θₓ) · Rᵧ(θᵧ) · Rᴢ(θᴢ) · [x, y, z]ᵀ
+[z'']
 ```
 
-**Important :** La multiplication matricielle n'est **pas commutative** : `A·B ≠ B·A`
+La multiplication matricielle n'est pas commutative : `A·B ≠ B·A`. L'ordre de rotation détermine le résultat.
 
-C'est pourquoi l'ordre de rotation compte. Tourner autour de X puis Y produit des résultats différents de Y puis X.
+### 4.3 Formule de projection en perspective
 
-### 4.3 Formule de Projection en Perspective
+Dérivée des triangles semblables dans l'espace 3D.
 
-La transformation en perspective est dérivée des **triangles semblables** dans l'espace 3D.
+#### Dérivation géométrique
 
-#### Dérivation Géométrique
-
-Imaginez regarder un point 3D `P = (x, y, z)` depuis une caméra en position `(0, 0, 0)` :
+Pour un point `P = (x, y, z)` observé depuis une caméra en `(0, 0, 0)` :
 
 ```
                 P(x, y, z)
@@ -340,7 +303,7 @@ Imaginez regarder un point 3D `P = (x, y, z)` depuis une caméra en position `(0
            /    |
     Caméra ──────┘
          distance z
-         
+
     Plan d'écran à distance d
 ```
 
@@ -350,172 +313,126 @@ Par triangles semblables :
 écranY = (y · d) / z
 ```
 
-La **distance focale** `d` est calculée à partir du champ de vision :
+La distance focale `d` est calculée à partir du champ de vision :
 ```
 d = (hauteurCanevas / 2) / tan(fov / 2)
 ```
 
-Cela garantit que l'étendue verticale du frustum correspond à la hauteur du canevas au plan focal.
-
-#### Équations de Projection Complètes
+#### Équations de projection complètes
 
 ```
-Étant donné le point (x, y, z) dans l'espace de vue :
-
 échelle = distanceFocale / -z
 
 écranX = x · échelle + largeurCanevas / 2
 écranY = y · échelle + hauteurCanevas / 2
 ```
 
-**Pourquoi diviser par `-z` ?** La caméra regarde le long de **l'axe Z négatif**. Les points avec `z = -100` sont plus éloignés que `z = -10`, donc nous utilisons la valeur absolue via négation.
+La division par `−z` s'explique par la convention : la caméra regarde le long de l'axe Z négatif. Un point à `z = −100` est plus éloigné qu'un point à `z = −10`.
 
-### 4.4 Champ de Vision (FOV) et Distance Focale
-
-La relation entre FOV et distance focale :
+### 4.4 Champ de vision et distance focale
 
 ```
 tan(fov/2) = (hauteurCanevas/2) / distanceFocale
 
-Donc :
 distanceFocale = (hauteurCanevas/2) / tan(fov/2)
 ```
 
-**Intuition :**
-- **FOV plus grand** (ex. 90°) → distance focale plus courte → plus de distorsion "grand angle"
-- **FOV plus petit** (ex. 30°) → distance focale plus longue → plus de compression "téléobjectif"
+- **FOV large** (ex. 90°) → distance focale courte → distorsion grand angle
+- **FOV étroit** (ex. 30°) → distance focale longue → compression téléobjectif
 
-C'est identique à l'optique de caméra physique !
+### 4.5 Plans de découpe du frustum
 
-### 4.5 Plans de Découpe du Frustum
-
-Le frustum de vision est une pyramide tronquée définie par :
-
+Le frustum est une pyramide tronquée définie par :
 ```
 -proche ≤ z ≤ -loin  (dans l'espace de vue)
 ```
 
-**Plan proche** (ex. z = -0,1) : Les points plus proches sont derrière la caméra ou trop proches pour être rendus.
+- **Plan proche** : les points trop proches (derrière la caméra ou sous le seuil) sont rejetés
+- **Plan lointain** : les points au-delà sont éliminés pour la performance et la stabilité numérique
 
-**Plan lointain** (ex. z = -10000) : Les points au-delà sont éliminés pour la performance et la stabilité numérique.
-
-**Condition de découpe :**
+Condition de découpe :
 ```
-si (z >= -proche || z <= -loin):
-    rejeter le point
+si (z >= -proche || z <= -loin) : rejeter le point
 ```
 
-### 4.6 Pipeline de Transformation Complet comme Matrice
+### 4.6 Pipeline complet comme matrice homogène
 
-L'intégralité du pipeline peut être exprimée comme une seule **matrice de transformation homogène 4×4** :
+L'ensemble du pipeline s'exprime comme une matrice de transformation homogène 4×4 :
 
 ```
-[x_écran]     [Projection] [Vue] [Modèle] [x_local]
-[y_écran]  =  [          ] [    ] [      ] [y_local]
-[z_profondeur][          ] [    ] [      ] [z_local]
-[    w    ]   [          ] [    ] [      ] [   1   ]
+[x_écran  ]     [Projection] [Vue] [Modèle] [x_local]
+[y_écran  ]  =  [          ] [    ] [      ] [y_local]
+[z_profond]     [          ] [    ] [      ] [z_local]
+[    w    ]     [          ] [    ] [      ] [   1   ]
 ```
 
-Où :
-- **Matrice modèle** = Translation vers l'espace monde × Échelle × Rotation émetteur (Z)
-- **Matrice vue** = Rotation caméra (Y puis X) × Translation caméra
-- **Matrice projection** = Division perspective + mise à l'échelle de la fenêtre
+- **Matrice modèle** = translation vers l'espace monde × échelle × rotation émetteur (Z)
+- **Matrice vue** = rotation caméra (Y puis X) × translation caméra
+- **Matrice projection** = division perspective + mise à l'échelle de la fenêtre
 
-L'implémentation du code calcule ces transformations séquentiellement plutôt que de construire des matrices explicites, mais le résultat mathématique est identique.
+Le code calcule ces transformations séquentiellement plutôt que de construire des matrices explicites — le résultat mathématique est identique.
 
 ---
 
-## 5. Pièges Courants et Solutions
+## 5. Problèmes courants
 
-### Problème : L'export SVG ne correspond pas au rendu WebGL
+### L'export SVG ne correspond pas au rendu WebGL
 
-**Causes :**
-1. Mauvais ordre de rotation
-2. Conversion incorrecte du système de coordonnées (origine en haut à gauche vs centre)
-3. Facteur d'échelle manquant
-4. FOV calculé incorrectement
+Causes possibles : mauvais ordre de rotation, conversion incorrecte du système de coordonnées, facteur d'échelle manquant, FOV calculé incorrectement.
 
-**Solution :** La fonction `projectPoint()` doit **répliquer exactement** l'ordre de la pile de transformation de p5.js.
+La fonction `projectPoint()` doit répliquer exactement l'ordre de la pile de transformation de p5.js.
 
-### Problème : Les objets apparaissent étirés ou compressés
+### Objets étirés ou compressés
 
-**Cause :** Le calcul du FOV ne tient pas compte du ratio d'aspect ou utilise la mauvaise formule de tangente.
+Cause : le calcul du FOV ne tient pas compte du ratio d'aspect ou utilise une formule incorrecte.
 
-**Solution :** Utiliser `(hauteur/2) / tan(fov/2)` pour le calcul de la distance focale.
+Solution : utiliser `(hauteur/2) / tan(fov/2)` pour la distance focale.
 
-### Problème : Artefacts de découpe (géométrie qui disparaît)
+### Artefacts de découpe (géométrie qui disparaît)
 
-**Cause :** Le plan proche est trop loin, ou le plan lointain est trop proche.
+Cause : plan proche trop lointain, ou plan lointain trop proche.
 
-**Solution :** S'assurer que proche ≥ 0,01 et loin >> plage de profondeur de la scène.
+Solution : s'assurer que `proche >= 0.01` et `loin >> plage de profondeur de la scène`.
 
-### Problème : Problèmes de performance avec de grandes scènes
+### Problèmes de performance avec de grandes scènes
 
-**Cause :** Projeter des milliers de points par frame est intensif pour le CPU.
+Cause : la projection de milliers de points par image est intensive pour le CPU.
 
-**Solution :** 
+Solutions :
 - Utiliser WebGL pour le rendu en temps réel
 - N'exécuter la projection CPU qu'à l'export
-- Considérer l'élimination spatiale avant la projection
+- Appliquer une élimination spatiale avant la projection
 
 ---
 
-## 6. Extension à D'autres Projets
+## 6. Extension à d'autres projets
 
-### Adapter Cette Approche
+### Adaptation du système de projection
 
-Pour utiliser ce système de projection dans un autre projet :
-
-1. **Identifier vos conventions de système de coordonnées 3D**
-   - Emplacement de l'origine (centre, haut-gauche, bas-gauche ?)
-   - Directions des axes (+Y haut ou +Y bas ?)
-   - Orientation (main droite ou main gauche ?)
-
-2. **Extraire les paramètres de transformation**
-   - Position et rotation de la caméra
-   - Positions et rotations des objets
-   - Facteurs d'échelle
-   - FOV
-
-3. **Implémenter les fonctions de rotation**
-   - Utiliser les formules matricielles de la Section 4.1
-   - Maintenir l'ordre correct pour votre framework
-
-4. **Calculer les constantes de projection**
-   - Conversion FOV vers distance focale
-   - Valeurs des plans proche/lointain
-
-5. **Appliquer le pipeline**
-   - Local → Monde → Vue → Découpe → Projection → Écran
+1. **Identifier les conventions du système de coordonnées 3D** : emplacement de l'origine, directions des axes, orientation (main droite ou gauche)
+2. **Extraire les paramètres de transformation** : position et rotation de la caméra, positions et rotations des objets, facteurs d'échelle, FOV
+3. **Implémenter les fonctions de rotation** en utilisant les formules de la section 4.1, dans le bon ordre
+4. **Calculer les constantes de projection** : conversion FOV → distance focale, plans proche/lointain
+5. **Appliquer le pipeline** : Local → Monde → Vue → Découpe → Projection → Écran
 
 ### Exemple Three.js
 
-Pour une scène Three.js :
-
 ```javascript
-// Extraire les paramètres de la caméra
 const camera = scene.camera;
-const fov = camera.fov * Math.PI / 180;
-const aspect = camera.aspect;
-const near = camera.near;
-const far = camera.far;
-
-// Obtenir les matrices de vue et projection
 const viewMatrix = camera.matrixWorldInverse;
 const projectionMatrix = camera.projectionMatrix;
 
-// Projeter un point 3D
 function projectToScreen(worldPosition, width, height) {
   const clipSpace = worldPosition
     .applyMatrix4(viewMatrix)
     .applyMatrix4(projectionMatrix);
-  
+
   // Division en perspective
   const ndc = {
     x: clipSpace.x / clipSpace.w,
     y: clipSpace.y / clipSpace.w
   };
-  
+
   // NDC vers espace écran
   return {
     x: (ndc.x + 1) * width / 2,
@@ -524,9 +441,9 @@ function projectToScreen(worldPosition, width, height) {
 }
 ```
 
-### Cartes de Profondeur et Z-Buffers
+### Cartes de profondeur et Z-buffers
 
-La même projection peut stocker la profondeur :
+La même projection peut conserver la valeur de profondeur :
 
 ```javascript
 function projectWithDepth(x, y, z) {
@@ -535,52 +452,51 @@ function projectWithDepth(x, y, z) {
   return {
     x: pt.x * échelle + W / 2,
     y: pt.y * échelle + H / 2,
-    profondeur: -pt.z  // Stocker la profondeur en espace de vue
+    profondeur: -pt.z  // Profondeur en espace de vue
   };
 }
 ```
 
-Cela permet :
-- **Cartes de profondeur** (images en niveaux de gris encodant la distance)
-- **Élimination par occlusion** (rejeter la géométrie cachée)
-- **Rendu Z-buffer** (tri de profondeur approprié)
+Cas d'usage : cartes de profondeur (niveaux de gris encodant la distance), élimination par occlusion, tri de profondeur (Z-buffer), intégration 3D.
 
 ---
 
-## 7. Références et Lectures Complémentaires
+## 7. Références
 
-### Fondements Mathématiques
-- **Computer Graphics: Principles and Practice** (Foley et al.) - Chapitres sur les matrices de transformation
-- **Real-Time Rendering** (Möller & Haines) - Dérivations de projection en perspective
-- **Mathematics for 3D Game Programming** (Lengyel) - Matrices de rotation en profondeur
+### Fondements mathématiques
+- **Computer Graphics: Principles and Practice** (Foley et al.) — chapitres sur les matrices de transformation
+- **Real-Time Rendering** (Möller & Haines) — dérivations de projection en perspective
+- **Mathematics for 3D Game Programming** (Lengyel) — matrices de rotation
 
-### Spécificités p5.js
-- [Documentation du Mode WEBGL p5.js](https://p5js.org/reference/#group-3D)
-- [Référence Caméra p5.js](https://p5js.org/reference/#/p5.Camera)
-- [Fonctions de Transformation p5.js](https://p5js.org/reference/#group-Transform)
+### Documentation p5.js
+- [Mode WEBGL p5.js](https://p5js.org/reference/#group-3D)
+- [Référence caméra p5.js](https://p5js.org/reference/#/p5.Camera)
+- [Fonctions de transformation p5.js](https://p5js.org/reference/#group-Transform)
 
-### Concepts Connexes
-- **Pipeline de Transformation OpenGL** - Flux graphique 3D standard de l'industrie
-- **Coordonnées Homogènes** - Représentation 4D des transformations 3D
-- **Quaternions** - Représentation alternative de rotation évitant le blocage de cardan
+### Concepts connexes
+- Pipeline de transformation OpenGL
+- Coordonnées homogènes (représentation 4D des transformations 3D)
+- Quaternions (représentation alternative de rotation, évite le blocage de cardan)
 
 ---
 
 ## 8. Résumé
 
-La conversion 3D vers SVG du ZigzagEmitter démontre une **réimplémentation complète** du pipeline de transformation du GPU en JavaScript CPU. 
+La conversion 3D → SVG du ZigzagEmitter constitue une réimplémentation complète du pipeline de transformation GPU en JavaScript CPU.
 
-**Points Clés à Retenir :**
+**Points clés :**
 
 1. **Pipeline en six étapes** : Local → Monde → Rotation → Translation → Découpe → Projection
-2. **Ordre de rotation critique** : Z → Y → X (doit correspondre à p5.js WEBGL)
-3. **Formule de perspective** : `échelle = distanceFocale / -vueZ`
+2. **Ordre de rotation** : Z → Y → X (doit correspondre à p5.js WEBGL)
+3. **Formule de perspective** : `échelle = distanceFocale / −vueZ`
 4. **Relation FOV** : `distanceFocale = (hauteur/2) / tan(fov/2)`
-5. **Conscience du système de coordonnées** : p5.js WEBGL utilise l'origine centrale et -Z vers l'avant
+5. **Système de coordonnées** : p5.js WEBGL utilise l'origine centrale et −Z vers l'avant
 
-Cette approche fournit des **exports parfaits au pixel près** car elle utilise des mathématiques identiques au moteur WebGL. Comprendre ces principes permet des exports vectoriels de haute qualité depuis n'importe quel projet graphique 3D web.
+Cette approche produit des exports correspondant exactement au rendu WebGL, car elle utilise des mathématiques identiques à celles du moteur graphique.
 
 ---
 
-*Version du Document : 1.0*  
-*Pour questions ou corrections, référez-vous au code source ZigzagEmitter : `ZigzagEmitter_12.html`, lignes 2200-2250 (export SVG) et lignes 1046-1093 (fonctions de projection).*
+Version : 1.0 — 
+Référence code source : `ZigzagEmitter`, export SVG et fonctions de projection
+
+

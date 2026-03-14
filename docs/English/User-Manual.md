@@ -1,329 +1,234 @@
-# ZigMap Emitter - Quick User Manual
-
-Startup Guide
+# ZigMap Emitter — User manual
 
 ---
 
-## Getting Started
+## Getting started
 
-1. **Open** `index.html` in your web browser
-2. **Watch** the animated zigzag patterns
-3. **Interact** using your mouse
-4. **Adjust** settings in the left panel
-5. **Export** your creation as images or videos
-
-
----
-
-## Mouse Controls
-
-| What You Want | How To Do It |
-|---------------|--------------|
-| **Rotate the view** | Click and drag with left mouse button |
-| **Move the view** | Click and drag with right mouse button |
-| **Zoom in/out** | Scroll your mouse wheel |
-
-💡 **Tip**: Mouse controls only work when your cursor is over the animation area (not the control panel).
+1. Open `index.html` in a web browser.
+2. The animation starts.
+3. Interact with the mouse.
+4. Adjust parameters in the left panel.
+5. Export to images or videos.
 
 ---
 
-## Essential Keyboard Shortcuts
+## Mouse controls
 
-| Key | What It Does |
-|-----|--------------|
-| **H** | Hide/show the control panel |
-| **Enter** | Fullscreen mode |
-| **p** | Save current frame as PNG image (includes overlay) |
-| **s** | Save current frame as SVG (vector) |
-| **d** | Save depth map |
-| **v** | Start/stop video recording (includes overlay) |
-| **r** | Reset camera to default position |
-| **0** (zero) | Reset zoom level |
-| **1** | Switch to Color Palette 1 |
-| **2** | Switch to Color Palette 2 |
-| **3** | Switch to Color Palette 3 |
-| **4** | Switch to Color Palette 4 |
-| **y** | Toggle stereoscopic (VR/3D) view |
+| Action | Control |
+|--------|----------|
+| Rotate the view | Left-click + drag |
+| Pan the view | Right-click + drag |
+| Zoom | Mouse wheel |
 
-💡 **Tip**: PNG and video exports automatically include your overlay image!
+Mouse controls are active only when the cursor is on the animation area, not on the control panel.
 
 ---
 
-## Main Controls (Left Panel)
+## Keyboard shortcuts
 
-### 💾 Project
+| Key | Action |
+|--------|--------|
+| H | Hide / show control panel |
+| Enter | Fullscreen |
+| p | Export PNG (includes overlay) |
+| s | Export SVG (vector only) |
+| d | Export depth map |
+| v | Start / stop video recording (includes overlay) |
+| r | Reset camera |
+| 0 | Reset zoom |
+| 1 – 4 | Select color palette |
+| y | Toggle stereoscopic view |
 
-- **Save button**: Download your settings, states, and camera positions as a JSON file
-- **Load button**: Open a previously saved project file
-
-💡 **First-Time User**: When you open the app for the first time, it automatically loads a starter project with example states!
-
-### 🎭 States
-
-Save and recall complete snapshots of your parameters, colors, and camera position:
-
-- **List of States**: All your saved states appear here
-- **Click a state** to load it (smooth transitions!)
-- **Save button**: Capture current setup as a new state
-- **Update button**: Overwrite selected state with current setup
-- **Delete button**: Remove selected state
-- **Rename**: Click on state name to edit it
-
-**Transition Controls**:
-- **State Transition** (0-30s): How long it takes to smoothly transition between states
-- **Color Transition** (0-30s): How long color palette changes take
-
-**Auto-Trigger**:
-- ☑️ Check **Auto-Trigger** to automatically switch between states
-- **Frequency slider** (5-120s): How often to switch to the next state
-- 💡 Uses shuffle algorithm - visits each state once before repeating (no short-term repetition)
-
-### 🎨 Color Palettes
-
-**Four distinct color palettes**, each with 4 color slots:
-- **Click palette buttons (1-4)** at the top to switch between palettes (or use keys 1-2-3-4)
-- **Click color pickers** to customize each color
-- **Set roles** for each color: Line (used for zigzag lines) / Background / None (disabled)
-- **Color Depth Separation**: Slider that controls Z-axis spacing between lines of different colors (prevents visual overlapping)
-
-💡 **Tip**: When switching palettes, all existing lines smoothly transition to the new colors.
-
-### 🎬 Rendering
-
-Controls for output resolution (affects exports):
-
-- **Framebuffer Resolution checkbox**: Enable for fixed render size
-- **Preset dropdown**: Common sizes (HD, 4K, Square, Instagram formats)
-- **Resolution fields**: Custom width × height in pixels
-
-### 👁️ View
-
-Camera and display settings:
-
-- **Field of View**: Adjust the "lens" angle (60° is normal, 90°+ is dramatic)
-- **Clipping Planes**: Near/Far visibility range
-- **Stereoscopic View (VR)**: ☑️ Check for VR/3D side-by-side mode
-- **Eye Separation**: Distance between stereo cameras
-
-### 📐 Geometry
-
-- **Segment Length**: How long each zigzag segment is
-- **Line Thickness**: How thick the lines are (bigger = thicker)
-- **Emitter Rotation**: Rotate the entire emission pattern
-- **Geometry Scale**: Overall size multiplier
-- **Fade Duration**: How long lines take to fade in/out
-
-### 🎪 Animation
-
-- **Emit Rate**: How many new lines appear per second (higher = busier)
-- **Speed**: How fast lines move (higher = faster animation)
-- **Ambient Speed Master**: Global speed multiplier (slows/speeds everything)
-
-### 🎲 Modulations
-
-Add variety to your animations:
-
-- **Random Thickness**: ☑️ Check to vary line thickness randomly
-- **Random Speed**: ☑️ Check to vary line speed randomly
-- **Thickness Range**: Min/max values for random thickness
-- **Speed Range**: Min/max values for random speed
-- **Ambient Speed Master**: Fine-tune animation speed
-
-### 🖼️ Overlay
-
-Add static images on top of your animation:
-
-- **Show Overlay checkbox**: Toggle overlay visibility
-- **Load Image button**: Import PNG, JPG, or SVG files
-- **Scale** (10-200%): Resize the overlay image
-- **Opacity** (0-100%): Transparency level
-- **Position X/Y** (0-100%): Place the image anywhere on screen
-- **Clear Image button**: Remove current overlay
-
-💡 **Tip**: Overlays are included in PNG and video exports!
+PNG and video exports automatically include the overlay if active.
 
 ---
 
-## Exporting Your Work
+## Main controls (left panel)
 
-### Quick Export (Current Frame)
+### Project
 
-1. **PNG Image**: Press **p** (or click "Export PNG" button)
-   - Good for: social media, quick sharing
-   - **Includes overlay image** if you have one loaded
-   - Automatically adjusts for high-resolution (Retina) displays
-   - File downloads automatically
+- **Save**: downloads the complete project (states and camera positions) to a JSON file.
+- **Load**: opens a previously saved project.
 
-2. **SVG Vector**: Press **s** (or click "Export SVG" button)
-   - Good for: printing, design work, logos
-   - Can be edited in Illustrator, Inkscape, etc.
-   - Does not include overlay (vector only)
-
-3. **Depth Map**: Press **d** (or click "Export Depth Map" button)
-   - Good for: 3D effects, post-production
-   - White = close to camera, Black = far away
-
-💡 **Overlay Tip**: PNG exports automatically composite your overlay image with the correct scale, opacity, and position!
-
-### Video Recording
-
-1. Set **Duration** (how many seconds)
-2. Set **Frame Rate** (30 FPS is standard)
-3. Click **Record Video** button (or press **v**)
-4. **Wait** - don't touch anything during recording
-5. Video downloads automatically when done
-
-⚠️ **Important**: 
-- Don't click or interact with the page while recording!
-- **Overlay images are included** in video exports
-- Recording composites overlay on every frame
+At first launch, a starter project with example states loads automatically.
 
 ---
 
-## Common Tasks
+### States
 
-### Switch Color Palettes
-1. Click a palette button (1-4) at the top, or press keys **1**, **2**, **3**, or **4**
-2. Click any color picker to customize colors
-3. Set which colors are used for lines vs background
-4. Adjust **Color Transition** slider in States panel for smooth palette changes
+States are complete snapshots of parameters. They allow memorizing and recalling different configurations.
 
-### Hide the Controls
-Press **H** to get a clean view for screenshots or fullscreen presentations
+- **State list**: displays all saved states.
+- Clicking a state in the list loads it with an animated transition.
+- **Save**: saves the current configuration as a new state.
+- **Update**: overwrites the selected state with the current configuration.
+- **Delete**: removes the selected state.
+- **Rename**: click on a state name to edit it.
 
-### Make It Busier
-Increase **Emit Rate** slider (more lines appear)
+**Transition controls**
+- **State Transition** (0–30 s): duration of transition between states.
+- **Color Transition** (0–30 s): duration of color palette transitions.
 
-### Make It Calmer
-Decrease **Emit Rate** slider (fewer lines)
-
-### Make Lines Thicker/Thinner
-Adjust **Line Thickness** slider
-
-### Speed Up or Slow Down
-Adjust **Speed** slider or **Ambient Speed Master**
-
-### Add an Overlay Image
-1. In the **Overlay** panel, click **Load Image**
-2. Choose a PNG, JPG, or SVG file
-3. Adjust **Scale**, **Opacity**, and **Position** sliders
-4. ☑️ Check **Show Overlay** to make it visible
-5. Export with **p** or **v** - overlay is included!
-
-### Create Smooth Transitions Between States
-1. Save multiple states with different settings
-2. Adjust **State Transition** slider (0-30s) in States panel
-3. Click different states - watch them smoothly morph!
-
-### Automatic State Changes
-1. Save 3+ states with varied settings
-2. In the **States** panel, ☑️ check **Auto-Trigger**
-3. Adjust **Frequency** slider (5-120 seconds)
-4. Watch as the app randomly switches between states!
-
-### Add Variety
-Check ☑️ **Random Thickness** and **Random Speed**
-
-### Reset Everything
-- Press **r** to reset camera position
-- Press **0** to reset zoom
-- Reload the page to reset all settings
+**Auto-Trigger**
+Check Auto-Trigger to automatically alternate between states. The Frequency slider (5–120 s) defines the interval. A shuffle algorithm ensures each state is visited once before repetition.
 
 ---
 
-## Resolution & Output Sizes
+### Color palettes
 
-### For Fixed Output Size
+Four distinct palettes, each with four color slots.
 
-1. Check ☑️ **Framebuffer Resolution**
-2. Choose a **Preset** from dropdown:
-   - **1920×1080** - Standard HD (Instagram, YouTube)
-   - **1080×1080** - Square (Instagram posts)
-   - **3840×2160** - 4K quality
-   - **1080×1440** - Instagram portrait
-3. Export normally
+- Select a palette via buttons 1–4 at the top of the section or corresponding keys.
+- Click a color picker to modify a hue.
+- Assign a role to each color: **Line** (zigzag lines), **Background** (canvas background), or **None** (disabled).
+- **Color Depth Separation**: Z-axis spacing between lines of different colors.
 
-### For Window Size
-Leave **Framebuffer Resolution** unchecked - it will use your browser window size.
+When changing palettes, existing lines transition smoothly to new colors.
 
 ---
 
-## Quick Tips
+### Rendering
 
-✅ **Best settings for beginners**:
-- Emit Rate: 1.5
-- Speed: 80
-- Line Thickness: 12
-- Keep Random options OFF at first
-- Try the auto-loaded starter project!
+Output resolution controls, applied to exports.
 
-✅ **For smooth animation**:
-- Lower emit rate = better performance
-- Close other browser tabs
-- Use State Transition sliders for smooth changes
+- **Framebuffer Resolution**: check to lock the canvas to a fixed resolution.
+- **Preset**: quick selection among common resolutions (HD, 4K, Instagram formats).
+- **Resolution**: manual entry of width and height in pixels.
 
-✅ **For dramatic effects**:
-- Wide Field of View (90°-120°)
-- Enable Random Speed and Thickness
-- Try different Emitter Rotation angles
-- Add a semi-transparent overlay image
+---
 
-✅ **For clean, minimal look**:
-- Low Emit Rate (0.5-1.0)
-- High Speed (150-300)
-- No random modulations
-- Long transition times (10-20s) for smooth changes
+### View
 
-✅ **For presentations**:
-- Save multiple states with different moods
-- Enable Auto-Trigger for automatic variety
-- Add brand logo as overlay
-- Press **H** to hide controls
-- Press **Enter** for fullscreen
+Camera and display settings.
 
-✅ **For high-quality exports**:
-- Enable Framebuffer Resolution
-- Choose 4K preset (3840×2160)
-- Set up overlay before exporting
-- Use 30 FPS for smooth video
+- **Field of View**: camera field of view angle in degrees.
+- **Clipping Planes**: near and far visibility range.
+- **Stereoscopic View (VR)**: check for side-by-side VR mode.
+- **Eye Separation**: distance between stereo cameras, active only in stereoscopic mode.
+
+---
+
+### Geometry
+
+- **Segment Length**: height of each zigzag segment.
+- **Line Thickness**: width of zigzag ribbons.
+- **Emitter Rotation**: rotates the entire emission pattern.
+- **Geometry Scale**: global scaling of geometry.
+- **Fade Duration**: duration of line fade in/out.
+
+---
+
+### Animation
+
+- **Emit Rate**: frequency of line creation (lines per second).
+- **Speed**: movement speed of lines in space.
+- **Ambient Speed Master**: global speed multiplier.
+
+---
+
+### Modulations
+
+- **Random Thickness**: check to apply random variation to line thickness.
+- **Thickness Range**: min/max variation for random thickness.
+- **Random Speed**: check to apply random variation to line speed.
+- **Speed Range**: min/max variation for random speed.
+
+---
+
+### Overlay
+
+Static images overlaid on top of the animation for branding, watermarks, or design elements.
+
+**Preset overlays**
+- **Preset dropdown**: select from pre-configured overlays in `assets/overlays/` folder.
+- Instant loading of Base64-encoded images.
+
+**Custom images**
+- **Load Custom Image button**: import PNG, JPG, or SVG files.
+- Recommendation: use PNG with transparency for logos.
+- Overrides preset selection.
+
+**Appearance controls**
+- **Show Overlay**: checkbox to toggle visibility.
+- **Scale** (10–200%): resize the overlay image.
+- **Opacity** (0–100%): transparency level.
+- **Position X/Y** (0–100%): place the image anywhere on screen.
+- **Clear Image button**: remove current overlay.
+
+**Export behavior**
+Overlays are included in PNG, video, and depth map exports. Overlays are excluded from SVG exports (vector only).
+
+**Creating new presets**
+Use the utility tool at `utilities/overlay-converter.html` to convert images to Base64 JSON format. Place JSON files in `assets/overlays/` folder and reload the application.
+
+---
+
+## Export
+
+### PNG export
+Press p or click Export PNG. Captures current frame as PNG image. Resolution matches current canvas size. Includes overlay if active. Automatic adjustment for high-resolution displays.
+
+### SVG export
+Press s or click Export SVG. Exports current frame as vectorsvg file. Resolution-independent format. Ideal for print or vector editing. Does not include overlay (vector only).
+
+### Depth map export
+Press d or click Export Depth Map. Exports depth information as grayscale PNG. White = close to camera, black = far away. Use cases: post-processing, compositing.
+
+### Video recording
+1. Set Duration (how many seconds).
+2. Set Frame Rate (30 FPS is standard).
+3. Click Record Video button or press v.
+4. Wait without interacting with the page.
+5. Video downloads automatically when complete.
+
+Includes overlay on every frame if active.
 
 ---
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| **Nothing appears** | Refresh the page; check that Emit Rate > 0 |
-| **Too busy/cluttered** | Lower the Emit Rate slider |
-| **Too slow** | Increase Speed slider |
-| **Lines disappear** | They're moving out of view - this is normal |
-| **Can't rotate camera** | Make sure cursor is over animation, not control panel |
-| **Video won't download** | Wait longer - large videos take time to process |
-| **Fullscreen won't exit** | Press **Escape** key |
-| **Overlay not showing** | Check ☑️ Show Overlay is enabled; adjust opacity |
-| **States load to wrong position** | Camera position is saved with each state; click state again |
-| **Can't rename state** | Click directly on the state name text |
-| **Keyboard shortcuts don't work** | Make sure you're not renaming a state or typing in a field |
+**Nothing appears**
+Check emit rate > 0. Adjust camera distance with scroll wheel.
+
+**Too busy or cluttered**
+Lower emit rate slider.
+
+**Lines disappear**
+Lines move out of view. This is normal.
+
+**Cannot rotate camera**
+Cursor must be on animation area, not control panel.
+
+**Video does not download**
+Wait longer. Large videos take time to process.
+
+**Fullscreen does not exit**
+Press Escape key.
+
+**Overlay not showing**
+Check Show Overlay is enabled. Verify opacity > 0%.
+
+**State loads to wrong position**
+Camera position is saved with each state. Click state again if needed.
+
+**Cannot rename state**
+Click directly on state name text.
+
+**Keyboard shortcuts do not work**
+Ensure state rename mode is not active. Shortcuts disabled while editing state names.
 
 ---
 
-## What the Files Do
+## Resolution and output sizes
 
-- **ZigzagEmitter_12.html** - The main application (open this!)
-- **User-Manual.md** - This simple guide (you're reading it)
-- **README.md** - Complete detailed guide with all features
-- **Documentation.md** - Technical documentation for developers
-- **Saved .json files** - Your saved settings (load these to restore)
+**For fixed output size:**
+1. Check Framebuffer Resolution.
+2. Choose a Preset: 1920×1080 (HD), 1080×1080 (square), 3840×2160 (4K), 1080×1440 (portrait).
+3. Export normally.
 
----
-
-## Need More Help?
-
-📖 **For detailed information**: See [README.md](README.md)  
-🔧 **For technical details**: See [Documentation.md](Documentation.md)
+**For window size:**
+Leave Framebuffer Resolution unchecked. Exports use browser window size.
 
 ---
 
-**Quick reminder**: Your settings automatically save in your browser, so when you reload the page, everything will be as you left it!
-
-Enjoy creating! ✨
+**Settings automatically save in browser localStorage. Reload the page to find everything as it was left.**

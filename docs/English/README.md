@@ -1,632 +1,458 @@
-# ZigMap Emitter - User Guide
-ddelcourt2026
+# ZigMap26
 
-Real-time generative tool that creates animated patterns in 3D space. Advanced camera controls, stereoscopic viewing, 2D vectors export function.
-
----
-
-## Table of Contents
-
-- [Quick Start](#quick-start)
-- [Mouse Controls](#mouse-controls)
-- [Keyboard Shortcuts](#keyboard-shortcuts)
-- [UI Controls](#ui-controls)
-  - [UI Section](#ui-section)
-  - [File Section](#file-section)
-  - [Camera Section](#camera-section)
-  - [Geometry Section](#geometry-section)
-  - [Behavior Section](#behavior-section)
-  - [Modulations Section](#modulations-section)
-  - [Colors Section](#colors-section)
-  - [Export Section](#export-section)
-- [Export Formats](#export-formats)
-- [Tips & Best Practices](#tips--best-practices)
-- [Quick Start Guide](#quick-start-guide)
+ddelcourt2026 / March 2026
 
 ---
 
-## Quick Start
+## Overview
 
-1. Open in a web browser (Chrome, Firefox, Safari, Edge)
-2. **First-time users**: A starter project with example states loads automatically!
+Real-time generative tool producing animated zigzag patterns in 3D space. Features camera controls, stereoscopic viewing, state management, and 2D vector export.
+
+---
+
+## Table of contents
+
+- [Quick start](#quick-start)
+- [Basic controls](#basic-controls)
+- [Core concepts](#core-concepts)
+- [Complete UI reference](#complete-ui-reference)
+- [Export](#export)
+- [Project management](#project-management)
+- [Best practices](#best-practices)
+- [Technical reference](#technical-reference)
+
+---
+
+## Quick start
+
+1. Open `index.html` in a modern browser (Chrome, Firefox, Safari, Edge)
+2. A starter project loads automatically with example states
 3. Use left-click + drag to rotate the camera
 4. Use right-click + drag to pan the camera
-5. Scroll to zoom in/out
-6. Adjust sliders in the left panel to modify the animation
-7. Click between saved states to see smooth transitions
-8. Press **H** to hide/show controls
-9. Press **Enter** for fullscreen
+5. Scroll the mouse wheel to zoom
+6. Press H to hide or show the control panel
+7. Press Enter for fullscreen mode
 
 ---
 
-## Mouse Controls
+## Basic controls
+
+### Mouse
 
 | Action | Control |
-|--------|---------|
-| **Rotate Camera** | Left-click + drag |
-| **Pan Camera** | Right-click + drag (or middle-click + drag) |
-| **Zoom** | Mouse wheel scroll |
+|--------|----------|
+| Rotate camera | Left-click + drag |
+| Pan camera | Right-click + drag (or middle-click + drag) |
+| Zoom | Mouse wheel |
 
-### Notes:
-- Camera controls only work when the mouse is over the canvas (not over the UI panel)
-- In stereoscopic mode, controls are active on the canvas you clicked on
-- Panning sensitivity is proportional to camera distance
+Camera controls are active only when the cursor is on the canvas. In stereoscopic mode, controls apply to the canvas that was clicked. Scroll sensitivity is proportional to camera distance.
 
----
+### Keyboard
 
-## Keyboard Shortcuts
-
-| Key | Action |
-|-----|--------|
-| **H** | Toggle UI panel visibility |
-| **Enter** | Toggle fullscreen mode |
-| **p** | Export PNG (includes overlay) |
-| **s** | Export SVG (vector only) |
-| **d** | Export depth map |
-| **v** | Start/stop video recording (includes overlay) |
-| **r** | Reset camera position |
-| **0** | Reset zoom to default (600 units) |
-| **1** | Switch to color palette 1 |
-| **2** | Switch to color palette 2 |
-| **3** | Switch to color palette 3 |
-| **4** | Switch to color palette 4 |
-| **y** | Toggle stereoscopic (VR) mode |
-
-💡 **Note**: PNG and video exports automatically include your overlay image!
+| Key | Action | Key | Action |
+|-----|--------|-----|--------|
+| Tab / H | Hide/show UI panel | Enter / F | Fullscreen |
+| p / Shift+P | Export PNG | s / Shift+S | Export SVG |
+| d / Shift+D | Export depth map | v | Start/stop video recording |
+| j / Ctrl+S (⌘+S) | Save project JSON | r / Shift+R | Reset camera position |
+| 0 | Reset zoom (600 units) | 1–4 | Select color palette |
+| t | Toggle random thickness | m | Toggle random speed |
+| y | Toggle stereoscopic mode | b | Toggle framebuffer mode |
 
 ---
 
-## UI Controls
+## Core concepts
 
-### Project Section
+### States
 
-Save and load your complete projects with states and camera positions.
+States are complete snapshots of configuration (parameters, colors, camera position).
 
-#### Save
-- Downloads current project as a `.json` file
-- Includes all parameters, all saved states, and camera positions
-- Filename includes timestamp: `zigmap-project-YYYY-MM-DD-HHMMSS.json`
-- Stored in browser's downloads folder
+**Basic usage:**
+1. Open States panel
+2. Click any state to load it with smooth transition
+3. Click Save to create a new state
+4. Click Update to overwrite the selected state
+5. Click Delete to remove a state
+6. Click on a state name to rename it
 
-#### Load
-- Opens file picker to load a previously saved `.json` project
-- Loads parameters and all states from the file
-- **NEW**: Uses first state in project and synchronizes camera/orbit controls
-- Automatically persists to localStorage
+**Auto-trigger:**
+Enable Auto-Trigger to automatically cycle through states. Frequency slider (5–120 seconds) defines the interval. A shuffle algorithm ensures each state is visited once before repetition.
 
-**Note**: Settings are automatically saved to browser localStorage on every change.
+**Transitions:**
+- State Transition (0–30 s): duration for parameter changes
+- Color Transition (0–30 s): duration for color palette changes
 
----
+### Colors
 
-### States Section
+Four distinct palettes, each with four color slots. Press 1, 2, 3, or 4 to switch palettes instantly.
 
-**NEW IN v26**: Complete state management system with transition controls and auto-trigger.
+**Color configuration:**
+- Click color picker to set RGB values
+- Set role for each slot: Line / Background / None
+- Multiple slots can have the same role
+- Lines randomly select from available Line colors at generation
 
-#### State List
-- Shows all saved states
-- Click a state to load it with smooth transitions
-- Click state name to rename it (avoid pressing keyboard shortcuts while renaming)
+When switching palettes, all existing lines and the background transition smoothly via RGB interpolation.
 
-#### Save/Update/Delete
-- **Save**: Capture current setup as a new state
-- **Update**: Overwrite selected state with current settings  
-- **Delete**: Remove selected state
+**Color depth separation:**
+Controls Z-axis spacing between lines of different colors to reduce overlap (z-fighting). Formula: each slot offset = `(slotIndex - 2) × multiplier`.
 
-#### State Transition Duration
-- **Range**: 0–30 seconds
-- **Default**: 5.0 seconds
-- Controls how long smooth transitions take when switching states
-- Affects: geometry, camera, modulations, speed, emit rate (NOT colors)
-- 0 seconds = instant switch
-- Longer durations = smoother, more cinematic transitions
+### Overlays
 
-#### Color Transition Duration
-- **Range**: 0–30 seconds
-- **Default**: 3.0 seconds
-- Controls how long color palette transitions take
-- Independent from state transition duration
-- Allows smooth color morphing when switching palettes or states
+Static images overlaid on the animation. Included in PNG and video exports. Excluded from SVG exports.
 
-#### Auto-Trigger **NEW**
-- **Checkbox**: Enable/disable automatic state switching
-- **Frequency**: 5–120 seconds between switches
-- Automatically switches through states using a **shuffle algorithm**
-- **Shuffle Pool System**: Creates a randomized list of all states, visits each one once, then reshuffles
-- **No Short-Term Repetition**: Each state guaranteed to appear once per cycle before any state repeats
-- Requires 2+ states to function
-- Timer resets when manually switching states
-- Perfect for unattended displays or presentations with maximum variety
+**Preset overlays:**
+1. Open Overlay section
+2. Select from Preset dropdown (loads from `assets/overlays/`)
+3. Enable Show Overlay checkbox
+
+**Custom images:**
+1. Click Load Custom Image
+2. Select PNG, JPG, or SVG file
+3. Adjust Scale, Opacity, Position sliders
+
+Supported formats: PNG (recommended for transparency), JPG, SVG.
 
 ---
 
-### Color Palettes Section
+## Complete UI reference
 
-Choose colors for your zigzag patterns using the advanced palette system.
+### UI section
 
-#### Color Palettes
-- **Type**: 4 distinct palettes with 4 color slots each
-- **Shortcuts**: Keys 1, 2, 3, 4 to switch between palettes
-- **UI**: Click palette buttons (numbered 1-4) at top of section
+**Hide controls** (Tab or H): hides the control panel. Press again to show.
 
-#### Color Customization
-Each palette has 4 color slots:
-- **Color Picker**: Click to customize RGB values
-- **Color Role**: Dropdown menu to assign role:
-  - **Line**: Color used for zigzag ribbons (randomly selected at spawn)
-  - **Background**: Color used for canvas background
-  - **None**: Color slot disabled
-- Colors can have duplicate roles (multiple colors as lines or backgrounds)
-
-#### Color Depth Separation
-- **Range**: 10-500
-- **Default**: 100
-- **Purpose**: Controls Z-axis spacing between lines of different colors
-- Higher values increase depth separation, preventing visual overlap (z-fighting)
-- Formula: Each color slot offset = `(slotIndex - 2) × multiplier`
-
-#### Color Transitions
-- When switching palettes, all existing lines smoothly transition to new colors
-- Transition duration controlled by Color Transition Duration in States section
-- Background also transitions smoothly
-- Uses RGB linear interpolation for smooth color blending
+**Fullscreen** (Enter or F): activates browser fullscreen mode. Press Escape to exit.
 
 ---
 
-### Rendering Section
+### Project section
 
-**NEW IN v26**: Separated from View controls for clarity.
+**Save** (j or Ctrl+S / ⌘+S): downloads current parameters to a timestamped `.json` file. All parameters and camera position are included.
 
-Configure output resolution for exports.
+**Load**: opens file picker to load a previously saved `.json` configuration. All parameters are applied immediately and persisted to localStorage.
 
-#### Framebuffer Resolution
-- **Type**: Checkbox
-- **Default**: Off
-- Locks canvas to a specific pixel resolution instead of window size
-- Useful for consistent export dimensions across different screens
-- Enables the Preset and Resolution controls below
-- Shows a gray border around the fixed-size canvas
-- Canvas scales down to fit window if needed
-
-#### Preset
-- **Type**: Dropdown menu
-- **Default**: 1920×1080 (HD)
-- Quick selection of common resolutions:
-  - **1920×1080** - HD Horizontal
-  - **1080×1080** - Square (Instagram)
-  - **3840×2160** - 4K Horizontal
-  - **1080×1440** - Instagram Portrait
-  - **Custom** - Manual width/height entry
-- Automatically updates Width and Height fields
-- Only active when Framebuffer Resolution is enabled
-
-#### Resolution (Width × Height)
-- **Type**: Number inputs
-- **Default**: 1920 × 1080
-- **Minimum**: 320 × 240
-- Manual control over canvas pixel dimensions
-- Changing these values sets the Preset dropdown to "Custom"
-- Higher resolutions impact performance
-- **Use for precise export sizing**
+Parameters are automatically saved to localStorage on every change.
 
 ---
 
-### View Section
+### States section
 
-**NEW IN v26**: Camera and display settings separated from Rendering.
+- **State list**: displays all saved states
+- **Save**: saves current configuration as a new state
+- **Update**: overwrites selected state with current configuration
+- **Delete**: removes selected state
+- **Rename**: click on state name to edit
 
-#### Field of View
-- **Range**: 10° – 120°
-- **Default**: 60°
-- **Units**: Degrees
-- Controls the camera's field of view (lens angle)
-- **Lower values** (20°-40°) = telephoto lens, less distortion
-- **Default** (60°) = standard perspective
-- **Higher values** (90°-120°) = wide-angle lens, more distortion
+**State Transition** (0–30 s): duration of transition between states.
 
-#### Clipping Planes
-- **Near Plane Range**: 0.01 – 500
-- **Far Plane Range**: 500 – 20000
-- **Defaults**: Near = 0.01, Far = 20000
-- Controls which parts of 3D space are visible
-- Adjust if geometry appears clipped at extreme zoom levels
+**Color Transition** (0–30 s): duration of color palette transitions.
 
-#### Stereoscopic View (VR)
-- **Shortcut**: y
-- **Type**: Checkbox
-- **Default**: Off
-- Splits the view into left and right eye perspectives
-- Creates side-by-side views for VR headsets or cross-eyed viewing
-- Green borders indicate stereoscopic mode is active
-- Each eye gets half the window width
-
-#### Eye Separation
-- **Range**: 0 – 100
-- **Default**: 30
-- **Units**: World space units
-- Controls the distance between left and right camera positions
-- Higher values = stronger 3D effect
-- Only active when Stereoscopic View is enabled
+**Auto-Trigger**: automatically alternates between states. Frequency slider (5–120 s) defines interval. Shuffle algorithm ensures each state is visited once before repetition.
 
 ---
 
-### Geometry Section
+### Camera section
 
-Control the appearance and scale of the zigzag patterns.
+**Stereoscopic view (VR)** (y) — default: off  
+Divides view into left and right eye perspectives, side by side. Green borders indicate active mode. Each eye occupies half the window width.
 
-#### Segment Length
-- **Range**: 10 – 240
-- **Default**: 30
-- **Units**: Pixels
-- Controls the height of each zigzag segment
-- Higher values = taller zigzag patterns
+**Eye separation** — range: 0–100, default: 30, units: world space  
+Distance between left and right camera positions. Higher values accentuate 3D effect. Active only in stereoscopic mode.
 
-#### Line Thickness
-- **Range**: 1 – 50
-- **Default**: 12
-- **Units**: Pixels
-- Controls the width of the zigzag ribbons
-- Can be modulated with Random Thickness
+**Framebuffer resolution** (b) — default: off  
+Locks canvas to specific pixel resolution instead of window size. Gray border indicates active mode. Canvas scales down to fit window if necessary.
 
-#### Emitter Rotation
-- **Range**: 0° – 360°
-- **Default**: 0°
-- **Units**: Degrees
-- Rotates the entire emission pattern around the Z-axis
-- 0° = standard horizontal zigzag orientation
-- 90° = vertical zigzag orientation
+**Preset** — type: dropdown, default: 1920×1080  
+Quick selection of common resolutions:
 
-#### Geometry Scale
-- **Range**: 50% – 200%
-- **Default**: 100%
-- **Units**: Percentage
-- Uniformly scales all geometry
-- Supports smooth transitions between states
+| Preset | Resolution |
+|------------|------------|
+| HD Horizontal | 1920×1080 |
+| HD Vertical | 1080×1920 |
+| HD Small Square | 1080×1080 |
+| HD Large Square | 1920×1920 |
+| 4K Horizontal | 3840×2160 |
+| 4K Vertical | 2160×3840 |
+| 4K Small Square | 2160×2160 |
+| 4K Large Square | 3840×3840 |
+| Web banner | 3500×1500 |
+| Instagram post | 1080×1440 |
+| Custom | — |
 
-#### Fade Duration
-- **Range**: 0 – 5 seconds
-- **Default**: 0.8 seconds
-- Controls how long lines take to fade in/out
-- Affects alpha transparency at birth and death
+Active only in framebuffer mode.
 
----
+**Resolution (Width × Height)** — default: 1920×1080, minimum: 320×240  
+Manual entry of pixel dimensions. Changing these values sets preset to "Custom".
 
-### Animation Section
+**Field of view** — range: 0.01–180°, default: 60°  
+Low values (30–40°) produce architectural rendering. High values (90–120°) accentuate perspective.
 
-Control animation timing and movement.
-
-#### Emit Rate
-- **Range**: 0.1 – 10 lines/second
-- **Default**: 1.5
-- **Units**: Lines emitted per second
-- Controls how frequently new zigzag lines spawn
-- Higher values = more lines on screen, denser animation
-
-#### Speed
-- **Range**: 10 – 500 px/second
-- **Default**: 80
-- **Units**: Pixels per second
-- Controls how fast lines move through space
-- Can be modulated with Random Speed
-
-#### Ambient Speed Master
-- **Range**: 5% – 100%
-- **Default**: 100%
-- **Units**: Percentage
-- Global speed multiplier affecting both emit rate and line speed
-- Useful for fine-tuning animation tempo
+**Clipping planes** — near: 0.01–500, far: 500–20,000, default: 0.01 / 20,000  
+Defines visible portion of 3D space. Adjust if geometry appears clipped at extreme zoom levels.
 
 ---
 
-### Modulations Section
+### Geometry section
 
-Add variation and organic movement to the animation.
+**Geometry height** — range: 10–240, default: 120, units: pixels
 
-#### Random Thickness
-- **Type**: Checkbox
-- **Default**: Off
-- When enabled, each line gets a randomly varied thickness
-- Variation is controlled by the Thickness Range sliders below
+**Line thickness** — range: 1–60, default: 8, units: pixels  
+Width of zigzag ribbon. Thick lines may overlap; thin lines produce more delicate patterns.
 
-#### Random Speed
-- **Type**: Checkbox
-- **Default**: Off
-- When enabled, each line gets a randomly varied speed
-- Variation is controlled by the Speed Range sliders below
-
-#### Thickness Range
-- **Type**: Dual-range slider
-- **Range**: 10% – 400%
-- **Defaults**: Min = 10%, Max = 200%
-- Only active when Random Thickness is enabled
-
-#### Speed Range
-- **Type**: Dual-range slider
-- **Range**: 50% – 200%
-- **Defaults**: Min = 50%, Max = 150%
-- Only active when Random Speed is enabled
+**Geometry scale** — range: 100–400%, default: 100%  
+Global scaling of space. Does not affect canvas size.
 
 ---
 
-### Overlay Section
+### Behavior section
 
-**NEW IN v26**: Add static images on top of your animation for branding, watermarks, or design elements.
+**Emit rate** — range: 0.1–10, default: 1.5, units: lines per second  
+Frequency of new line creation. High values densify the screen; low values space out the animation.
 
-#### Show Overlay
-- **Type**: Checkbox
-- **Default**: Off
-- Toggle overlay image visibility
-- Image remains loaded when hidden
-
-#### Load Image
-- Opens file picker to import image
-- **Supported formats**: PNG, JPG, SVG
-- **Recommendation**: Use PNG with transparency for logos
-- Image encoded as Base64 and saved to project
-- Automatically enables Show Overlay checkbox
-
-#### Scale
-- **Range**: 10% – 200%
-- **Default**: 100%
-- Resize the overlay image
-- 50% = half size, 200% = double size
-
-#### Opacity
-- **Range**: 0% – 100%
-- **Default**: 100%
-- Control overlay transparency
-- 0% = fully transparent (invisible)
-- 30-50% = subtle watermark
-- 100% = fully opaque
-
-#### Position X / Position Y
-- **Range**: 0% – 100%
-- **Default**: 50% / 50% (centered)
-- Place the overlay anywhere on screen
-- 0%, 0% = top-left corner
-- 100%, 100% = bottom-right corner
-- 50%, 50% = centered
-
-#### Clear Image
-- Removes current overlay image
-- Resets all overlay settings to defaults
-
-#### Export Behavior **Important**
-- **PNG Exports**: Automatically composite overlay with correct positioning
-- **Video Exports**: Overlay included on every frame
-- **SVG Exports**: Overlay NOT included (vector only)
-- **Depth Maps**: Overlay NOT included
-- Automatic pixelDensity correction for high-resolution (Retina) displays
+**Speed** — range: 10–500, default: 80, units: pixels per second  
+Movement speed of lines in space.
 
 ---
 
-### Export Section
+### Modulations section
 
-Export your creations as images or videos.
+**Random thickness** (t) — default: off  
+Applies random variation to each line's thickness.
 
-#### Export PNG
-- **Shortcuts**: p
-- Captures current frame as PNG image
-- **NEW**: Automatically includes overlay with correct scale/position/opacity
-- Supports high-resolution (Retina) displays with pixelDensity correction
-- Resolution matches current canvas size (respects Framebuffer Resolution if enabled)
-- Filename: `zigzag-TIMESTAMP.png`
+**Thickness range** — range: 10%–400%, default: 10%–200%  
+Minimum and maximum variation when random thickness is enabled.
 
-#### Export SVG
-- **Shortcuts**: s
-- Exports current frame as vector SVG file
-- Resolution-independent format
-- All lines exported as `<path>` elements
-- Overlay NOT included (vector only)
-- Ideal for print or vector editing
-- Filename: `zigzag-TIMESTAMP.svg`
+**Random speed** (m) — default: off  
+Applies random variation to each line's speed.
 
-#### Export Depth Map
-- **Shortcuts**: d
-- Exports depth information as greyscale PNG
-- White pixels = closest to camera
-- Black pixels = farthest from camera
-- Auto-calculated depth range from live geometry
-- Perfect pixel alignment with PNG export
-- Use cases: post-processing, After Effects, Blender
-- Filename: `zigzag-depthmap-TIMESTAMP.png`
-
-#### Video Recording
-
-**Duration**
-- **Range**: 1 – 60 seconds
-- **Default**: 10 seconds
-- Sets the length of video recording
-
-**Frame Rate (FPS)**
-- **Range**: 24 – 60 frames/second
-- **Default**: 30 FPS
-- 24 FPS = cinematic, smaller file
-- 30 FPS = standard web video
-- 60 FPS = ultra-smooth, larger file
-
-**Record Video Button** (or press **v**)
-- Starts frame-by-frame video capture using CCapture.js
-- **NEW**: Automatically includes overlay on every frame
-- Animation runs at fixed timestep for deterministic output
-- Progress indicator shows percentage complete
-- When complete, video downloads automatically
-- **Important**: Do not interact with page during recording
-- WebM format (browser-dependent)
+**Speed range** — range: 10%–400%, default: 30%–200%  
+Minimum and maximum variation when random speed is enabled.
 
 ---
 
-## Export Formats
+### Colors section
 
-### PNG Export
-- **Format**: Raster image (Portable Network Graphics)
-- **Use case**: Social media, presentations, quick sharing
-- **Resolution**: Matches current canvas resolution
-- **Transparency**: Opaque black background
-- **Overlay**: **Automatically included** with correct positioning, scale, and opacity
-- **PixelDensity**: Automatic correction for high-resolution (Retina) displays
-- **Quality**: Lossless compression
-- **File size**: ~100KB - 2MB depending on resolution
+**Color palettes**  
+Four distinct palettes, each with four color slots. Keys 1, 2, 3, 4 toggle between palettes.
 
-### SVG Export
-- **Format**: Vector graphics (Scalable Vector Graphics)
-- **Use case**: Print, web graphics, Illustrator/Inkscape editing
-- **Resolution**: Infinite (vector)
-- **Transparency**: Defined per path element
-- **Overlay**: Not included (vector only)
-- **Editability**: Full - can modify paths, colors, transforms
-- **File size**: ~10KB - 500KB depending on line count
-- **Note**: Export captures current frame only; does not animate
+**Color customization**  
+Each slot has a color picker (RGB) and a role:
+- **Line**: color of zigzag ribbons (random selection at generation)
+- **Background**: canvas background color
+- **None**: slot disabled
 
-### Depth Map Export
-- **Format**: Greyscale PNG (Portable Network Graphics)
-- **Use case**: Displacement mapping, Z-depth compositing, post-processing effects
-- **Resolution**: Matches current canvas resolution
-- **Encoding**: White = near objects, Black = far objects
-- **Overlay**: Not included (depth data only)
-- **Depth range**: Auto-calculated from live geometry
-- **Quality**: Lossless greyscale with gamma 0.6 power curve
-- **File size**: ~50KB - 1MB depending on resolution
-- **Note**: Captures current frame depth information only
+Multiple slots can have the same role.
 
-### Video Export
-- **Format**: WebM (browser-dependent)
-- **Use case**: Video platforms, social media, portfolio
-- **Resolution**: Matches current canvas resolution
-- **Overlay**: **Automatically composited on every frame**
-- **Frame compositing**: Uses createCompositeCanvas() for each frame
-- **Deterministic**: Fixed timestep ensures consistent output
-- **File size**: ~5MB - 100MB+ depending on duration, FPS, and resolution
-- **Performance**: Overlay adds ~1-2ms per frame (negligible impact)
-- **Frame capture**: Sequential frame-by-frame recording
-- **Determinism**: Identical output for same settings
-- **File size**: Varies greatly by duration, FPS, and resolution
-  - Example: 10 sec @ 30fps @ 1920×1080 ≈ 5-20MB
-- **Processing time**: Real-time to several minutes depending on complexity
+**Color depth separation** — range: 10–500, default: 100  
+Controls Z-axis spacing between lines of different colors. Higher values reduce visual overlap (z-fighting). Formula: each slot offset = `(slotIndex - 2) × multiplier`.
+
+**Color transitions**  
+When changing palettes, all existing lines and background transition smoothly over configured duration via RGB linear interpolation.
 
 ---
 
-## Tips & Best Practices
+### Overlay section
 
-### First-Time Users
-- **Starter project loads automatically** on first visit!
-- Explore the example states to see how parameters affect the animation
-- Click between states to watch smooth transitions
-- Adjust transition durations for different effects
-- **Press H** to hide controls for a clean view
+**Show overlay**  
+Checkbox to toggle overlay image visibility. Image remains loaded when hidden.
 
-### Performance Optimization
-- **Lower emit rate** (0.5-2) for smoother performance
-- **Disable Random Thickness/Speed** if experiencing lag
-- **Use Framebuffer Resolution** for consistent frame timing
-- **Lower canvas resolution** (1280×720) for faster rendering
-- Close other browser tabs during video recording
+**Preset dropdown**  
+Pre-configured overlays from `assets/overlays/` folder. Instant loading of Base64-encoded images. Select "-- Custom Image --" to load your own file.
 
-### Visual Composition
-- **Slow emit rate + high speed** = sparse, minimal aesthetic
-- **High emit rate + slow speed** = dense, layered composition
-- **Random modulations** add organic, hand-drawn quality
-- **Narrow FOV (30-40°)** = clean, architectural look
-- **Wide FOV (90-120°)** = dramatic, immersive perspective
-- **Emitter rotation** creates diagonal or vertical compositions
+**Load custom image**  
+Opens file picker to import image. Supported formats: PNG, JPG, SVG. Image encoded as Base64 temporarily. Automatically enables Show Overlay checkbox. Overrides preset selection.
 
-### Using States
-- **Save multiple moods**: Create states for different animation styles
-- **Transition timing**: Use long transitions (10-20s) for smooth morphing
-- **Color transitions**: Set separate duration for palette changes
-- **Auto-trigger**: Enable for unattended displays or presentations
-- **Camera positions**: Each state saves its own camera view
-- **Live performance**: Switch states during recording for dynamic videos
+**Scale** — range: 10%–200%, default: 100%  
+Resizes overlay image.
 
-### Overlay Best Practices
-- **PNG with transparency** for logos/watermarks
-- **Opacity 30-50%** for subtle branding
-- **Corner positioning** (X/Y: 10% or 90%) for unobtrusive branding
-- **Center positioning** (X/Y: 50%) for main design elements
-- **Scale down** (50-80%) for non-intrusive overlays
-- **Check exports**: PNG and video automatically include overlay
-- **Brand consistency**: Overlay persists across all states
+**Opacity** — range: 0%–100%, default: 100%  
+Controls overlay transparency.
 
-### VR / Stereoscopic Viewing
-- Enable Stereoscopic View for side-by-side output
-- Start with **Eye Separation = 30**, adjust to taste
-- Larger separation = stronger 3D effect but may cause eye strain
-- For cross-eyed viewing: sit ~2 feet from screen, cross eyes until images merge
-- For VR headsets: export video in framebuffer mode at appropriate resolution
+**Position X / Y** — range: 0%–100%, default: 50% / 50%  
+Places overlay anywhere on screen. 0%, 0% = top-left; 100%, 100% = bottom-right; 50%, 50% = centered.
 
-### Camera Control
-- **Zoom out** (scroll) before rotating to see full spatial structure
-- **Pan** to reframe composition without rotating
-- **Reset camera** (r key): Restores default camera position and rotation
-- **Reset zoom** (0 key): Returns camera distance to default 600 units
-- Camera state is saved with states and projects
+**Export behavior**  
+Overlays are included in PNG, video, and depth map exports. Excluded from SVG exports (vector only). To export without overlay: uncheck Show Overlay before exporting.
 
-### Recording High-Quality Videos
-1. Set desired **Framebuffer Resolution** (e.g., 3840×2160 for 4K)
-2. Set up **overlay image** before recording (included automatically)
-3. Choose appropriate **Duration** (5-15 seconds often sufficient)
-4. Select **Frame Rate**: 30 FPS is standard, 60 FPS for smooth motion
-5. Click **Record Video** and wait for processing
-6. **Do not interact** with the browser during recording
-7. Video downloads automatically when complete with overlay composited
+---
 
-### Exporting for Web/Social
-- **Instagram**: Use 1080×1080 or 1080×1440 preset
-- **Twitter/X**: 1920×1080 works well
-- **Website banner**: Custom resolution as needed
-- **High-quality still**: Export PNG with overlay (includes Retina correction)
-- **Vector graphics**: Export SVG (no overlay, but editable)
-- **Depth effects**: Export depth map for post-processing
+### Export section
+
+**Export PNG** (p / Shift+P) — format: `.png`  
+Direct canvas capture with transparency. Dimensions match current canvas (or framebuffer dimensions if enabled).
+
+**Export SVG** (s / Shift+S) — format: `.svg`  
+Vector version of current image, line by line with exact projection. Infinite scaling without quality loss.
+
+**Export depth map** (d / Shift+D) — format: `.png` grayscale  
+Encodes Z depth as brightness: close = white, far = black.
+
+**Video recording** (v) — format: `.webm` or `.mp4`  
+Frame-by-frame capture for smooth, deterministic rendering. Red indicator displays during recording. File automatically exports when stopped.
+
+---
+
+## Export
+
+### Export formats
+
+| Format | Type | Use case | Scalability |
+|--------|------|-------------|-------------|
+| PNG | Raster | Web, social media | Fixed dimensions |
+| SVG | Vector | Print, design, editing | Infinite |
+| Depth map | Raster | VFX, compositing, 3D | Fixed dimensions |
+| Video | Temporal | Animation, presentation | Video resolution |
+
+### Quick export
+
+**Current frame:**
+- p: export PNG image (includes overlay)
+- s: export SVG vector file
+- d: export depth map
+
+**Video recording:**
+1. v: start recording
+2. v: stop recording (optional, auto-stops at configured duration)
+3. Video downloads automatically with overlay included
+
+---
+
+## Project management
+
+### Save project
+
+1. Click Save button in Project section (or press j / Ctrl+S / ⌘+S)
+2. Project JSON file downloads with timestamp
+3. Contains all states, settings, and camera positions
+
+### Load project
+
+1. Click Load button in Project section
+2. Select saved JSON file
+3. Project restores immediately
+
+Parameters are automatically saved to localStorage on every change. At first launch, starter project with example states loads from `config/zigmap26-init.json`.
+
+---
+
+## Best practices
+
+### Performance
+
+- Reduce emit rate to improve performance on slower systems
+- High-resolution framebuffer mode (4K) demands more GPU
+- Stereoscopic mode performs two simultaneous renders; reduce resolution if slowdown occurs
+- Hide UI panel (H) for maximum performance
+
+### Composition
+
+- Position key elements off-center
+- Use camera rotation to reveal spatial layers
+- Bright colors on dark backgrounds produce high contrast
+- Adjust Color Depth Separation to prevent z-fighting
+
+### VR viewing
+
+- Start with separation of 30 and adjust according to screen distance
+- Avoid excessive separation to limit eye strain
+
+### Recording
+
+- Set all parameters before starting recording
+- Close other applications to free up resources
+- Short recordings (10–30 seconds) are easier to manage
+
+### Social media export
+
+- Instagram: 1080×1440 preset
+- Web banner: 3500×1500 preset
+- Twitter/X: 1920×1080 for video posts
+
+---
+
+## Technical reference
+
+### Project structure
+
+```
+/
+├── index.html              Main application file
+├── css/                    Style sheets
+├── js/                     JavaScript modules
+│   ├── main.js            Entry point
+│   ├── core/              Core classes (Emitter, ZigzagLine, Camera, Projection)
+│   ├── ui/                UI controllers
+│   ├── storage/           State and localStorage management
+│   ├── input/             Mouse and keyboard handlers
+│   ├── export/            PNG, SVG, depth map, video exporters
+│   └── config/            Constants and defaults
+├── config/                Configuration files
+│   └── zigmap26-init.json Default starter project
+├── assets/overlays/       Base64-encoded overlay presets
+└── utilities/             Overlay converter tool
+```
+
+### Development
+
+Vanilla JavaScript (ES6 modules) with p5.js for WebGL rendering.
+
+**Main dependencies:**
+- p5.js v1.9.0 (WebGL mode)
+- CCapture.js v1.1.0 (video capture)
+
+**Architecture:**
+- Modular ES6 classes in separate files
+- State management via localStorage
+- Event-driven UI updates
+- CPU-based projection for SVG and depth map exports
 
 ### Troubleshooting
-- **Lines not appearing**: Check Emit Rate > 0, adjust camera distance
-- **Clipping issues**: Adjust Near/Far clipping planes in View section
-- **Panning not working**: Ensure camera distance ≥ 50
-- **Settings not saving**: Check browser localStorage permissions
-- **Video file too large**: Reduce duration, FPS, or resolution
-- **Choppy animation**: Lower emit rate or close other programs
-- **Overlay not showing**: Check ☑️ Show Overlay box and adjust opacity
-- **State won't rename**: Click directly on state name text
-- **Keyboard shortcuts not working**: Make sure you're not renaming a state
 
----
+**Lines not appearing**  
+Check that emit rate > 0. Adjust camera distance with scroll wheel.
 
-## Version History
+**Clipping issues**  
+Adjust near/far clipping planes in Camera section at extreme zoom levels.
 
-### v26 (Current)
-- **NEW**: State management system
-  - Save/load multiple states
-  - Smooth transitions with adjustable duration (0-30s)
-  - Separate color transition duration control
-  - Auto-trigger random state switching (5-120s intervals)
-  - Camera positions saved per state
-- **NEW**: Overlay image system
-  - Import PNG/JPG/SVG images
-  - Adjustable scale (10-200%), opacity (0-100%), position (0-100% X/Y)
-  - Automatic compositing in PNG and video exports
-  - PixelDensity correction for Retina displays
-  - Project-wide persistence (not per-state)
-- **NEW**: First-time user experience
-  - Automatically loads curated starter project (zigmap26-init.json)
-  - Includes example states demonstrating features
-  - Smooth onboarding with immediate visual interest
-- **NEW**: Separated control panes
-  - Rendering section: Framebuffer settings
-  - View section: FOV, clipping, stereoscopic
-  - Clearer organization of controls
-- **IMPROVED**: Project loading
-  - Uses first state in project list
-  - Synchronizes camera/orbit controls with state
-  - Bidirectional camera sync (syncToParams/syncFromParams)
-- **IMPROVED**: Modular ES6 architecture
-  - Separate files for each class/system
-  - Better code organization and maintainability
-  - Explicit import/export structure
-- **CHANGED**: Keyboard shortcuts
-  - **H** key for hiding controls (was Tab)
-  - Removed Interface control pane (functions kept as shortcuts)
-  - Keyboard shortcuts disabled during state renaming
+**Panning not working**  
+Camera distance must be ≥ 50. Zoom out if necessary.
 
-### Earlier Versions (v12 and below)
+**Settings not saving**  
+Verify browser localStorage permissions are enabled.
+
+**Video file too large**  
+Reduce duration, frame rate, or resolution in Export section.
+
+**Choppy animation**  
+Lower emit rate or close other programs. Disable random thickness/speed if lag persists.
+
+**Overlay not showing**  
+Check Show Overlay checkbox. Verify opacity > 0%. Ensure image loaded successfully.
+
+**State renaming fails**  
+Click directly on state name text. Avoid triggering keyboard shortcuts during rename.
+
+**Keyboard shortcuts not working**  
+Ensure state rename mode is not active. Shortcuts disabled while editing state names.
+
+### Version history
+
+**v26 (current)**
+- State management system: save/load multiple states with smooth transitions
+- Separate color transition duration control
+- Auto-trigger state switching with shuffle algorithm
+- Camera positions saved per state
+- Overlay image system: import PNG/JPG/SVG, adjustable scale/opacity/position
+- Overlay presets from `assets/overlays/` folder with Base64 encoding
+- Automatic overlay compositing in PNG and video exports
+- PixelDensity correction for high-resolution displays
+- First-time user experience: auto-loads starter project with example states
+- Project loading uses first state and synchronizes camera controls
+- Modular ES6 architecture with separate class files
+- H key for hiding controls
+- Keyboard shortcuts disabled during state renaming
+
+**Earlier versions (v12 and below)**
 - Depth map export with auto-ranging
 - CPU-based projection for depth maps
 - Centralized keyboard shortcuts system
@@ -635,219 +461,23 @@ Export your creations as images or videos.
 - Stereoscopic viewing mode
 - Framebuffer resolution control
 - Random thickness/speed modulations
-- SVG/PNG/Video export capabilities
+- SVG/PNG/video export capabilities
 - LocalStorage persistence
 
----
+### Browser compatibility
 
-## Browser Compatibility
+- Chrome/Edge: full support
+- Firefox: full support
+- Safari: full support
+- Mobile browsers: limited (no mouse controls)
 
-- **Chrome/Edge**: Full support ✓
-- **Firefox**: Full support ✓
-- **Safari**: Full support ✓
-- **Mobile browsers**: Limited (no mouse controls)
+Minimum requirements: WebGL support, ES6 JavaScript, Canvas 2D API, file download support.
 
-**Minimum requirements**: 
-- WebGL support
-- ES6 JavaScript
-- Canvas 2D API
-- File download support
+### Credits and license
 
----
-
-## Credits
-
-- **p5.js** (v1.9.0) - Creative coding framework
-- **CCapture.js** (v1.1.0) - Frame capture for video export
+- p5.js (v1.9.0) - Creative coding framework
+- CCapture.js (v1.1.0) - Frame capture for video export
 - ddelcourt2026 / Developed for TheSpaceLab / Mapping 2026
 
----
+MIT License — CC BY-NC-SA — ddelcourt 2026
 
-## License
-
-[ MIT License — CC BY-NC-SA — ddelcourt 2026 ]
-
-.
-.
-.
-
----
-
-# Quick Start Guide
-
-## 🚀 Running the Application
-
-### Method 1: Python Server (Recommended)
-```bash
-cd [the directory where you are storing the files]
-python3 -m http.server 8080
-```
-Then open: **http://localhost:8080**
-
-### Method 2: Node.js Server
-```bash
-npx http-server -p 8080
-```
-
-### Method 3: VS Code Live Server
-1. Install "Live Server" extension
-2. Right-click `index.html` → "Open with Live Server"
-
-⚠️ **Important**: ES6 modules require a web server. Opening `index.html` directly with `file://` protocol will not work.
-
-## 📁 Project Structure
-
-```
-ZigMap26/
-├── index.html           # Start here
-├── css/                 # 3 CSS modules
-├── js/                  # 15 JavaScript modules
-│   ├── main.js          # Application entry point
-│   ├── config/          # Defaults & constants
-│   ├── core/            # Core rendering classes
-│   ├── storage/         # localStorage integration
-│   ├── rendering/       # p5.js sketches
-│   ├── export/          # Export functions (SVG, PNG, depth, video)
-│   ├── ui/              # UI control bindings
-│   └── input/           # Keyboard & mouse handlers
-├── config/              # 3 JSON configuration files
-├── docs/                # Documentation (6 markdown files)
-└── backup/              # Original monolithic file
-
-Total: 25 modular files (from 1 monolithic 2,334-line HTML file)
-```
-
-**Note:** Keyboard shortcuts and mouse controls are documented in the [User Manual](docs/English/User-Manual.md#essential-keyboard-shortcuts).
-
-## 🖱️ Mouse Controls
-
-- **Left-drag**: Rotate camera
-- **Right-drag**: Pan view
-- **Scroll wheel**: Zoom in/out
-
-## 🎨 Key Features
-
-### Rendering
-- Real-time 3D zigzag ribbons with p5.js WEBGL
-- Stereoscopic VR mode (side-by-side dual cameras)
-- Framebuffer mode (fixed resolution rendering)
-- Random modulation (thickness & speed)
-
-### Export Options
-1. **PNG** — Direct canvas raster export
-2. **SVG** — Vector graphic with exact projection
-3. **Depth Map** — Grayscale depth encoding
-4. **Video** — CCapture.js recording (WebM/MP4)
-
-### Settings
-- Auto-save to localStorage
-- Export/import as JSON files
-- 50+ parameters (geometry, camera, modulation, colors)
-
-## 🛠️ Development
-
-### File Organization
-- **CSS**: `css/main.css`, `css/canvas.css`, `css/controls.css`
-- **Config**: `config/*.json` for keyboard shortcuts, presets, metadata
-- **Core Logic**: `js/core/` for ZigzagLine, Emitter, Camera
-- **Features**: Separate modules for export, UI, input handling
-
-### Module System
-All JavaScript uses ES6 modules:
-```javascript
-import { ZigzagLine } from './core/ZigzagLine.js';
-export function exportSVG(ZM) { /* ... */ }
-```
-
-Global namespace: `window.ZigMap26`
-
-### Adding Features
-
-**New export format:**
-1. Create `js/export/NewExporter.js`
-2. Add function to `main.js`
-3. Wire UI button in `UIController.js`
-
-**New parameter:**
-1. Add to `js/config/defaults.js`
-2. Add HTML control in `index.html`
-3. Wire in `UIController.js`
-
-**New keyboard shortcut:**
-1. Add to `config/keyboardShortcuts.json`
-2. Add action in `KeyboardHandler.js`
-
-## 📚 Documentation
-
-- **User Manual**: [docs/User-Manual.md](docs/User-Manual.md)
-- **Technical Docs**: [docs/Documentation.md](docs/Documentation.md)
-- **Projection Guide**: [docs/Projection-Matrix-Guide.md](docs/Projection-Matrix-Guide.md)
-- **Architecture**: [ARCHITECTURE.md](ARCHITECTURE.md)
-
-All docs available in English & French.
-
-## ✅ Testing Checklist
-
-Before committing changes:
-
-1. ✅ Application loads without console errors
-2. ✅ Canvas renders zigzag ribbons
-3. ✅ Mouse controls work (drag, pan, zoom)
-4. ✅ Keyboard shortcuts respond
-5. ✅ All exports work (PNG, SVG, depth, video)
-6. ✅ Settings save/load correctly
-7. ✅ Stereo mode renders two canvases
-8. ✅ Framebuffer mode changes resolution
-
-## 🐛 Troubleshooting
-
-### "Module not found" errors
-- Verify you're using an HTTP server (not `file://`)
-- Check all module paths use `.js` extension
-
-### "Cannot read property of undefined"
-- Check browser console for specific module
-- Verify all imports in `main.js` are correct
-
-### Canvas not rendering
-- Check p5.js loaded (CDN accessible)
-- Verify `initializeSketches()` called in `main.js`
-
-### Exports not working
-- PNG: Check canvas exists (`ZM.p5Instance.canvas`)
-- SVG: Check emitter has lines (`ZM.emitterInstance.lines`)
-- Video: Check CCapture.js loaded from CDN
-
-## 🔗 External Dependencies
-
-- **p5.js 1.9.0**: https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js
-- **CCapture.js 1.1.0**: https://cdn.jsdelivr.net/npm/ccapture.js@1.1.0/build/CCapture.all.min.js
-
-Both loaded via CDN in `index.html`.
-
-## 📦 Backup
-
-Original monolithic version preserved:
-- `backup/ZigzagEmitter_12_backup_20260309.html`
-
-## 🎯 Next Steps
-
-1. Start server: `python3 -m http.server 8080`
-2. Open: http://localhost:8080
-3. Test all features
-4. Read [ARCHITECTURE.md](ARCHITECTURE.md) for deep dive
-5. Start building! 🚀
-
----
-
-**Version**: ZigMap26 v1.0  
-**Migration Date**: March 9, 2026  
-**Original**: ZigzagEmitter monolithic file (2,334 lines → 25 modular files)
-
-.
-.
-.
-.
-.
-.
-.
