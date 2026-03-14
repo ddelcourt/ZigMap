@@ -73,6 +73,7 @@ function captureCurrentState(ZM, name) {
   delete params.colorTransitionDuration;
   delete params.autoTriggerStates;
   delete params.autoTriggerFrequency;
+  delete params.ambientSpeedMaster;
   
   // Exclude overlay settings (these are project-wide, not state-specific)
   delete params.overlayImageSrc;
@@ -152,6 +153,7 @@ function restoreState(ZM, state) {
     colorTransitionDuration: ZM.params.colorTransitionDuration,
     autoTriggerStates: ZM.params.autoTriggerStates,
     autoTriggerFrequency: ZM.params.autoTriggerFrequency,
+    ambientSpeedMaster: ZM.params.ambientSpeedMaster,
     // Overlay settings
     overlayImageSrc: ZM.params.overlayImageSrc,
     overlayVisible: ZM.params.overlayVisible,
@@ -264,7 +266,6 @@ function syncUIWithoutRestart(ZM) {
     'geometry-scale': { param: 'geometryScale', decimals: 0 },
     'fade-duration': { param: 'fadeDuration', decimals: 1 },
     'color-slot-z-offset': { param: 'colorSlotZOffset', decimals: 0 },
-    'ambient-speed-master': { param: 'ambientSpeedMaster', decimals: 0 },
     'video-duration': { param: 'videoDuration', decimals: 0 },
     'video-fps': { param: 'videoFPS', decimals: 0 },
     'eye-separation': { param: 'eyeSeparation', decimals: 0 },

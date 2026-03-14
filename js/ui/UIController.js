@@ -626,25 +626,30 @@ function setupOverlayControls(ZM) {
       overlayImg.style.display = 'block';
       overlayImg.src = ZM.params.overlayImageSrc;
       
-      let scale = ZM.params.overlayScale / 100;
-      
       // Calculate auto-fit scale if enabled
       if (ZM.params.overlayAutoFit && overlayImg.naturalWidth && overlayImg.naturalHeight) {
         const canvasContainer = document.getElementById('canvas-container');
         if (canvasContainer) {
           const containerWidth = canvasContainer.clientWidth;
           const containerHeight = canvasContainer.clientHeight;
-          const imgWidth = overlayImg.naturalWidth;
-          const imgHeight = overlayImg.naturalHeight;
           
-          // Calculate scale to fit (cover the canvas)
-          const scaleX = containerWidth / imgWidth;
-          const scaleY = containerHeight / imgHeight;
-          scale = Math.min(scaleX, scaleY);
+          // Use max-width/max-height CSS instead of transform scale for auto-fit
+          // This properly handles device pixel ratio
+          overlayImg.style.maxWidth = `${containerWidth}px`;
+          overlayImg.style.maxHeight = `${containerHeight}px`;
+          overlayImg.style.width = 'auto';
+          overlayImg.style.height = 'auto';
+          overlayImg.style.transform = 'translate(-50%, -50%)';
         }
+      } else {
+        // Manual scale mode - use transform
+        overlayImg.style.maxWidth = 'none';
+        overlayImg.style.maxHeight = 'none';
+        overlayImg.style.width = '';
+        overlayImg.style.height = '';
+        overlayImg.style.transform = `translate(-50%, -50%) scale(${ZM.params.overlayScale / 100})`;
       }
       
-      overlayImg.style.transform = `translate(-50%, -50%) scale(${scale})`;
       overlayImg.style.opacity = ZM.params.overlayOpacity / 100;
       overlayImg.style.left = `${ZM.params.overlayX}%`;
       overlayImg.style.top = `${ZM.params.overlayY}%`;

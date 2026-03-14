@@ -39,13 +39,13 @@ export const DEFAULT_PARAMS = {
     ]
   ],
   activePaletteIndex: 0,
-  colorTransitionDuration: 3.0,
-  stateTransitionDuration: 4.5, // Transition time for geometry, behavior, camera, modulations
+  colorTransitionDuration: 180,
+  stateTransitionDuration: 180, // Transition time for geometry, behavior, camera, modulations
   colorSlotZOffset: 100, // Z-offset multiplier per color slot (prevents z-fighting)
   
   // State Auto-Trigger
   autoTriggerStates: false,
-  autoTriggerFrequency: 30, // seconds (5-120)
+  autoTriggerFrequency: 30, // seconds (5-240)
 
   // Animation
   emitRate: 1.5,
