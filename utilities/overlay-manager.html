@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZigMap26 - Overlay Manager</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: left;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 400;
+    }
+
+    /* Step Headers */
+    .step-header {
+      margin: 50px 0 30px 0;
+      text-align: left;
+    }
+
+    .step-header:first-of-type {
+      margin-top: 30px;
+    }
+
+    .step-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #6496ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .step-description {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 400;
+    }
+
+    /* Section Styles */
+    .section {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(100, 150, 255, 0.3);
+    }
+
+    .section-icon {
+      font-size: 28px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .section-description {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    /* Converter Section */
+    .dropzone {
+      background: rgba(255, 255, 255, 0.05);
+      border: 3px dashed rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      padding: 60px 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+    }
+
+    .dropzone:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(100, 150, 255, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .dropzone.dragover {
+      background: rgba(100, 150, 255, 0.15);
+      border-color: #6496ff;
+      border-style: solid;
+      transform: scale(1.02);
+    }
+
+    .dropzone-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.6;
+    }
+
+    .dropzone-text {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .dropzone-hint {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-list {
+      margin-top: 20px;
+    }
+
+    .file-item {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: all 0.2s;
+    }
+
+    .file-item:hover {
+      background: rgba(0, 0, 0, 0.4);
+      border-color: rgba(100, 150, 255, 0.3);
+    }
+
+    .file-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .file-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      flex: 1;
+    }
+
+    .file-status {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      background: rgba(100, 150, 255, 0.2);
+      color: #6496ff;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .file-status.converted {
+      background: rgba(100, 200, 100, 0.2);
+      color: #6c6;
+    }
+
+    .file-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* List Manager Styles */
+    .config-file-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+    }
+
+    .config-file-item:hover {
+      background: rgba(0, 0, 0, 0.4);
+      border-color: rgba(100, 150, 255, 0.3);
+    }
+
+    .config-file-item input[type="text"] {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e0e0e0;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .config-file-item input[type="text"]:focus {
+      outline: none;
+      border-color: #6496ff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .status-badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 500;
+      pointer-events: none;
+      user-select: none;
+      opacity: 0.8;
+    }
+
+    .status-badge.valid {
+      background: rgba(100, 200, 100, 0.2);
+      color: #6c6;
+    }
+
+    .status-badge.invalid {
+      background: rgba(255, 100, 100, 0.2);
+      color: #f66;
+    }
+
+    .status-badge.unknown {
+      background: rgba(150, 150, 150, 0.2);
+      color: #999;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .stat-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      color: #6496ff;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Buttons */
+    button {
+      background: linear-gradient(135deg, #4a7cff 0%, #6496ff 100%);
+      border: none;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      transition: all 0.2s;
+      text-transform: none;
+      letter-spacing: 0;
+      box-shadow: 0 2px 8px rgba(100, 150, 255, 0.3);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(100, 150, 255, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e0e0e0;
+      box-shadow: none;
+    }
+
+    button.secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    button.danger {
+      background: linear-gradient(135deg, #ff4a7c 0%, #ff6496 100%);
+      box-shadow: 0 2px 8px rgba(255, 100, 150, 0.3);
+    }
+
+    button.small {
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    /* Code Output */
+    .code-output {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #9fef00;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 300px;
+      resize: vertical;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #6496ff;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #4a7cff 0%, #6496ff 100%);
+      color: #fff;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 1000;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.error {
+      background: linear-gradient(135deg, #ff4a7c 0%, #ff6496 100%);
+    }
+
+    .toast.success {
+      background: linear-gradient(135deg, #4aff7c 0%, #64ff96 100%);
+    }
+
+    /* Info Box */
+    .info-box {
+      background: rgba(100, 150, 255, 0.1);
+      border-left: 3px solid #6496ff;
+      padding: 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .info-box ul {
+      margin-left: 20px;
+      margin-top: 10px;
+    }
+
+    .info-box li {
+      margin-bottom: 6px;
+    }
+
+    .warning-box {
+      background: rgba(255, 170, 100, 0.1);
+      border-left: 3px solid #fa6;
+      padding: 16px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #9fef00;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: linear-gradient(135deg, #1e2a3e 0%, #1a2435 100%);
+      border: 1px solid rgba(100, 150, 255, 0.3);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(100, 150, 255, 0.2);
+    }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.2s;
+      box-shadow: none;
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      transform: none;
+    }
+
+    .modal-dropzone {
+      background: rgba(255, 255, 255, 0.05);
+      border: 3px dashed rgba(100, 150, 255, 0.4);
+      border-radius: 12px;
+      padding: 50px 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+    }
+
+    .modal-dropzone:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(100, 150, 255, 0.6);
+    }
+
+    .modal-dropzone.dragover {
+      background: rgba(100, 150, 255, 0.15);
+      border-color: #6496ff;
+      border-style: solid;
+      transform: scale(1.02);
+    }
+
+    .modal-dropzone-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.7;
+    }
+
+    .modal-dropzone-text {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .modal-dropzone-hint {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .modal-file-list {
+      max-height: 250px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .modal-file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .modal-file-name {
+      font-size: 14px;
+      color: #e0e0e0;
+      flex: 1;
+    }
+
+    .modal-file-remove {
+      background: transparent;
+      border: none;
+      color: rgba(255, 100, 100, 0.8);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      box-shadow: none;
+    }
+
+    .modal-file-remove:hover {
+      background: rgba(255, 100, 100, 0.2);
+      color: #ff6464;
+      transform: none;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Overlay Manager</h1>
+      <p class="subtitle">Convert images to Base64 and manage overlay presets</p>
+    </header>
+
+    <!-- STEP 1: CONVERTER -->
+    <div class="step-header">
+      <h1 class="step-title">Step 1. Convert Files to Base64</h1>
+      <p class="step-description">Convert your PNG, JPG, or SVG images to Base64-encoded JSON files</p>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <!-- <span class="section-icon">🔄</span> -->
+        <h2 class="section-title">Image to Base64 Converter</h2>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-text">Drop images here or click to browse</div>
+        <div class="dropzone-hint">Supports PNG, JPG, and SVG formats</div>
+      </div>
+      <input type="file" id="fileInput" class="file-input" accept="image/png,image/jpeg,image/svg+xml" multiple>
+
+      <div id="fileList" class="file-list"></div>
+
+      <div class="button-group" id="convertActions" style="display: none;">
+        <button id="convertBtn">Convert All to Base64</button>
+        <button class="secondary" id="clearBtn">Clear All</button>
+      </div>
+
+      <div class="info-box">
+        <strong>Instructions:</strong>
+        <ul>
+          <li>Drop or select one or more image files (PNG, JPG, SVG)</li>
+          <li>Click "Convert" or "Convert All" to generate JSON files</li>
+          <li>Files will be downloaded automatically</li>
+          <li>Save downloaded JSON files to <code>assets/overlays/</code> folder</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- STEP 2: CONFIG MANAGER -->
+    <div class="step-header">
+      <h1 class="step-title">Step 2. Integrate Files in Config</h1>
+      <p class="step-description">Add your converted JSON files to the overlay configuration</p>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <!-- <span class="section-icon">📋</span> -->
+        <h2 class="section-title">Overlay Config Manager</h2>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-value" id="file-count">0</div>
+          <div class="stat-label">Total Files</div>
+        </div>
+      </div>
+
+      <div id="config-file-list"></div>
+
+      <div class="button-group">
+        <button onclick="addConfigFile()">+ Add File</button>
+        <button class="secondary" onclick="sortConfigFiles()">⇅ Sort A-Z</button>
+      </div>
+
+      <div class="info-box" style="margin-top: 20px;">
+        <strong>💡 Workflow:</strong>
+        <ul>
+          <li>Convert images in the section above, or click "+ Add File" to add existing JSON files</li>
+          <li>Drag your JSON files from downloads or <code>assets/overlays/</code></li>
+          <li>Config code generates automatically as you add/edit/remove files</li>
+          <li>Copy or download the config and save it to <code>config/overlayPresets.js</code></li>
+        </ul>
+      </div>
+
+      <div class="code-output">
+        <h3 style="margin-bottom: 15px; color: #6496ff; font-size: 16px;">Generated Config File (Auto-updates)</h3>
+        <textarea id="output" readonly placeholder="Config will generate automatically when you add or convert files..."></textarea>
+        <div class="button-group">
+          <button class="secondary" onclick="copyToClipboard()">Copy to Clipboard</button>
+          <button class="secondary" onclick="downloadConfig()">Download File</button>
+        </div>
+        <div class="warning-box">
+          After generating, replace the content of <code>config/overlayPresets.js</code> with the generated code or save the downloaded file to that location.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ========================================================================
+    // CONVERTER FUNCTIONALITY
+    // ========================================================================
+    
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileListEl = document.getElementById('fileList');
+    const convertBtn = document.getElementById('convertBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const convertActions = document.getElementById('convertActions');
+    
+    let selectedFiles = [];
+
+    // Dropzone click
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+      handleFiles(e.target.files);
+    });
+
+    // Drag and drop
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    // Handle files
+    function handleFiles(files) {
+      selectedFiles = Array.from(files).filter(file => 
+        file.type.startsWith('image/')
+      );
+
+      if (selectedFiles.length === 0) {
+        showToast('No valid image files selected', 'error');
+        return;
+      }
+
+      renderFileList();
+      convertActions.style.display = 'flex';
+    }
+
+    // Render file list
+    function renderFileList() {
+      fileListEl.innerHTML = '';
+      
+      selectedFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        
+        const header = document.createElement('div');
+        header.className = 'file-header';
+        
+        const name = document.createElement('div');
+        name.className = 'file-name';
+        name.textContent = file.name;
+        
+        const rightSide = document.createElement('div');
+        rightSide.style.display = 'flex';
+        rightSide.style.gap = '10px';
+        rightSide.style.alignItems = 'center';
+        
+        const status = document.createElement('div');
+        status.className = 'file-status';
+        status.textContent = 'Ready';
+        status.dataset.index = index;
+        
+        const convertSingleBtn = document.createElement('button');
+        convertSingleBtn.className = 'secondary small';
+        convertSingleBtn.textContent = 'Convert';
+        convertSingleBtn.dataset.index = index;
+        convertSingleBtn.onclick = () => convertSingleFile(index);
+        
+        rightSide.appendChild(status);
+        rightSide.appendChild(convertSingleBtn);
+        header.appendChild(name);
+        header.appendChild(rightSide);
+        
+        const details = document.createElement('div');
+        details.className = 'file-details';
+        details.innerHTML = `
+          <div>Type: ${file.type.split('/')[1].toUpperCase()}</div>
+          <div>Size: ${formatFileSize(file.size)}</div>
+        `;
+        
+        item.appendChild(header);
+        item.appendChild(details);
+        fileListEl.appendChild(item);
+      });
+    }
+
+    // Format file size
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    // Clear files
+    clearBtn.addEventListener('click', () => {
+      selectedFiles = [];
+      fileListEl.innerHTML = '';
+      fileInput.value = '';
+      convertActions.style.display = 'none';
+    });
+
+    // Convert files
+    convertBtn.addEventListener('click', async () => {
+      convertBtn.disabled = true;
+      convertBtn.textContent = 'Converting...';
+      
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const statusEl = document.querySelector(`.file-status[data-index="${i}"]`);
+        
+        try {
+          statusEl.textContent = 'Converting...';
+          statusEl.style.background = 'rgba(100, 150, 255, 0.3)';
+          
+          const base64 = await fileToBase64(file);
+          
+          const jsonData = {
+            name: file.name.replace(/\.[^/.]+$/, ''),
+            type: file.type,
+            base64: base64
+          };
+          
+          downloadJSON(jsonData, file.name);
+          
+        // Track converted filename
+        const jsonFilename = file.name.replace(/\.[^/.]+$/, '') + '.json';
+        if (!convertedFiles.includes(jsonFilename)) {
+          convertedFiles.push(jsonFilename);
+        }
+        
+          
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error('Conversion error:', error);
+          statusEl.textContent = '✗ Error';
+          statusEl.style.background = 'rgba(255, 100, 100, 0.2)';
+          statusEl.style.color = '#f66';
+        }
+      }
+      
+      convertBtn.disabled = false;
+      convertBtn.textContent = 'Convert All to Base64';
+      showToast(`✓ Converted ${selectedFiles.length} file(s)`, 'success');
+      
+      // Update config manager with converted files
+      initConfigManager();
+    });
+
+    // Convert single file
+    async function convertSingleFile(index) {
+      const file = selectedFiles[index];
+      const statusEl = document.querySelector(`.file-status[data-index="${index}"]`);
+      const btnEl = document.querySelector(`button[data-index="${index}"]`);
+      
+      if (!file || !statusEl) return;
+      
+      try {
+        btnEl.disabled = true;
+        btnEl.textContent = 'Converting...';
+        statusEl.textContent = 'Converting...';
+        statusEl.style.background = 'rgba(100, 150, 255, 0.3)';
+        
+        const base64 = await fileToBase64(file);
+        
+        const jsonData = {
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          type: file.type,
+          base64: base64
+        };
+        
+        downloadJSON(jsonData, file.name);
+        
+        // Track converted filename
+        const jsonFilename = file.name.replace(/\.[^/.]+$/, '') + '.json';
+        if (!convertedFiles.includes(jsonFilename)) {
+          convertedFiles.push(jsonFilename);
+        }
+        
+        statusEl.textContent = '✓ Converted';
+        statusEl.className = 'file-status converted';
+        btnEl.textContent = '✓ Done';
+        btnEl.disabled = true;
+        
+        showToast(`✓ Converted ${file.name}`, 'success');
+        
+        // Update config manager with converted files
+        initConfigManager();
+      } catch (error) {
+        console.error('Conversion error:', error);
+        statusEl.textContent = '✗ Error';
+        statusEl.style.background = 'rgba(255, 100, 100, 0.2)';
+        statusEl.style.color = '#f66';
+        btnEl.disabled = false;
+        btnEl.textContent = 'Retry';
+        showToast('Conversion failed', 'error');
+      }
+    }
+
+    // File to Base64
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Download JSON
+    function downloadJSON(data, originalFilename) {
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      const nameWithoutExt = originalFilename.replace(/\.[^/.]+$/, '');
+      a.download = `${nameWithoutExt}.json`;
+      
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ========================================================================
+    // CONFIG MANAGER FUNCTIONALITY
+    // ========================================================================
+    
+    let configFiles = [];
+    let convertedFiles = []; // Track converted filenames
+    const OVERLAY_FOLDER = '../assets/overlays/';
+
+    // Initialize with converted files or defaults
+    function initConfigManager() {
+      // Use converted files if any exist, otherwise load defaults
+      if (convertedFiles.length > 0) {
+        configFiles = convertedFiles.map(name => ({ name }));
+      } else {
+        configFiles = [
+          { name: 'Mappinng2026_Horizontal-Black.json' },
+          { name: 'Mappinng2026_Horizontal-White_Shadow.json' },
+          { name: 'Mappinng2026_Square-Black.json' },
+          { name: 'Mappinng2026_Square-White.json' },
+          { name: 'Mappinng2026_Vertical-Black.json' },
+          { name: 'Mappinng2026_Vertical-White.json' }
+        ];
+      }
+      renderConfigFileList();
+      updateStats();
+      if (configFiles.length > 0) {
+        generateConfig();
+      }
+    }
+
+    // Render config file list
+    function renderConfigFileList() {
+      const container = document.getElementById('config-file-list');
+      container.innerHTML = '';
+
+      configFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'config-file-item';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = file.name;
+        input.placeholder = 'filename.json';
+        input.addEventListener('input', (e) => {
+          configFiles[index].name = e.target.value;
+          updateStats();
+        });
+        input.addEventListener('change', () => {
+          if (configFiles.length > 0) {
+            generateConfig();
+          }
+        });
+
+        const statusBadge = document.createElement('span');
+        statusBadge.className = 'status-badge unknown';
+        statusBadge.textContent = '';
+        statusBadge.style.width = '20px';
+        statusBadge.style.visibility = 'hidden';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'danger small';
+        removeBtn.textContent = 'Remove';
+        removeBtn.onclick = () => removeConfigFile(index);
+
+        item.appendChild(input);
+        item.appendChild(removeBtn);
+        container.appendChild(item);
+      });
+
+      updateStats();
+    }
+
+    // Add config file
+    function addConfigFile() {
+      openAddFilesModal();
+    }
+
+    // Remove config file
+    function removeConfigFile(index) {
+      configFiles.splice(index, 1);
+      renderConfigFileList();
+      if (configFiles.length > 0) {
+        generateConfig();
+      }
+    }
+
+    // Sort files
+    function sortConfigFiles() {
+      configFiles.sort((a, b) => a.name.localeCompare(b.name));
+      renderConfigFileList();
+      generateConfig();
+      showToast('Files sorted alphabetically', 'success');
+    }
+
+    // Generate config
+    function generateConfig() {
+      const validFiles = configFiles.filter(f => f.name.trim());
+      
+      if (validFiles.length === 0) {
+        showToast('No files to generate config from', 'error');
+        return;
+      }
+
+      const fileList = validFiles.map(f => `  '${f.name}'`).join(',\n');
+      
+      const code = `/**
+ * Overlay Presets Configuration
+ * List of overlay files available in assets/overlays/ folder
+ * 
+ * To add new overlays:
+ * 1. Convert your image to Base64 using utilities/overlay-manager.html
+ * 2. Save the JSON file to assets/overlays/
+ * 3. Add the filename to the OVERLAY_FILES array below
+ */
+
+export const OVERLAY_FILES = [
+${fileList}
+];
+
+export const OVERLAY_FOLDER = 'assets/overlays/';
+`;
+
+      document.getElementById('output').value = code;
+      showToast(`Config generated with ${validFiles.length} file(s)`, 'success');
+    }
+
+    // Copy to clipboard
+    function copyToClipboard() {
+      const output = document.getElementById('output');
+      if (!output.value) {
+        showToast('Generate config first', 'error');
+        return;
+      }
+
+      output.select();
+      document.execCommand('copy');
+      showToast('✓ Copied to clipboard!', 'success');
+    }
+
+    // Download config
+    function downloadConfig() {
+      const output = document.getElementById('output');
+      if (!output.value) {
+        showToast('Generate config first', 'error');
+        return;
+      }
+
+      const blob = new Blob([output.value], { type: 'text/javascript' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'overlayPresets.js';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      showToast('✓ File downloaded!', 'success');
+    }
+
+    // Update statistics
+    function updateStats() {
+      document.getElementById('file-count').textContent = configFiles.length;
+    }
+
+    // Show toast
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast ' + type;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // ========================================================================
+    // ADD FILES MODAL FUNCTIONALITY
+    // ========================================================================
+    
+    let modalFiles = [];
+    let modalDropzone, modalFileInput, modalFileList;
+    let modalInitialized = false;
+
+    // Initialize modal elements and event listeners
+    function initializeModal() {
+      if (modalInitialized) return;
+      
+      modalDropzone = document.getElementById('modalDropzone');
+      modalFileInput = document.getElementById('modalFileInput');
+      modalFileList = document.getElementById('modalFileList');
+
+      if (!modalDropzone || !modalFileInput || !modalFileList) {
+        console.error('Modal elements not found');
+        return;
+      }
+
+      // Modal dropzone click
+      modalDropzone.addEventListener('click', () => modalFileInput.click());
+
+      // Modal file input change
+      modalFileInput.addEventListener('change', (e) => {
+        handleModalFiles(e.target.files);
+      });
+
+      // Modal drag and drop
+      modalDropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        modalDropzone.classList.add('dragover');
+      });
+
+      modalDropzone.addEventListener('dragleave', () => {
+        modalDropzone.classList.remove('dragover');
+      });
+
+      modalDropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        modalDropzone.classList.remove('dragover');
+        handleModalFiles(e.dataTransfer.files);
+      });
+
+      // Close modal when clicking outside
+      document.getElementById('addFilesModal').addEventListener('click', (e) => {
+        if (e.target.id === 'addFilesModal') {
+          closeAddFilesModal();
+        }
+      });
+
+      modalInitialized = true;
+    }
+
+    // Open modal
+    function openAddFilesModal() {
+      initializeModal();
+      modalFiles = [];
+      document.getElementById('addFilesModal').classList.add('show');
+      renderModalFileList();
+    }
+
+    // Close modal
+    function closeAddFilesModal() {
+      document.getElementById('addFilesModal').classList.remove('show');
+      modalFiles = [];
+      if (modalFileInput) modalFileInput.value = '';
+      renderModalFileList();
+    }
+
+    // Handle modal files
+    function handleModalFiles(files) {
+      const jsonFiles = Array.from(files).filter(file => 
+        file.name.endsWith('.json') || file.type === 'application/json'
+      );
+
+      if (jsonFiles.length === 0) {
+        showToast('No valid JSON files selected', 'error');
+        return;
+      }
+
+      // Add only new files (avoid duplicates)
+      jsonFiles.forEach(file => {
+        if (!modalFiles.find(f => f.name === file.name)) {
+          modalFiles.push(file);
+        }
+      });
+
+      renderModalFileList();
+    }
+
+    // Render modal file list
+    function renderModalFileList() {
+      modalFileList.innerHTML = '';
+
+      if (modalFiles.length === 0) {
+        modalFileList.innerHTML = '<p style="text-align: center; color: rgba(255, 255, 255, 0.5); padding: 20px 0;">No files selected</p>';
+        return;
+      }
+
+      modalFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'modal-file-item';
+
+        const name = document.createElement('div');
+        name.className = 'modal-file-name';
+        name.textContent = file.name;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'modal-file-remove';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = () => removeModalFile(index);
+
+        item.appendChild(name);
+        item.appendChild(removeBtn);
+        modalFileList.appendChild(item);
+      });
+    }
+
+    // Remove file from modal
+    function removeModalFile(index) {
+      modalFiles.splice(index, 1);
+      renderModalFileList();
+    }
+
+    // Add modal files to config
+    function addModalFilesToConfig() {
+      if (modalFiles.length === 0) {
+        showToast('No files selected', 'error');
+        return;
+      }
+
+      let addedCount = 0;
+      modalFiles.forEach(file => {
+        // Check if file already exists in config
+        if (!configFiles.find(cf => cf.name === file.name)) {
+          configFiles.push({ name: file.name });
+          addedCount++;
+        }
+      });
+
+      if (addedCount > 0) {
+        renderConfigFileList();
+        generateConfig(); // Auto-generate config
+        showToast(`✓ Added ${addedCount} file(s) to config`, 'success');
+      } else {
+        showToast('All files already in config', 'error');
+      }
+
+      closeAddFilesModal();
+    }
+
+    // Initialize
+    initConfigManager();
+  </script>
+
+  <!-- Add Files Modal -->
+  <div class="modal-overlay" id="addFilesModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Overlay Files</h3>
+        <button class="modal-close" onclick="closeAddFilesModal()">×</button>
+      </div>
+
+      <div class="modal-dropzone" id="modalDropzone">
+        <div class="modal-dropzone-icon">📁</div>
+        <div class="modal-dropzone-text">Drop JSON files here or click to browse</div>
+        <div class="modal-dropzone-hint">Select overlay JSON files from your downloads or assets/overlays/</div>
+      </div>
+      <input type="file" id="modalFileInput" class="file-input" accept=".json,application/json" multiple>
+
+      <div class="modal-file-list" id="modalFileList"></div>
+
+      <div class="modal-actions">
+        <button class="secondary" onclick="closeAddFilesModal()">Cancel</button>
+        <button onclick="addModalFilesToConfig()">Add to Config</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

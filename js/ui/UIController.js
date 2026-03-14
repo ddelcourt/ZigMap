@@ -3,6 +3,7 @@
  */
 
 import { triggerPaletteChange, getBackgroundColor } from '../core/colorUtils.js';
+import { OVERLAY_FILES, OVERLAY_FOLDER } from '../../config/overlayPresets.js';
 
 export function initializeUI(ZM) {
   // Load JSON configs for UI presets
@@ -84,6 +85,7 @@ function initializeAllControls(ZM) {
   wireCheckbox(ZM, 'depth-invert', 'depthInvert');
   wireCheckbox(ZM, 'auto-trigger-states', 'autoTriggerStates');
   wireCheckbox(ZM, 'overlay-visible', 'overlayVisible');
+  wireCheckbox(ZM, 'overlay-auto-fit', 'overlayAutoFit');
   
   // Stereoscopic controls
   setupStereoscopicControls(ZM);
@@ -556,24 +558,11 @@ async function loadOverlayPresets(ZM) {
   if (!presetSelect) return;
   
   try {
-    // Fetch list of overlay files from assets/overlays/
-    const overlayFolder = 'assets/overlays/';
-    
-    // Known overlay files (since we can't list directory contents in browser)
-    const overlayFiles = [
-      'Mappinng2026_Horizontal-Black.json',
-      'Mappinng2026_Horizontal-White_O_Shadow.json',
-      'Mappinng2026_Square-Black.json',
-      'Mappinng2026_Square-White.json',
-      'Mappinng2026_Vertical-Black.json',
-      'Mappinng2026_Vertical-White.json'
-    ];
-    
-    // Load each overlay file
+    // Load each overlay file from config
     const overlays = [];
-    for (const file of overlayFiles) {
+    for (const file of OVERLAY_FILES) {
       try {
-        const response = await fetch(overlayFolder + file);
+        const response = await fetch(OVERLAY_FOLDER + file);
         if (response.ok) {
           const data = await response.json();
           overlays.push({
@@ -623,6 +612,7 @@ function setupOverlayControls(ZM) {
   const loadInput = document.getElementById('load-overlay-input');
   const clearBtn = document.getElementById('clear-overlay-btn');
   const visibleCheckbox = document.getElementById('overlay-visible');
+  const autoFitCheckbox = document.getElementById('overlay-auto-fit');
   const scaleSlider = document.getElementById('overlay-scale');
   const opacitySlider = document.getElementById('overlay-opacity');
   const xSlider = document.getElementById('overlay-x');
@@ -635,13 +625,48 @@ function setupOverlayControls(ZM) {
     if (ZM.params.overlayVisible && ZM.params.overlayImageSrc) {
       overlayImg.style.display = 'block';
       overlayImg.src = ZM.params.overlayImageSrc;
-      overlayImg.style.transform = `translate(-50%, -50%) scale(${ZM.params.overlayScale / 100})`;
+      
+      let scale = ZM.params.overlayScale / 100;
+      
+      // Calculate auto-fit scale if enabled
+      if (ZM.params.overlayAutoFit && overlayImg.naturalWidth && overlayImg.naturalHeight) {
+        const canvasContainer = document.getElementById('canvas-container');
+        if (canvasContainer) {
+          const containerWidth = canvasContainer.clientWidth;
+          const containerHeight = canvasContainer.clientHeight;
+          const imgWidth = overlayImg.naturalWidth;
+          const imgHeight = overlayImg.naturalHeight;
+          
+          // Calculate scale to fit (cover the canvas)
+          const scaleX = containerWidth / imgWidth;
+          const scaleY = containerHeight / imgHeight;
+          scale = Math.min(scaleX, scaleY);
+        }
+      }
+      
+      overlayImg.style.transform = `translate(-50%, -50%) scale(${scale})`;
       overlayImg.style.opacity = ZM.params.overlayOpacity / 100;
       overlayImg.style.left = `${ZM.params.overlayX}%`;
       overlayImg.style.top = `${ZM.params.overlayY}%`;
     } else {
       overlayImg.style.display = 'none';
     }
+  }
+  
+  // Update scale slider state based on auto-fit
+  function updateScaleSliderState() {
+    if (scaleSlider) {
+      scaleSlider.disabled = ZM.params.overlayAutoFit;
+      scaleSlider.style.opacity = ZM.params.overlayAutoFit ? '0.5' : '1';
+    }
+  }
+  
+  // Auto-fit checkbox
+  if (autoFitCheckbox) {
+    autoFitCheckbox.addEventListener('change', () => {
+      updateScaleSliderState();
+      updateOverlay();
+    });
   }
   
   // Preset selector
@@ -659,8 +684,8 @@ function setupOverlayControls(ZM) {
         const index = parseInt(value);
         const overlay = ZM.overlayPresets[index];
         
-        if (overlay && overlay.data && overlay.data.data) {
-          ZM.params.overlayImageSrc = overlay.data.data;
+        if (overlay && overlay.data && overlay.data.base64) {
+          ZM.params.overlayImageSrc = overlay.data.base64;
           ZM.params.overlayVisible = true;
           if (visibleCheckbox) visibleCheckbox.checked = true;
           updateOverlay();
@@ -700,6 +725,7 @@ function setupOverlayControls(ZM) {
       ZM.params.overlayVisible = false;
       if (visibleCheckbox) visibleCheckbox.checked = false;
       if (loadInput) loadInput.value = '';
+      if (presetSelect) presetSelect.value = '';
       updateOverlay();
       ZM.saveToLocalStorage();
       showToast('Overlay image cleared', 'info');
@@ -723,7 +749,24 @@ function setupOverlayControls(ZM) {
     ySlider.addEventListener('input', updateOverlay);
   }
   
-  // Initial update
+  // Update when overlay image loads (for auto-fit calculations)
+  if (overlayImg) {
+    overlayImg.addEventListener('load', () => {
+      if (ZM.params.overlayAutoFit) {
+        updateOverlay();
+      }
+    });
+  }
+  
+  // Update on window resize (for auto-fit)
+  window.addEventListener('resize', () => {
+    if (ZM.params.overlayAutoFit && ZM.params.overlayVisible) {
+      updateOverlay();
+    }
+  });
+  
+  // Initial state
+  updateScaleSliderState();
   updateOverlay();
   
   // Store update function for external calls
@@ -875,7 +918,8 @@ function syncUIFromParams(ZM) {
     'stereoscopic-mode': 'stereoscopicMode',
     'framebuffer-mode': 'framebufferMode',
     'auto-trigger-states': 'autoTriggerStates',
-    'overlay-visible': 'overlayVisible'
+    'overlay-visible': 'overlayVisible',
+    'overlay-auto-fit': 'overlayAutoFit'
   };
   
   Object.entries(checkboxMap).forEach(([checkboxId, paramKey]) => {

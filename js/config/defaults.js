@@ -91,6 +91,7 @@ export const DEFAULT_PARAMS = {
   // Overlay Image
   overlayImageSrc: null,
   overlayVisible: false,
+  overlayAutoFit: false,
   overlayScale: 100,
   overlayOpacity: 100,
   overlayX: 50,
