@@ -36,6 +36,7 @@ export class ZigzagLine {
     this.isTransitioning = false;
     
     // Z-offset to prevent z-fighting between color slots (dynamic multiplier)
+    this.colorSlotIndex = colorSlotIndex;
     this.zOffset = (colorSlotIndex - 2) * params.colorSlotZOffset;
     
     this.vy = vy;
@@ -56,11 +57,17 @@ export class ZigzagLine {
   /**
    * Start transitioning to a new color
    */
-  transitionToColor(newColor) {
+  transitionToColor(newColor, newColorSlotIndex) {
     this.startColor = [...this.currentColor];  // Remember where we started
     this.targetColor = [...newColor];
     this.colorTransitionProgress = 0.0;
     this.isTransitioning = true;
+    
+    // Update z-offset if color slot changed (prevents z-fighting)
+    if (newColorSlotIndex !== undefined && newColorSlotIndex !== this.colorSlotIndex) {
+      this.colorSlotIndex = newColorSlotIndex;
+      this.zOffset = (newColorSlotIndex - 2) * this.params.colorSlotZOffset;
+    }
   }
 
   _buildVertices() {

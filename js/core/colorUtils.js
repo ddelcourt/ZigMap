@@ -45,6 +45,20 @@ export function pickRandomLineColor(params) {
 }
 
 /**
+ * Get color for a specific slot index from active palette
+ * @param {Object} params - Application parameters
+ * @param {number} slotIndex - Palette slot index (0-3)
+ * @returns {Array} RGB array [r, g, b]
+ */
+export function getColorForSlot(params, slotIndex) {
+  const palette = params.palettes[params.activePaletteIndex];
+  if (slotIndex >= 0 && slotIndex < palette.length) {
+    return [...palette[slotIndex].rgb];
+  }
+  return [255, 255, 255]; // Default white
+}
+
+/**
  * Lerp between two RGB colors
  * @param {Array} from - Start RGB [r, g, b]
  * @param {Array} to - End RGB [r, g, b]
@@ -64,12 +78,13 @@ export function lerpColor(from, to, t) {
  * @param {Object} ZM - Global ZigMap instance
  */
 export function triggerPaletteChange(ZM) {
-  // Transition all existing lines to random colors from new palette
+  // Transition all existing lines to their same slot index in new palette
   if (ZM.emitterInstance && ZM.emitterInstance.lines) {
     for (const line of ZM.emitterInstance.lines) {
-      const colorData = pickRandomLineColor(ZM.params);
-      line.transitionToColor(colorData.color);
-      // Note: z-offset stays constant - lines keep their original depth layer
+      // Keep the line's current slot index, get the color for that slot in the new palette
+      const newColor = getColorForSlot(ZM.params, line.colorSlotIndex);
+      line.transitionToColor(newColor, line.colorSlotIndex);
+      // Slot index stays the same, only color changes
     }
   }
   
