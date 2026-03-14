@@ -74,5 +74,5 @@ export function buildRibbonSides(points, halfWidth) {
     });
   }
 
-  return { leftSide, rightSide };
+  return { leftSide: leftSide, rightSide: rightSide };
 }

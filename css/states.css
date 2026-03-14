@@ -47,6 +47,10 @@
   cursor: pointer;
   transition: background 0.15s ease;
   position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .state-item:hover {
@@ -67,6 +71,10 @@
   flex: 1;
   min-width: 0;
   margin-right: 8px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .state-name {
@@ -77,14 +85,13 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: text;
+  cursor: pointer;
   padding: 2px 4px;
   border-radius: 2px;
-  transition: background 0.15s ease;
-}
-
-.state-name:hover {
-  background: rgba(255, 255, 255, 0.05);
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
 }
 
 .state-name.editing {
@@ -93,6 +100,11 @@
   outline: none;
   white-space: normal;
   overflow: visible;
+  cursor: text;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
 }
 
 .state-item.active .state-name {
@@ -103,6 +115,10 @@
 .state-timestamp {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.4);
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 /* State Actions - 2x2 Grid */

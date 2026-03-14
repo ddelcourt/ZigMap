@@ -13,6 +13,9 @@ export function initializeUI(ZM) {
     setupCollapsibleSections();
     setupLanguageFilter();
     setupDocumentationButtons();
+    
+    // Load overlay presets asynchronously
+    loadOverlayPresets(ZM);
   });
   
   // Store sync function
@@ -546,10 +549,76 @@ function setupUIButtons(ZM) {
 }
 
 /**
+ * Load and populate overlay presets
+ */
+async function loadOverlayPresets(ZM) {
+  const presetSelect = document.getElementById('overlay-preset');
+  if (!presetSelect) return;
+  
+  try {
+    // Fetch list of overlay files from assets/overlays/
+    const overlayFolder = 'assets/overlays/';
+    
+    // Known overlay files (since we can't list directory contents in browser)
+    const overlayFiles = [
+      'Mappinng2026_Horizontal-Black.json',
+      'Mappinng2026_Horizontal-White_O_Shadow.json',
+      'Mappinng2026_Square-Black.json',
+      'Mappinng2026_Square-White.json',
+      'Mappinng2026_Vertical-Black.json',
+      'Mappinng2026_Vertical-White.json'
+    ];
+    
+    // Load each overlay file
+    const overlays = [];
+    for (const file of overlayFiles) {
+      try {
+        const response = await fetch(overlayFolder + file);
+        if (response.ok) {
+          const data = await response.json();
+          overlays.push({
+            file: file,
+            name: file.replace('.json', '').replace(/_/g, ' '),
+            data: data
+          });
+        }
+      } catch (err) {
+        console.warn(`Failed to load overlay: ${file}`, err);
+      }
+    }
+    
+    // Populate dropdown
+    presetSelect.innerHTML = '<option value="">-- Select Preset --</option>';
+    
+    overlays.forEach((overlay, index) => {
+      const option = document.createElement('option');
+      option.value = index;
+      option.textContent = overlay.name;
+      option.dataset.overlayData = JSON.stringify(overlay.data);
+      presetSelect.appendChild(option);
+    });
+    
+    // Add "Custom Image" option
+    const customOption = document.createElement('option');
+    customOption.value = 'custom';
+    customOption.textContent = '-- Custom Image --';
+    presetSelect.appendChild(customOption);
+    
+    // Store overlays in ZM for later use
+    ZM.overlayPresets = overlays;
+    
+    console.log(`✓ Loaded ${overlays.length} overlay presets`);
+  } catch (err) {
+    console.error('Failed to load overlay presets:', err);
+  }
+}
+
+/**
  * Setup overlay image controls
  */
 function setupOverlayControls(ZM) {
   const overlayImg = document.getElementById('overlay-image');
+  const presetSelect = document.getElementById('overlay-preset');
   const loadBtn = document.getElementById('load-overlay-btn');
   const loadInput = document.getElementById('load-overlay-input');
   const clearBtn = document.getElementById('clear-overlay-btn');
@@ -575,7 +644,34 @@ function setupOverlayControls(ZM) {
     }
   }
   
-  // Load button
+  // Preset selector
+  if (presetSelect) {
+    presetSelect.addEventListener('change', (e) => {
+      const value = e.target.value;
+      
+      if (value === 'custom') {
+        // Trigger custom file input
+        if (loadInput) loadInput.click();
+        // Reset dropdown
+        setTimeout(() => presetSelect.value = '', 100);
+      } else if (value && ZM.overlayPresets) {
+        // Load preset overlay
+        const index = parseInt(value);
+        const overlay = ZM.overlayPresets[index];
+        
+        if (overlay && overlay.data && overlay.data.data) {
+          ZM.params.overlayImageSrc = overlay.data.data;
+          ZM.params.overlayVisible = true;
+          if (visibleCheckbox) visibleCheckbox.checked = true;
+          updateOverlay();
+          ZM.saveToLocalStorage();
+          showToast(`Loaded: ${overlay.name}`, 'success');
+        }
+      }
+    });
+  }
+  
+  // Load button (for custom images)
   if (loadBtn && loadInput) {
     loadBtn.addEventListener('click', () => loadInput.click());
     
@@ -588,9 +684,10 @@ function setupOverlayControls(ZM) {
         ZM.params.overlayImageSrc = event.target.result;
         ZM.params.overlayVisible = true;
         if (visibleCheckbox) visibleCheckbox.checked = true;
+        if (presetSelect) presetSelect.value = ''; // Reset preset selector
         updateOverlay();
         ZM.saveToLocalStorage();
-        showToast('Overlay image loaded', 'success');
+        showToast('Custom overlay image loaded', 'success');
       };
       reader.readAsDataURL(file);
     });

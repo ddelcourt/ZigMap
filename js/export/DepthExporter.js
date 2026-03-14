@@ -39,7 +39,7 @@ function projectPoint(x, y, z, ZM, defaultCameraZ, totalDistance) {
   const sx = px * s + ZM.W / 2;
   const sy = py * s + ZM.H / 2;
   
-  return { sx, sy, depth: -pz };
+  return { sx: sx, sy: sy, depth: -pz };
 }
 
 /**

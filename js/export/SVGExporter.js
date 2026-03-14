@@ -12,21 +12,27 @@ export function exportSVG(ZM) {
   svg.setAttribute('viewBox', `0 0 ${ZM.W} ${ZM.H}`);
   
   // Rotation helpers
-  const rotX = (x, y, z, a) => ({ 
-    x, 
-    y: y * Math.cos(a) - z * Math.sin(a), 
-    z: y * Math.sin(a) + z * Math.cos(a) 
-  });
-  const rotY = (x, y, z, a) => ({ 
-    x: x * Math.cos(a) + z * Math.sin(a), 
-    y, 
-    z: -x * Math.sin(a) + z * Math.cos(a) 
-  });
-  const rotZ = (x, y, z, a) => ({ 
-    x: x * Math.cos(a) - y * Math.sin(a), 
-    y: x * Math.sin(a) + y * Math.cos(a), 
-    z 
-  });
+  function rotX(x, y, z, a) {
+    return {
+      x: x, 
+      y: y * Math.cos(a) - z * Math.sin(a), 
+      z: y * Math.sin(a) + z * Math.cos(a)
+    };
+  }
+  function rotY(x, y, z, a) {
+    return {
+      x: x * Math.cos(a) + z * Math.sin(a), 
+      y: y, 
+      z: -x * Math.sin(a) + z * Math.cos(a)
+    };
+  }
+  function rotZ(x, y, z, a) {
+    return {
+      x: x * Math.cos(a) - y * Math.sin(a), 
+      y: x * Math.sin(a) + y * Math.cos(a), 
+      z: z
+    };
+  }
   
   // Camera projection setup
   const fovRad = ZM.params.fov * Math.PI / 180;
@@ -62,14 +68,16 @@ export function exportSVG(ZM) {
       ZM.buildRibbonSides(localVerts, line.lineThickness / 2);
     
     // Project to screen space
-    const toScreen = localPts => localPts
-      .map(pt => ({
-        x: ((line.x - ZM.W / 2) + pt.x) * scaleVal,
-        y: ((line.y - ZM.H / 2) + pt.y) * scaleVal,
-        z: 0
-      }))
-      .map(pt => projectPoint(pt.x, pt.y, pt.z))
-      .filter(Boolean);
+    function toScreen(localPts) {
+      return localPts
+        .map(pt => ({
+          x: ((line.x - ZM.W / 2) + pt.x) * scaleVal,
+          y: ((line.y - ZM.H / 2) + pt.y) * scaleVal,
+          z: 0
+        }))
+        .map(pt => projectPoint(pt.x, pt.y, pt.z))
+        .filter(Boolean);
+    }
     
     const leftScreen = toScreen(leftLocal);
     const rightScreen = toScreen(rightLocal);

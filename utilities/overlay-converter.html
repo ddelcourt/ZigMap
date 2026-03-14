@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZigMap26 - Overlay Converter</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 400;
+    }
+
+    .dropzone {
+      background: rgba(255, 255, 255, 0.05);
+      border: 3px dashed rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      padding: 60px 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dropzone:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(100, 150, 255, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .dropzone.dragover {
+      background: rgba(100, 150, 255, 0.15);
+      border-color: #6496ff;
+      border-style: solid;
+      transform: scale(1.02);
+    }
+
+    .dropzone-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.6;
+    }
+
+    .dropzone-text {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .dropzone-hint {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .preview-section {
+      margin-top: 40px;
+      display: none;
+    }
+
+    .preview-section.active {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #fff;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 10px;
+    }
+
+    .file-list {
+      display: grid;
+      gap: 20px;
+    }
+
+    .file-item {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .file-item:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .file-preview {
+      width: 80px;
+      height: 80px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .file-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-meta {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .file-status {
+      font-size: 13px;
+      margin-top: 5px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .file-status.ready {
+      background: rgba(100, 200, 100, 0.2);
+      color: #6c6;
+    }
+
+    .file-status.converted {
+      background: rgba(100, 150, 255, 0.2);
+      color: #6496ff;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: rgba(100, 150, 255, 0.2);
+      border: 1px solid #6496ff;
+      color: #6496ff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button:hover {
+      background: rgba(100, 150, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.primary {
+      background: #6496ff;
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: #5080e0;
+    }
+
+    button.danger {
+      background: rgba(255, 100, 100, 0.2);
+      border-color: #ff6464;
+      color: #ff6464;
+    }
+
+    button.danger:hover {
+      background: rgba(255, 100, 100, 0.3);
+    }
+
+    .actions-bar {
+      margin-top: 30px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .info-box {
+      background: rgba(100, 150, 255, 0.05);
+      border: 1px solid rgba(100, 150, 255, 0.3);
+      border-radius: 8px;
+      margin-top: 40px;
+      overflow: hidden;
+    }
+
+    .info-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(100, 150, 255, 0.05);
+      border-bottom: 1px solid transparent;
+      transition: background 0.2s;
+    }
+
+    .info-header:hover {
+      background: rgba(100, 150, 255, 0.12);
+    }
+
+    .info-header.active {
+      border-bottom-color: rgba(100, 150, 255, 0.2);
+    }
+
+    .info-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #6496ff;
+      letter-spacing: 0.05em;
+    }
+
+    .info-toggle {
+      color: rgba(100, 150, 255, 0.6);
+      font-size: 14px;
+      transition: transform 0.2s;
+    }
+
+    .info-header.active .info-toggle {
+      transform: rotate(180deg);
+    }
+
+    .info-content {
+      display: none;
+    }
+
+    .info-content.expanded {
+      display: block;
+    }
+
+    .info-text {
+      padding: 20px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+    }
+
+    .info-text code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #6496ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Base64 Image Converter</h1>
+      <!-- <p class="subtitle">Convert images to Base64 JSON format</p> -->
+    </header>
+
+    <div class="dropzone" id="dropzone">
+      <!-- <div class="dropzone-icon">📁</div> -->
+      <div class="dropzone-text">Drag & Drop Images Here</div>
+      <div class="dropzone-hint">Click to browse (SVG, PNG, JPG supported)</div>
+      <input type="file" id="fileInput" class="file-input" accept="image/svg+xml,image/png,image/jpeg,image/jpg,image/gif" multiple>
+    </div>
+
+    <div class="preview-section" id="previewSection">
+      <h2 class="section-title">Selected Files</h2>
+      <div class="file-list" id="fileList"></div>
+      <div class="actions-bar">
+        <button class="primary" id="convertBtn">Convert All to Base64</button>
+        <button class="danger" id="clearBtn">Clear All</button>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-header" id="infoHeader">
+        <div class="info-title">Help</div>
+        <div class="info-toggle">▼</div>
+      </div>
+      <div class="info-content" id="infoContent">
+        <div class="info-text">
+          1. Drag & drop or select image files (SVG, PNG, JPG)<br>
+          2. Click "Convert All to Base64" to process the images<br>
+          3. Each image will download as a separate JSON file<br>
+          4. Place the JSON files in <code>assets/overlays/</code> folder<br>
+          5. Reload the app to see them in the overlay dropdown
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const previewSection = document.getElementById('previewSection');
+    const fileList = document.getElementById('fileList');
+    const convertBtn = document.getElementById('convertBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    let selectedFiles = [];
+
+    // Setup collapsible info section
+    const infoHeader = document.getElementById('infoHeader');
+    const infoContent = document.getElementById('infoContent');
+    
+    infoHeader.addEventListener('click', () => {
+      const isExpanded = infoContent.classList.toggle('expanded');
+      infoHeader.classList.toggle('active', isExpanded);
+    });
+
+    // Click to browse
+    dropzone.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+      handleFiles(e.target.files);
+    });
+
+    // Drag & drop events
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    // Handle selected files
+    function handleFiles(files) {
+      const validTypes = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+      const newFiles = Array.from(files).filter(file => validTypes.includes(file.type));
+      
+      if (newFiles.length === 0) {
+        alert('Please select valid image files (SVG, PNG, JPG)');
+        return;
+      }
+
+      selectedFiles = [...selectedFiles, ...newFiles];
+      displayFiles();
+      previewSection.classList.add('active');
+    }
+
+    // Display file list
+    function displayFiles() {
+      fileList.innerHTML = '';
+      
+      selectedFiles.forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        
+        const preview = document.createElement('div');
+        preview.className = 'file-preview';
+        
+        // Create image preview
+        const img = document.createElement('img');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        preview.appendChild(img);
+        
+        const info = document.createElement('div');
+        info.className = 'file-info';
+        
+        const fileName = document.createElement('div');
+        fileName.className = 'file-name';
+        fileName.textContent = file.name;
+        
+        const fileMeta = document.createElement('div');
+        fileMeta.className = 'file-meta';
+        fileMeta.textContent = `${file.type} • ${(file.size / 1024).toFixed(2)} KB`;
+        
+        const fileStatus = document.createElement('div');
+        fileStatus.className = 'file-status ready';
+        fileStatus.textContent = 'Ready';
+        fileStatus.id = `status-${index}`;
+        
+        info.appendChild(fileName);
+        info.appendChild(fileMeta);
+        info.appendChild(fileStatus);
+        
+        const actions = document.createElement('div');
+        actions.className = 'file-actions';
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'danger';
+        removeBtn.textContent = 'Remove';
+        removeBtn.onclick = () => removeFile(index);
+        
+        actions.appendChild(removeBtn);
+        
+        fileItem.appendChild(preview);
+        fileItem.appendChild(info);
+        fileItem.appendChild(actions);
+        
+        fileList.appendChild(fileItem);
+      });
+    }
+
+    // Remove file
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      if (selectedFiles.length === 0) {
+        previewSection.classList.remove('active');
+      } else {
+        displayFiles();
+      }
+    }
+
+    // Clear all files
+    clearBtn.addEventListener('click', () => {
+      selectedFiles = [];
+      previewSection.classList.remove('active');
+      fileInput.value = '';
+    });
+
+    // Convert all files
+    convertBtn.addEventListener('click', async () => {
+      if (selectedFiles.length === 0) return;
+      
+      convertBtn.disabled = true;
+      convertBtn.textContent = 'Converting...';
+      
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const statusEl = document.getElementById(`status-${i}`);
+        
+        try {
+          statusEl.textContent = 'Converting...';
+          statusEl.className = 'file-status';
+          statusEl.style.background = 'rgba(255, 200, 100, 0.2)';
+          statusEl.style.color = '#fc6';
+          
+          // Convert to Base64
+          const base64 = await fileToBase64(file);
+          
+          // Create JSON structure
+          const overlayData = {
+            id: `overlay_${Date.now()}_${i}`,
+            filename: file.name,
+            type: file.type.split('/')[1],
+            data: base64
+          };
+          
+          // Download JSON file
+          downloadJSON(overlayData, file.name);
+          
+          statusEl.textContent = '✓ Converted & Downloaded';
+          statusEl.className = 'file-status converted';
+          
+          // Small delay between downloads
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error('Conversion error:', error);
+          statusEl.textContent = '✗ Error';
+          statusEl.style.background = 'rgba(255, 100, 100, 0.2)';
+          statusEl.style.color = '#f66';
+        }
+      }
+      
+      convertBtn.disabled = false;
+      convertBtn.textContent = 'Convert All to Base64';
+    });
+
+    // Convert file to Base64
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Download JSON file
+    function downloadJSON(data, originalFilename) {
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Create filename: remove extension, add .json
+      const nameWithoutExt = originalFilename.replace(/\.[^/.]+$/, '');
+      a.download = `overlay_${nameWithoutExt}.json`;
+      
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

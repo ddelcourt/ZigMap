@@ -55,7 +55,7 @@ export function projectPoint(x, y, z, options) {
   const sx = px * s + canvasWidth / 2;
   const sy = py * s + canvasHeight / 2;
 
-  return { sx, sy, depth: -pz };
+  return { sx: sx, sy: sy, depth: -pz };
 }
 
 /**

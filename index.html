@@ -294,7 +294,7 @@
           <div class="control-group">
             <label>Color Depth Separation <span style="color:#444">(10-500)</span></label>
             <div class="slider-row">
-              <input type="range" id="color-slot-z-offset" min="0" max="500" step="2" value="100"/>
+              <input type="range" id="color-slot-z-offset" min="10" max="500" step="10" value="100"/>
               <span class="value-display" id="color-slot-z-offset-val">100</span>
             </div>
           </div>
@@ -388,8 +388,17 @@
           <div class="control-group">
             <label><input type="checkbox" id="overlay-visible"> Show Overlay</label>
           </div>
+          
+          <!-- Overlay Preset Selector -->
+          <div class="control-group" style="margin-top:12px;">
+            <label>Preset</label>
+            <select id="overlay-preset" style="width:100%;padding:8px;background:#1a1a1a;border:1px solid#333;color:#aaa;font-size:0.75rem;border-radius:4px;cursor:pointer;">
+              <option value="">-- Select Preset --</option>
+            </select>
+          </div>
+          
           <div style="margin-top:12px;">
-            <button id="load-overlay-btn" style="width:100%;padding:10px;background:#1a1a3a;border:1px solid #2d2d5f;color:#aaaaff;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Load Image</button>
+            <button id="load-overlay-btn" style="width:100%;padding:10px;background:#1a1a3a;border:1px solid #2d2d5f;color:#aaaaff;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Load Custom Image</button>
             <input type="file" id="load-overlay-input" accept=".png,.jpg,.jpeg,.svg" style="display:none;">
           </div>
           <div class="control-group" style="margin-top:12px;">

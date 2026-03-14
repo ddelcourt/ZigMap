@@ -67,11 +67,11 @@ export class ZigzagLine {
     const pts = [];
     let x = -this.totalWidth / 2;
     let y = 0;
-    pts.push({ x, y });
+    pts.push({ x: x, y: y });
     for (let i = 0; i < this.segments; i++) {
       x += this.step;
       y += i % 2 === 0 ? this.step : -this.step;
-      pts.push({ x, y });
+      pts.push({ x: x, y: y });
     }
     return pts;
   }
