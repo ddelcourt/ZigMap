@@ -973,20 +973,34 @@ States capture complete snapshots of parameters and camera position for instant 
 {
   name: "State Name",
   params: {
-    // All parameters except project-wide settings
+    // All parameters except project-wide settings and camera
     segmentLength: 30,
     lineThickness: 12,
     emitRate: 1.5,
     speed: 80,
-    cameraRotationX: 0.2,
-    cameraRotationY: 0.5,
-    cameraDistance: 800,
+    fov: 70,
     // ... all other parameters
     
     // Project-wide (excluded from state capture):
     // - overlayImageSrc, overlayVisible, overlayScale, overlayOpacity, overlayX, overlayY
     // - stateTransitionDuration, colorTransitionDuration
     // - autoTriggerEnabled, autoTriggerFrequency
+    // - near, far, framebufferMode, framebufferWidth/Height
+    // - stereoscopicMode, eyeSeparation
+    
+    // Camera parameters (stored separately in camera object):
+    // - cameraRotationX, cameraRotationY, cameraDistance
+    // - cameraOffsetX, cameraOffsetY
+  },
+  camera: {
+    rotationX: 0.2,
+    rotationY: 0.5,
+    distance: 800,
+    offsetX: 0,
+    offsetY: 0
+  },
+  metadata: {
+    version: "1.0"
   }
 }
 ```
@@ -1751,10 +1765,22 @@ export function createCompositeCanvas(ZM, sourceCanvas) {
   // 2. Draw overlay if visible
   const overlayImg = document.getElementById('overlay-image');
   if (params.overlayVisible && overlayImg && overlayImg.src && overlayImg.complete) {
-    // Calculate scaled dimensions with pixelDensity
-    const scale = params.overlayScale / 100;
-    const overlayWidth = overlayImg.naturalWidth * scale * pixelDensity;
-    const overlayHeight = overlayImg.naturalHeight * scale * pixelDensity;
+    // Calculate overlay size to match on-screen display
+    const overlayNaturalWidth = overlayImg.naturalWidth;
+    const overlayNaturalHeight = overlayImg.naturalHeight;
+    const userScale = params.overlayScale / 100;
+    
+    // On-screen: image displays at naturalWidth CSS pixels, then scaled by userScale
+    const displayWidth = overlayNaturalWidth * userScale;
+    const displayHeight = overlayNaturalHeight * userScale;
+    
+    // Convert to canvas buffer pixels
+    // sourceCanvas.width = buffer size (includes pixelDensity)
+    // ZM.W = logical size (CSS pixels)
+    const bufferToLogicalRatio = sourceCanvas.width / ZM.W;
+    // × 2 accounts for image pixels → CSS pixels → buffer pixels conversion
+    const overlayWidth = displayWidth * bufferToLogicalRatio * 2;
+    const overlayHeight = displayHeight * bufferToLogicalRatio * 2;
     
     // Calculate position (0-100% → pixel coordinates)
     const x = (params.overlayX / 100) * actualWidth - overlayWidth / 2;
@@ -1957,15 +1983,46 @@ overlayY: 50,               // Vertical position (0-100%)
 **Implementation (js/storage/StateManager.js):**
 ```javascript
 export function captureCurrentState(ZM) {
-  const state = { ...ZM.params };
+  const params = { ...ZM.params };
   
   // Remove project-wide settings
-  delete state.overlayImageSrc;
-  delete state.overlayVisible;
-  delete state.overlayScale;
-  delete state.overlayOpacity;
-  delete state.overlayX;
-  delete state.overlayY;
+  delete params.near;
+  delete params.far;
+  delete params.framebufferMode;
+  delete params.framebufferPreset;
+  delete params.framebufferWidth;
+  delete params.framebufferHeight;
+  delete params.stereoscopicMode;
+  delete params.eyeSeparation;
+  
+  // Exclude camera parameters (stored separately in camera object)
+  delete params.cameraRotationX;
+  delete params.cameraRotationY;
+  delete params.cameraDistance;
+  delete params.cameraOffsetX;
+  delete params.cameraOffsetY;
+  
+  delete params.overlayImageSrc;
+  delete params.overlayVisible;
+  delete params.overlayScale;
+  delete params.overlayOpacity;
+  delete params.overlayX;
+  delete params.overlayY;
+  
+  // Create state with separate camera object
+  const state = {
+    params: params,
+    camera: {
+      rotationX: ZM.camera.rotationX,
+      rotationY: ZM.camera.rotationY,
+      distance: ZM.camera.distance,
+      offsetX: ZM.camera.offsetX,
+      offsetY: ZM.camera.offsetY
+    },
+    metadata: {
+      version: "1.0"
+    }
+  };
   
   return state;
 }

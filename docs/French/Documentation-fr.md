@@ -267,6 +267,8 @@ const params = {
 
 État de la caméra indépendant de `params` pour éviter les mises à jour circulaires.
 
+**IMPORTANT** : Lors de la sauvegarde d'états, les paramètres de caméra (`rotationX`, `rotationY`, `distance`, `offsetX`, `offsetY`) sont stockés dans un objet `camera` séparé, distinct de l'objet `params`. Cette séparation permet une gestion plus claire des états et élimine la redondance dans les fichiers JSON de projet.
+
 ```javascript
 const camera = {
   rotationX: -0.3,     // Tangage (radians)
@@ -656,6 +658,101 @@ Ajuste la résolution et l'échelle du canevas.
 
 ## Gestion d'état
 
+### Architecture des états
+
+Les états capturent des instantanés complets des paramètres et de la position de caméra pour un rappel instantané avec transitions fluides.
+
+**Structure d'objet état** :
+```javascript
+{
+  name: "Nom de l'état",
+  params: {
+    // Tous les paramètres sauf réglages globaux et caméra
+    segmentLength: 30,
+    lineThickness: 12,
+    emitRate: 1.5,
+    speed: 80,
+    fov: 70,
+    // ... tous les autres paramètres
+    
+    // Globaux (exclus de la capture d'état) :
+    // - overlayImageSrc, overlayVisible, overlayScale, overlayOpacity, overlayX, overlayY
+    // - stateTransitionDuration, colorTransitionDuration
+    // - autoTriggerEnabled, autoTriggerFrequency
+    // - near, far, framebufferMode, framebufferWidth/Height
+    // - stereoscopicMode, eyeSeparation
+    
+    // Paramètres de caméra (stockés séparément dans objet camera) :
+    // - cameraRotationX, cameraRotationY, cameraDistance
+    // - cameraOffsetX, cameraOffsetY
+  },
+  camera: {
+    rotationX: 0.2,
+    rotationY: 0.5,
+    distance: 800,
+    offsetX: 0,
+    offsetY: 0
+  },
+  metadata: {
+    version: "1.0"
+  }
+}
+```
+
+### Exclusion de la gestion d'état
+
+**Implémentation (js/storage/StateManager.js)** :
+```javascript
+export function captureCurrentState(ZM) {
+  const params = { ...ZM.params };
+  
+  // Supprimer les réglages globaux au projet
+  delete params.near;
+  delete params.far;
+  delete params.framebufferMode;
+  delete params.framebufferPreset;
+  delete params.framebufferWidth;
+  delete params.framebufferHeight;
+  delete params.stereoscopicMode;
+  delete params.eyeSeparation;
+  
+  // Exclure les paramètres de caméra (stockés séparément dans objet camera)
+  delete params.cameraRotationX;
+  delete params.cameraRotationY;
+  delete params.cameraDistance;
+  delete params.cameraOffsetX;
+  delete params.cameraOffsetY;
+  
+  delete params.overlayImageSrc;
+  delete params.overlayVisible;
+  delete params.overlayScale;
+  delete params.overlayOpacity;
+  delete params.overlayX;
+  delete params.overlayY;
+  
+  // Créer l'état avec objet camera séparé
+  const state = {
+    params: params,
+    camera: {
+      rotationX: ZM.camera.rotationX,
+      rotationY: ZM.camera.rotationY,
+      distance: ZM.camera.distance,
+      offsetX: ZM.camera.offsetX,
+      offsetY: ZM.camera.offsetY
+    },
+    metadata: {
+      version: "1.0"
+    }
+  };
+  
+  return state;
+}
+```
+
+Les réglages d'incrustation persistent lors des changements d'état, permettant une marque cohérente sur tous les états.
+
+---
+
 #### `saveToLocalStorage()`
 
 ```javascript
@@ -675,7 +772,8 @@ Appelé après chaque changement de paramètre.
 1. Tenter de récupérer l'élément par clé
 2. Parser la chaîne JSON
 3. Fusionner dans `params` via `Object.assign()`
-4. Valider et corriger les valeurs problématiques : `near < 0.01` → `0.01`, `cameraDistance < 50` → `600`, `cameraOffsetX/Y === undefined` → `0`
+4. Valider et corriger les valeurs problématiques : `near < 0.01` → `0.01`, `camera.distance < 50` → `600`, `camera.offsetX/Y === undefined` → `0`
+5. Synchroniser l'état de caméra avec l'objet `camera` via `camera.syncFromParams()`
 
 #### `syncUIFromParams()`
 
@@ -721,11 +819,23 @@ Format du nom de fichier : `zigzag-emitter-AAAA-MM-JJTHH-MM-SS.json`
 
 #### `exportPNG()`
 
-1. Obtenir le canevas de l'instance p5 active
-2. `canvas.toDataURL('image/png')`
-3. Déclencher le téléchargement
+1. Créer un canevas composite avec incrustation (si visible)
+2. Obtenir le canevas de l'instance p5 active
+3. Calculer les dimensions d'incrustation avec correction de densité de pixels
+4. Superposer l'image d'incrustation avec mise à l'échelle et opacité
+5. `canvas.toBlob()` pour créer le blob PNG
+6. Déclencher le téléchargement
 
-Format : `zigzag-emitter-AAAA-MM-JJTHH-MM-SS.png`
+**Formule de mise à l'échelle de l'incrustation** :
+```javascript
+const displayWidth = overlayNaturalWidth × overlayScale / 100;
+const bufferToLogicalRatio = sourceCanvas.width / ZM.W;
+const imgWidth = displayWidth × bufferToLogicalRatio × 2;
+```
+
+Le multiplicateur × 2 convertit les pixels CSS en pixels de tampon sur les écrans Retina.
+
+Format : `zigmap26-AAAA-MM-JJTHH-MM-SS.png`
 
 #### `exportSVG()`
 
@@ -1273,6 +1383,92 @@ Chaîne de transformation CSS :
 2. `scale(...)` : applique la mise à l'échelle
 3. `left/top` : positionne le point central (0–100% du canevas)
 4. `opacity` : transparence (0–1)
+
+### Export PNG avec composition d'incrustation
+
+**Implémentation (js/export/PNGExporter.js)** :
+
+```javascript
+function createCompositeCanvas(ZM, sourceCanvas) {
+  const overlayImg = document.getElementById('overlay-image');
+  const hasOverlay = ZM.params.overlayVisible && ZM.params.overlayImageSrc && 
+                     overlayImg && overlayImg.complete;
+  
+  if (!hasOverlay) {
+    return sourceCanvas;
+  }
+  
+  // Créer un canevas composite aux dimensions du tampon
+  const composite = document.createElement('canvas');
+  composite.width = sourceCanvas.width;
+  composite.height = sourceCanvas.height;
+  const ctx = composite.getContext('2d');
+  
+  // 1. Dessiner le canevas p5
+  ctx.drawImage(sourceCanvas, 0, 0);
+  
+  // 2. Calculer les dimensions d'incrustation
+  const overlayNaturalWidth = overlayImg.naturalWidth;
+  const overlayNaturalHeight = overlayImg.naturalHeight;
+  const userScale = ZM.params.overlayScale / 100;
+  const opacity = ZM.params.overlayOpacity / 100;
+  
+  // Taille d'affichage en pixels CSS
+  const displayWidth = overlayNaturalWidth * userScale;
+  const displayHeight = overlayNaturalHeight * userScale;
+  
+  // Convertir en pixels de tampon
+  // sourceCanvas.width = taille du tampon (inclut pixelDensity)
+  // ZM.W = taille logique (pixels CSS)
+  const bufferToLogicalRatio = sourceCanvas.width / ZM.W;
+  
+  // × 2 convertit pixels CSS → pixels de tampon sur écrans Retina
+  const imgWidth = displayWidth * bufferToLogicalRatio * 2;
+  const imgHeight = displayHeight * bufferToLogicalRatio * 2;
+  
+  // Position en pourcentage → coordonnées pixel
+  const x = (ZM.params.overlayX / 100) * composite.width;
+  const y = (ZM.params.overlayY / 100) * composite.height;
+  
+  // Dessiner l'incrustation avec opacité
+  ctx.globalAlpha = opacity;
+  ctx.drawImage(
+    overlayImg,
+    x - imgWidth / 2,
+    y - imgHeight / 2,
+    imgWidth,
+    imgHeight
+  );
+  ctx.globalAlpha = 1.0;
+  
+  return composite;
+}
+```
+
+**Fonctionnalités clés** :
+- **Correction de densité de pixels** : mise à l'échelle correcte pour écrans Retina/haute résolution
+- **Opacité d'incrustation** : respecte le réglage d'opacité (0–100%)
+- **Positionnement précis** : Position X/Y (0–100%) convertie en coordonnées pixel
+- **Support de mise à l'échelle** : échelle d'incrustation (10–200%) appliquée correctement
+- **Qualité d'export** : utilise la résolution de rendu réelle (ex. 3840px sur canevas Retina 1920px)
+
+**Formule de calcul** :
+
+Mode normal (sans framebuffer) :
+```
+Largeur affichage = naturalWidth × (overlayScale / 100)
+Ratio = sourceCanvas.width / ZM.W      (= pixelDensity, ex. 2 sur Retina)
+Largeur image = Largeur affichage × Ratio × 2
+```
+
+Mode framebuffer :
+```
+Largeur affichage = naturalWidth × (overlayScale / 100)
+Ratio = sourceCanvas.width / ZM.W      (= 1 en mode framebuffer)
+Largeur image = Largeur affichage × Ratio × 2     (= Largeur affichage × 2)
+```
+
+Le multiplicateur × 2 est essentiel car `naturalWidth` retourne des pixels d'image qui correspondent à des pixels CSS à l'affichage, mais le contexte 2D du canevas dessine en pixels de tampon (2× sur écrans Retina).
 
 ---
 
