@@ -5,6 +5,7 @@
 
 import { STORAGE_KEY } from '../config/constants.js';
 import { DEFAULT_PARAMS } from '../config/defaults.js';
+import { OVERLAY_FILES } from '../../config/overlayPresets.js';
 
 /**
  * Save parameters to localStorage
@@ -81,12 +82,23 @@ export function loadFromLocalStorage(defaultParams) {
  * @param {Object} ZM - Main application object (or just params for backward compat)
  */
 export function downloadJSON(ZM) {
+  // Clone params and remove base64 overlay data to keep file small
+  const paramsClone = JSON.parse(JSON.stringify(ZM.params));
+  if (!paramsClone.overlayPresetFile) {
+    // Only keep overlayImageSrc if it's a custom upload (not a preset)
+    delete paramsClone.overlayImageSrc;
+  } else {
+    // Using preset - remove base64, keep filename reference
+    delete paramsClone.overlayImageSrc;
+  }
+  
   // Support backward compatibility if just params are passed
   const data = ZM.params ? {
     version: '2.0',
-    params: ZM.params,
+    params: paramsClone,
     states: ZM.stateManager?.states || [],
     activeStateId: ZM.stateManager?.activeStateId || null,
+    overlayPresetFiles: OVERLAY_FILES || [],
     saveDate: new Date().toISOString()
   } : ZM; // Fallback to old format if ZM is actually params
   
@@ -100,6 +112,22 @@ export function downloadJSON(ZM) {
   a.download = `zigmap26-project-${timestamp}.json`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Load overlay from preset file
+ */
+async function loadOverlayFromPreset(filename) {
+  try {
+    const response = await fetch(`assets/overlays/${filename}`);
+    if (response.ok) {
+      const data = await response.json();
+      return data.base64;
+    }
+  } catch (err) {
+    console.error(`Failed to load overlay preset: ${filename}`, err);
+  }
+  return null;
 }
 
 /**

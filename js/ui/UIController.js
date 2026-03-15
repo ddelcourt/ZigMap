@@ -708,6 +708,7 @@ function setupOverlayControls(ZM) {
         
         if (overlay && overlay.data && overlay.data.base64) {
           ZM.params.overlayImageSrc = overlay.data.base64;
+          ZM.params.overlayPresetFile = overlay.file; // Track which preset file is used
           ZM.params.overlayVisible = true;
           if (visibleCheckbox) visibleCheckbox.checked = true;
           updateOverlay();
@@ -729,6 +730,7 @@ function setupOverlayControls(ZM) {
       const reader = new FileReader();
       reader.onload = (event) => {
         ZM.params.overlayImageSrc = event.target.result;
+        ZM.params.overlayPresetFile = null; // Clear preset file (custom upload)
         ZM.params.overlayVisible = true;
         if (visibleCheckbox) visibleCheckbox.checked = true;
         if (presetSelect) presetSelect.value = ''; // Reset preset selector
@@ -744,6 +746,7 @@ function setupOverlayControls(ZM) {
   if (clearBtn) {
     clearBtn.addEventListener('click', () => {
       ZM.params.overlayImageSrc = null;
+      ZM.params.overlayPresetFile = null;
       ZM.params.overlayVisible = false;
       if (visibleCheckbox) visibleCheckbox.checked = false;
       if (loadInput) loadInput.value = '';
@@ -922,13 +925,38 @@ function setupDocumentationButtons() {
  * Sync UI from params (for when params are loaded from file)
  */
 function syncUIFromParams(ZM) {
-  // Update all controls to reflect loaded params
-  Object.keys(ZM.params).forEach(key => {
-    const slider = document.querySelector(`[data-param="${key}"]`);
-    if (slider) {
-      slider.value = ZM.params[key];
-      const display = document.getElementById(slider.id + '-val');
-      if (display) display.textContent = ZM.params[key];
+  // Update all wired sliders to reflect loaded params
+  const sliderMappings = [
+    { id: 'thickness', valId: 'thickness-val', param: 'lineThickness', decimals: 1 },
+    { id: 'emit-rate', valId: 'emit-rate-val', param: 'emitRate', decimals: 1 },
+    { id: 'speed', valId: 'speed-val', param: 'speed', decimals: 0 },
+    { id: 'emitter-rotation', valId: 'emitter-rotation-val', param: 'emitterRotation', decimals: 0 },
+    { id: 'geometry-scale', valId: 'geometry-scale-val', param: 'geometryScale', decimals: 0 },
+    { id: 'fade-duration', valId: 'fade-duration-val', param: 'fadeDuration', decimals: 0 },
+    { id: 'color-slot-z-offset', valId: 'color-slot-z-offset-val', param: 'colorSlotZOffset', decimals: 0 },
+    { id: 'ambient-speed-master', valId: 'ambient-speed-master-val', param: 'ambientSpeedMaster', decimals: 0 },
+    { id: 'video-duration', valId: 'video-duration-val', param: 'videoDuration', decimals: 0 },
+    { id: 'video-fps', valId: 'video-fps-val', param: 'videoFPS', decimals: 0 },
+    { id: 'eye-separation', valId: 'eye-separation-val', param: 'eyeSeparation', decimals: 0 },
+    { id: 'state-transition-duration', valId: 'state-transition-duration-val', param: 'stateTransitionDuration', decimals: 1 },
+    { id: 'color-transition-duration', valId: 'color-transition-duration-val', param: 'colorTransitionDuration', decimals: 1 },
+    { id: 'auto-trigger-frequency', valId: 'auto-trigger-frequency-val', param: 'autoTriggerFrequency', decimals: 0 },
+    { id: 'overlay-scale', valId: 'overlay-scale-val', param: 'overlayScale', decimals: 0 },
+    { id: 'overlay-opacity', valId: 'overlay-opacity-val', param: 'overlayOpacity', decimals: 0 },
+    { id: 'overlay-x', valId: 'overlay-x-val', param: 'overlayX', decimals: 0 },
+    { id: 'overlay-y', valId: 'overlay-y-val', param: 'overlayY', decimals: 0 }
+  ];
+  
+  sliderMappings.forEach(({ id, valId, param, decimals }) => {
+    const slider = document.getElementById(id);
+    const display = document.getElementById(valId);
+    if (slider && ZM.params[param] !== undefined) {
+      slider.value = ZM.params[param];
+      if (display) {
+        display.textContent = decimals > 0 ? 
+          ZM.params[param].toFixed(decimals) : 
+          ZM.params[param];
+      }
     }
   });
   

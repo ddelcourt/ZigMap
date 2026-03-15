@@ -39,7 +39,7 @@
 .current-state-name {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
+  font-weight: 600;
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -159,6 +159,16 @@
 
 .status-control-btn:active {
   transform: scale(0.95);
+}
+
+.status-control-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.status-control-btn:disabled:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: none;
 }
 
 .status-control-btn.paused {

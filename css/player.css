@@ -1,0 +1,418 @@
+/**
+ * ZigMap26 Player — Minimal Styling for Player Mode
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: #fff;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CANVAS CONTAINER
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.canvas-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  z-index: 1;
+}
+
+#canvas-wrapper {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.canvas-container canvas {
+  display: block;
+}
+
+/* Overlay Image */
+.overlay-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DROPZONE OVERLAY
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.dropzone-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); */
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.dropzone-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.dropzone-content {
+  text-align: center;
+  max-width: 500px;
+  padding: 40px;
+  transition: opacity 0.3s ease;
+}
+
+.dropzone-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.dropzone-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.dropzone-instructions {
+  font-size: 18px;
+  color: #aaa;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.dropzone-or {
+  font-size: 14px;
+  color: #666;
+  margin: 20px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.file-select-btn {
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  /* color: #fff; */
+  border: none;
+  padding: 16px 40px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.file-select-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px hsla(0, 0%, 90%, 0.4);
+}
+
+.file-select-btn:active {
+  transform: translateY(0px);
+}
+
+.dropzone-hint {
+  font-size: 12px;
+  color: #555;
+  margin-top: 24px;
+  /* font-style: italic; */
+}
+
+/* Keyboard Shortcuts List */
+.shortcuts-list {
+  margin-top: 32px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shortcuts-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+  text-align: left ;
+}
+
+.shortcuts-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shortcuts-items li {
+  font-size: 14px;
+    text-align: left ;
+
+  color: #999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.shortcuts-items kbd {
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #444;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  min-width: 32px;
+  text-align: center;
+  display: inline-block;
+}
+
+.shortcuts-items kbd + kbd {
+  margin-left: -8px;
+}
+
+/* Drag Indicator */
+.dropzone-drag-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(102, 126, 234, 0.15);
+  border: 3px dashed rgba(102, 126, 234, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.dropzone-overlay.dragging .dropzone-drag-indicator {
+  display: flex;
+}
+
+.dropzone-overlay.dragging .dropzone-content {
+  opacity: 0.3;
+}
+
+.drag-indicator-content {
+  text-align: center;
+}
+
+.drag-indicator-icon {
+  font-size: 80px;
+  margin-bottom: 16px;
+  animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.drag-indicator-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: #667eea;
+  text-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOADING INDICATOR
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.loading-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #aaa;
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ERROR DISPLAY
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.error-display {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.error-content {
+  text-align: center;
+  max-width: 500px;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 70, 70, 0.3);
+}
+
+.error-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+}
+
+.error-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ff6b6b;
+  margin-bottom: 16px;
+}
+
+.error-message {
+  font-size: 14px;
+  color: #ccc;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.error-retry-btn {
+  background: #ff6b6b;
+  color: #fff;
+  border: none;
+  padding: 12px 32px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.error-retry-btn:hover {
+  transform: translateY(-2px);
+}
+
+.error-retry-btn:active {
+  transform: translateY(0px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .dropzone-title {
+    font-size: 24px;
+  }
+  
+  .dropzone-instructions {
+    font-size: 16px;
+  }
+  
+  .dropzone-icon {
+    font-size: 60px;
+  }
+  
+  .file-select-btn {
+    padding: 14px 32px;
+    font-size: 14px;
+  }
+  
+  .shortcuts-list {
+    margin-top: 24px;
+    padding: 16px;
+  }
+  
+  .shortcuts-title {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .shortcuts-items {
+    gap: 8px;
+  }
+  
+  .shortcuts-items li {
+    font-size: 13px;
+  }
+  
+  .shortcuts-items kbd {
+    padding: 3px 8px;
+    font-size: 11px;
+    min-width: 28px;
+  }
+}

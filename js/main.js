@@ -95,6 +95,9 @@ window.ZigMap26 = {
         const firstState = loadedData.states[0];
         window.ZigMap26.stateManager.load(firstState.id);
       }
+      
+      // Sync UI to reflect loaded params (including project-wide settings like ambientSpeedMaster)
+      window.ZigMap26.syncUIFromParams();
     } else {
       // No states in project - sync camera from loaded params
       window.ZigMap26.camera.syncFromParams(window.ZigMap26.params);

@@ -36,7 +36,7 @@
           
           <!-- Global Speed Control -->
           <div class="control-group" style="margin-top:16px;padding-top:16px;border-top:1px solid #333;">
-            <label>Global Speed <span style="color:#444">(affects all lines)</span></label>
+            <label>Global Speed</label>
             <div class="slider-row">
               <input type="range" id="ambient-speed-master" min="5" max="100" value="100"/>
               <span class="value-display"><span id="ambient-speed-master-val">100</span>%</span>
@@ -73,6 +73,7 @@
               <div class="status-footer">
                 <span id="countdown-display" class="countdown-display">0s</span>
                 <div class="status-controls">
+                  <button id="auto-trigger-previous" class="status-control-btn" title="Previous State">⏮</button>
                   <button id="auto-trigger-play-pause" class="status-control-btn" title="Play/Pause">⏸</button>
                   <button id="auto-trigger-reset" class="status-control-btn" title="Reset Timer">↻</button>
                   <button id="auto-trigger-skip" class="status-control-btn" title="Skip to Next">⏭</button>

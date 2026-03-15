@@ -193,18 +193,31 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
         
         // Auto-trigger random state switching (only on primary canvas to avoid double-triggering)
         // Each trigger loads a TRULY RANDOM state (excluding current) - no sequence or pattern
-        if (isPrimary && ZM.params.autoTriggerStates && ZM.stateManager.states.length > 1) {
+        if (isPrimary && ZM.params.autoTriggerStates && ZM.stateManager && ZM.stateManager.states.length > 1) {
+          // Debug on frame 600 (10 seconds)
+          if (p.frameCount === 600) {
+            console.log('🔄 Auto-trigger status check:');
+            console.log('  - autoTriggerStates:', ZM.params.autoTriggerStates);
+            console.log('  - states count:', ZM.stateManager.states.length);
+            console.log('  - autoTriggerTimer:', ZM.autoTriggerTimer);
+            console.log('  - frequency:', ZM.params.autoTriggerFrequency);
+            console.log('  - loadRandomState exists:', typeof ZM.stateManager.loadRandomState);
+          }
+          
           // Only increment timer if not paused
           if (!ZM.autoTriggerTimer.paused) {
             ZM.autoTriggerTimer.elapsed += dt;
             if (ZM.autoTriggerTimer.elapsed >= ZM.params.autoTriggerFrequency) {
+              console.log('⏰ Auto-trigger fired! Loading random state...');
               ZM.autoTriggerTimer.elapsed = 0;
               ZM.stateManager.loadRandomState(); // Fresh random selection each time
             }
           }
           
           // Update auto-trigger status display
-          ZM.stateManager.updateAutoTriggerStatus();
+          if (ZM.stateManager.updateAutoTriggerStatus) {
+            ZM.stateManager.updateAutoTriggerStatus();
+          }
         }
       }
       
@@ -229,22 +242,48 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       const scaleVal = ZM.geometryScaleTransition.current / 100;
       p.scale(scaleVal);
       
-      // Draw emitter (both canvases draw)
-      emitter.draw(p);
+      // Debug: log drawing on frame 120
+      if (p.frameCount === 120 && isPrimary) {
+        console.log('🖌️ About to draw lines');
+        console.log('  - Total lines:', emitter.lines.length);
+        console.log('  - Camera distance:', ZM.camera.distance);
+        console.log('  - Camera rotation:', ZM.camera.rotationX, ZM.camera.rotationY);
+        console.log('  - Geometry scale:', scaleVal);
+        if (emitter.lines.length > 0) {
+          const firstLine = emitter.lines[0];
+          console.log('  - First line color:', firstLine.lineColor);
+          console.log('  - First line position:', firstLine.x, firstLine.y);
+          console.log('  - First line thickness:', firstLine.lineThickness);
+          console.log('  - First line alive:', firstLine.alive);
+          console.log('  - First line segments:', firstLine.segments.length);
+        }
+      }
+      
+      emitter.lines.forEach(line => line.draw(p, ZM));
     };
     
-    p.windowResized = () => {
-      if (!ZM.params.framebufferMode) {
-        p.resizeCanvas(ZM.W, ZM.H);
-      }
-    };
+    return p;
   };
 }
 
-/**
- * Initialize sketches (single or stereo)
- */
 export function initializeSketches(ZM) {
+  console.log('🎬 initializeSketches called');
+  console.log('  - stereoscopicMode:', ZM.params.stereoscopicMode);
+  console.log('  - framebufferMode:', ZM.params.framebufferMode);
+  
+  // Remove existing sketches
+  if (ZM.p5Instance) {
+    ZM.p5Instance.remove();
+    ZM.p5Instance = null;
+  }
+  if (ZM.p5InstanceRight) {
+    ZM.p5InstanceRight.remove();
+    ZM.p5InstanceRight = null;
+  }
+  
+  // Clear emitter instance so it gets recreated
+  ZM.emitterInstance = null;
+  
   // Remove existing sketches
   if (ZM.p5Instance) {
     ZM.p5Instance.remove();
@@ -260,22 +299,9 @@ export function initializeSketches(ZM) {
   
   // Clear canvas wrapper
   const wrapper = document.getElementById('canvas-wrapper');
-  wrapper.innerHTML = '';
-  wrapper.className = ''; // Clear all classes
-  
-  sharedLastTime = 0;
-  
-  // Update dimensions for stereo mode
-  if (ZM.params.framebufferMode) {
-    ZM.W = ZM.params.framebufferWidth;
-    ZM.H = ZM.params.framebufferHeight;
-    wrapper.classList.add('framebuffer-mode');
-  } else if (ZM.params.stereoscopicMode) {
-    ZM.W = Math.floor(window.innerWidth / 2);
-    ZM.H = window.innerHeight;
-  } else {
-    ZM.W = window.innerWidth;
-    ZM.H = window.innerHeight;
+  if (!wrapper) {
+    console.error('❌ canvas-wrapper element not found!');
+    return;
   }
   
   if (ZM.params.stereoscopicMode) {
@@ -309,6 +335,22 @@ export function initializeSketches(ZM) {
     wrapper.innerHTML = '<div id="mono-canvas"></div>';
     ZM.p5Instance = new p5(createSketch(ZM, 0, 'mono-canvas'));
     ZM.p5InstanceRight = null;
+    
+    console.log('✓ Canvas created in mono mode');
+    console.log('  - Wrapper:', wrapper);
+    console.log('  - p5Instance:', ZM.p5Instance);
+    
+    // Check canvas after a brief delay
+    setTimeout(() => {
+      const canvas = document.querySelector('#mono-canvas canvas');
+      console.log('  - Canvas element:', canvas);
+      if (canvas) {
+        console.log('    - Canvas dimensions:', canvas.width, 'x', canvas.height);
+        console.log('    - Canvas style:', canvas.style.cssText);
+      } else {
+        console.error('    ❌ Canvas element not found!');
+      }
+    }, 100);
     
     if (ZM.params.framebufferMode) {
       setTimeout(() => updateCanvasSize(ZM), 50);

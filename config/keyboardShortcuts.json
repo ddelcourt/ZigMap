@@ -90,6 +90,24 @@
       "action": "toggleStereoMode",
       "description": "Toggle stereoscopic view",
       "preventDefault": true
+    },
+    {
+      "key": " ",
+      "action": "autoTriggerPlayPause",
+      "description": "Auto-Trigger: Play/Pause",
+      "preventDefault": true
+    },
+    {
+      "key": "ArrowRight",
+      "action": "autoTriggerSkip",
+      "description": "Auto-Trigger: Skip to next state",
+      "preventDefault": true
+    },
+    {
+      "key": "ArrowLeft",
+      "action": "autoTriggerPrevious",
+      "description": "Auto-Trigger: Go to previous state",
+      "preventDefault": true
     }
   ]
 }

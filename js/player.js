@@ -1,0 +1,582 @@
+/**
+ * ZigMap26 Player — Minimal player mode for distribution
+ * Load and display ZigMap26 presets without editor controls
+ */
+
+// Import configurations
+import { DEFAULT_PARAMS } from './config/defaults.js';
+import { SEGMENTS } from './config/constants.js';
+
+// Import core classes
+import { ZigzagLine } from './core/ZigzagLine.js';
+import { Emitter } from './core/Emitter.js';
+import { Camera } from './core/Camera.js';
+import { getSpawnDistance, buildRibbonSides } from './core/utils.js';
+
+// Import storage (we only need loading, not saving)
+import { initializeStateManager } from './storage/StateManager.js';
+
+// Import rendering
+import { attachToZM } from './rendering/SketchFactory.js';
+
+// Import keyboard handler (for play/pause controls)
+// Note: Using custom keyboard handler for player-specific overlay controls
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GLOBAL APPLICATION STATE
+// ═══════════════════════════════════════════════════════════════════════════
+
+window.ZigMap26 = {
+  // Parameters
+  params: { ...DEFAULT_PARAMS },
+  
+  // Constants
+  SEGMENTS,
+  
+  // State
+  noiseOffset: 0,
+  W: window.innerWidth,
+  H: window.innerHeight,
+  camera: null,
+  p5Instance: null,
+  p5InstanceRight: null,
+  emitterInstance: null,
+  
+  // Utilities
+  getSpawnDistance,
+  buildRibbonSides,
+  
+  // Core classes
+  ZigzagLine,
+  Emitter,
+  Camera,
+  
+  // Player mode flag
+  isPlayerMode: true,
+  
+  // Placeholder functions for player mode
+  saveToLocalStorage: () => {}, // No saving in player mode
+  syncUIFromParams: () => {}, // No UI controls in player mode
+  updatePaletteUI: () => {},
+  updateStatePanel: () => {},
+  showToast: () => {} // No toast in player mode
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DROPZONE & FILE LOADING
+// ═══════════════════════════════════════════════════════════════════════════
+
+// DOM elements (will be initialized after DOM is ready)
+let dropzoneOverlay, fileInput, fileSelectBtn, loadingIndicator, errorDisplay, errorMessage, errorRetryBtn;
+
+/**
+ * Initialize dropzone event listeners
+ */
+function initializeDropzone() {
+  // Get DOM elements
+  dropzoneOverlay = document.getElementById('dropzone-overlay');
+  fileInput = document.getElementById('file-input');
+  fileSelectBtn = document.getElementById('file-select-btn');
+  loadingIndicator = document.getElementById('loading-indicator');
+  errorDisplay = document.getElementById('error-display');
+  errorMessage = document.getElementById('error-message');
+  errorRetryBtn = document.getElementById('error-retry-btn');
+  
+  // Check if all elements exist
+  if (!dropzoneOverlay || !fileInput || !fileSelectBtn) {
+    console.error('❌ Failed to initialize dropzone: missing DOM elements');
+    console.error('dropzoneOverlay:', dropzoneOverlay);
+    console.error('fileInput:', fileInput);
+    console.error('fileSelectBtn:', fileSelectBtn);
+    return;
+  }
+  
+  console.log('✓ Dropzone elements found, attaching listeners...');
+  
+  // Prevent default drag behaviors
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    document.body.addEventListener(eventName, preventDefaults, false);
+  });
+  
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
+  // Highlight dropzone when dragging over
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropzoneOverlay.addEventListener(eventName, () => {
+      dropzoneOverlay.classList.add('dragging');
+    }, false);
+  });
+  
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropzoneOverlay.addEventListener(eventName, () => {
+      dropzoneOverlay.classList.remove('dragging');
+    }, false);
+  });
+  
+  // Handle drop
+  dropzoneOverlay.addEventListener('drop', handleDrop, false);
+  
+  // File select button
+  fileSelectBtn.addEventListener('click', () => {
+    console.log('📁 File select button clicked');
+    fileInput.click();
+  });
+  
+  // File input change
+  fileInput.addEventListener('change', (e) => {
+    console.log('📁 File input changed');
+    const file = e.target.files[0];
+    if (file) {
+      console.log('📁 File selected:', file.name);
+      loadJSONFile(file);
+    }
+  });
+  
+  // Error retry button
+  if (errorRetryBtn) {
+    errorRetryBtn.addEventListener('click', () => {
+      errorDisplay.style.display = 'none';
+      dropzoneOverlay.classList.remove('hidden');
+    });
+  }
+  
+  console.log('✓ Dropzone initialized successfully');
+}
+
+/**
+ * Handle dropped files
+ */
+function handleDrop(e) {
+  console.log('📁 File dropped!');
+  const dt = e.dataTransfer;
+  const files = dt.files;
+  
+  if (files.length > 0) {
+    const file = files[0];
+    console.log('📁 Dropped file:', file.name, 'Type:', file.type);
+    
+    // Check if it's a JSON file
+    if (file.type === 'application/json' || file.name.endsWith('.json')) {
+      loadJSONFile(file);
+    } else {
+      showError('Invalid file type. Please drop a .json file created with ZigMap26 Editor.');
+    }
+  }
+}
+
+/**
+ * Load and parse JSON file
+ */
+function loadJSONFile(file) {
+  console.log('📥 Loading JSON file:', file.name);
+  
+  // Show loading indicator
+  if (loadingIndicator) loadingIndicator.style.display = 'flex';
+  if (dropzoneOverlay) dropzoneOverlay.classList.add('hidden');
+  
+  const reader = new FileReader();
+  
+  reader.onload = (event) => {
+    try {
+      const jsonData = JSON.parse(event.target.result);
+      
+      // Validate JSON structure
+      if (!jsonData.params) {
+        throw new Error('Invalid ZigMap26 preset file. Missing params object.');
+      }
+      
+      // Load the preset
+      loadPreset(jsonData);
+      
+    } catch (err) {
+      console.error('❌ Error parsing JSON:', err);
+      if (loadingIndicator) loadingIndicator.style.display = 'none';
+      showError(`Failed to load preset: ${err.message}`);
+    }
+  };
+  
+  reader.onerror = () => {
+    if (loadingIndicator) loadingIndicator.style.display = 'none';
+    showError('Failed to read file. Please try again.');
+  };
+  
+  reader.readAsText(file);
+}
+
+/**
+ * Load preset data and initialize visualization
+ */
+function loadPreset(jsonData) {
+  const ZM = window.ZigMap26;
+  
+  try {
+    // Update params
+    Object.assign(ZM.params, jsonData.params);
+    
+    // Initialize visualization if not already initialized
+    if (!ZM.p5Instance) {
+      initializeVisualization(jsonData);
+    } else {
+      // Already initialized, just update
+      updateVisualization(jsonData);
+    }
+    
+    // Hide loading indicator and dropzone after successful load
+    setTimeout(() => {
+      if (loadingIndicator) loadingIndicator.style.display = 'none';
+      if (dropzoneOverlay) dropzoneOverlay.style.display = 'none';
+      console.log('✅ Visualization should now be visible');
+    }, 500);
+    
+  } catch (err) {
+    console.error('❌ Error loading preset:', err);
+    if (loadingIndicator) loadingIndicator.style.display = 'none';
+    showError(`Failed to initialize visualization: ${err.message}`);
+  }
+}
+
+/**
+ * Initialize the visualization for the first time
+ */
+function initializeVisualization(jsonData) {
+  const ZM = window.ZigMap26;
+  
+  // Initialize camera with params (not ZM object)
+  ZM.camera = new Camera(ZM.params);
+  
+  // Initialize state manager
+  initializeStateManager(ZM);
+  
+  // Load overlay preset files list if present (just filenames, not base64 data)
+  if (jsonData.overlayPresetFiles && Array.isArray(jsonData.overlayPresetFiles)) {
+    ZM.overlayPresetFiles = jsonData.overlayPresetFiles;
+    console.log(`✓ Found ${ZM.overlayPresetFiles.length} overlay presets available`);
+  } else {
+    ZM.overlayPresets = [];
+  }
+  
+  // Restore states if present
+  if (jsonData.states && Array.isArray(jsonData.states)) {
+    ZM.stateManager.states = jsonData.states;
+    ZM.stateManager.activeStateId = jsonData.activeStateId;
+    
+    // Load the first state WITHOUT transitions (instant jump)
+    if (jsonData.states.length > 0) {
+      const firstState = jsonData.states[0];
+      
+      // Directly set camera from first state (no transition on initial load)
+      if (firstState.camera) {
+        ZM.camera.rotationX = firstState.camera.rotationX;
+        ZM.camera.rotationY = firstState.camera.rotationY;
+        ZM.camera.distance = firstState.camera.distance;
+        ZM.camera.offsetX = firstState.camera.offsetX || 0;
+        ZM.camera.offsetY = firstState.camera.offsetY || 0;
+      }
+      
+      // Directly set params from first state
+      Object.assign(ZM.params, firstState.params);
+      
+      // Mark this state as active in the manager
+      ZM.stateManager.activeStateId = firstState.id;
+      
+      console.log('📷 Camera set from first state:');
+      console.log('  - distance:', ZM.camera.distance);
+      console.log('  - rotationX:', ZM.camera.rotationX);
+      console.log('  - rotationY:', ZM.camera.rotationY);
+      console.log('  - offsetX:', ZM.camera.offsetX);
+      console.log('  - offsetY:', ZM.camera.offsetY);
+      console.log('  - geometryScale:', ZM.params.geometryScale);
+    }
+  } else {
+    // No states - sync camera from params
+    ZM.camera.syncFromParams(ZM.params);
+  }
+  
+  // Attach rendering (creates p5.js sketch)
+  attachToZM(ZM);
+  
+  // Setup keyboard handlers for play/pause controls
+  setupKeyboardHandlers(ZM);
+  
+  // Setup window resize handler
+  setupResizeHandler(ZM);
+  
+  // Initialize sketches
+  console.log('🎨 About to initialize sketches...');
+  if (ZM.initializeSketches) {
+    ZM.initializeSketches();
+    console.log('✓ Sketches initialized, p5Instance:', ZM.p5Instance ? 'created' : 'null');
+  } else {
+    console.error('❌ initializeSketches function not found on ZM object');
+  }
+  
+  // Auto-start auto-trigger if enabled and states exist
+  if (ZM.params.autoTriggerStates && ZM.stateManager.states.length > 1) {
+    console.log('🎬 Auto-trigger enabled, starting playback...');
+    
+    // Initialize auto-trigger timer
+    if (!ZM.autoTriggerTimer) {
+      ZM.autoTriggerTimer = {
+        elapsed: 0,
+        paused: false,
+        pausedAt: null
+      };
+    }
+  }
+  
+  // Display overlay if present
+  const overlayImg = document.getElementById('overlay-image');
+  if (overlayImg) {
+    // Load overlay from preset file if specified
+    if (ZM.params.overlayPresetFile) {
+      loadOverlayFromFile(ZM, ZM.params.overlayPresetFile, overlayImg);
+    } else {
+      // Use existing overlayImageSrc (custom upload or already loaded)
+      updateOverlayDisplay(ZM, overlayImg);
+    }
+  }
+  
+  console.log('✓ ZigMap26 Player initialized');
+  console.log(`✓ Loaded ${ZM.stateManager.states.length} states`);
+}
+
+/**
+ * Update visualization with new preset data
+ */
+function updateVisualization(jsonData) {
+  const ZM = window.ZigMap26;
+  
+  // Restore states if present
+  if (jsonData.states && Array.isArray(jsonData.states)) {
+    ZM.stateManager.states = jsonData.states;
+    ZM.stateManager.activeStateId = jsonData.activeStateId;
+    
+    // Load the first state
+    if (jsonData.states.length > 0) {
+      const firstState = jsonData.states[0];
+      ZM.stateManager.load(firstState.id);
+    }
+  } else {
+    // No states - sync camera from loaded params
+    ZM.camera.syncFromParams(ZM.params);
+  }
+  
+  // Auto-start auto-trigger if enabled
+  if (ZM.params.autoTriggerStates && ZM.stateManager.states.length > 1) {
+    if (!ZM.autoTriggerTimer) {
+      ZM.autoTriggerTimer = {
+        elapsed: 0,
+        paused: false,
+        pausedAt: null
+      };
+    }
+    ZM.autoTriggerTimer.elapsed = 0;
+    ZM.autoTriggerTimer.paused = false;
+  }
+  
+  // Update overlay display
+  const overlayImg = document.getElementById('overlay-image');
+  if (overlayImg) {
+    updateOverlayDisplay(ZM, overlayImg);
+  }
+  
+  console.log('✓ Preset updated');
+}
+
+/**
+ * Setup keyboard handlers for player controls
+ */
+function setupKeyboardHandlers(ZM) {
+  // Setup overlay image element
+  const overlayImg = document.getElementById('overlay-image');
+  
+  window.addEventListener('keydown', (e) => {
+    // Skip if typing in input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      return;
+    }
+    
+    // Enter: Toggle fullscreen
+    if (e.code === 'Enter') {
+      e.preventDefault();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log('Fullscreen request failed:', err);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    
+    // Spacebar: Play/Pause
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (ZM.autoTriggerTimer) {
+        ZM.autoTriggerTimer.paused = !ZM.autoTriggerTimer.paused;
+        console.log('Auto-trigger', ZM.autoTriggerTimer.paused ? 'paused' : 'playing');
+      }
+    }
+    
+    // Arrow keys: Next/Previous state (navigate history)
+    if (e.code === 'ArrowLeft' && ZM.stateManager && ZM.stateHistory) {
+      e.preventDefault();
+      if (ZM.stateHistory.currentIndex > 0) {
+        ZM.stateHistory.isNavigating = true;
+        ZM.stateHistory.currentIndex--;
+        const stateId = ZM.stateHistory.stack[ZM.stateHistory.currentIndex];
+        ZM.stateManager.load(stateId);
+        ZM.stateHistory.isNavigating = false;
+      }
+    }
+    
+    if (e.code === 'ArrowRight' && ZM.stateManager && ZM.stateHistory) {
+      e.preventDefault();
+      if (ZM.stateHistory.currentIndex < ZM.stateHistory.stack.length - 1) {
+        ZM.stateHistory.isNavigating = true;
+        ZM.stateHistory.currentIndex++;
+        const stateId = ZM.stateHistory.stack[ZM.stateHistory.currentIndex];
+        ZM.stateManager.load(stateId);
+        ZM.stateHistory.isNavigating = false;
+      }
+    }
+    
+    // Overlay controls: 0-9 keys
+    // Key 0: Toggle overlay on/off
+    if (e.key === '0') {
+      e.preventDefault();
+      ZM.params.overlayVisible = !ZM.params.overlayVisible;
+      updateOverlayDisplay(ZM, overlayImg);
+      console.log('🖼️  Overlay', ZM.params.overlayVisible ? 'visible' : 'hidden');
+    }
+    
+    // Keys 1-9: Load overlay from presets list
+    if (e.key >= '1' && e.key <= '9') {
+      e.preventDefault();
+      const index = parseInt(e.key) - 1;
+      
+      if (ZM.overlayPresetFiles && index < ZM.overlayPresetFiles.length) {
+        const filename = ZM.overlayPresetFiles[index];
+        loadOverlayFromFile(ZM, filename, overlayImg);
+        console.log(`🖼️  Loading overlay ${index + 1}: ${filename}`);
+      } else {
+        console.log(`No overlay preset at index ${index + 1}`);
+      }
+    }
+  });
+}
+
+/**
+ * Load overlay from preset file in assets/overlays/
+ */
+async function loadOverlayFromFile(ZM, filename, overlayImg) {
+  try {
+    const response = await fetch(`assets/overlays/${filename}`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.base64) {
+        ZM.params.overlayImageSrc = data.base64;
+        ZM.params.overlayPresetFile = filename;
+        ZM.params.overlayVisible = true;
+        updateOverlayDisplay(ZM, overlayImg);
+        const displayName = filename.replace('.json', '').replace(/_/g, ' ');
+        console.log(`✓ Loaded overlay: ${displayName}`);
+      }
+    } else {
+      console.error(`Failed to load overlay: ${filename}`);
+    }
+  } catch (err) {
+    console.error(`Error loading overlay from ${filename}:`, err);
+  }
+}
+
+/**
+ * Update overlay image display
+ */
+function updateOverlayDisplay(ZM, overlayImg) {
+  if (!overlayImg) return;
+  
+  if (ZM.params.overlayVisible && ZM.params.overlayImageSrc) {
+    overlayImg.style.display = 'block';
+    overlayImg.src = ZM.params.overlayImageSrc;
+    
+    // Apply overlay parameters
+    const scale = ZM.params.overlayScale || 100;
+    const opacity = ZM.params.overlayOpacity || 100;
+    const x = ZM.params.overlayX || 50;
+    const y = ZM.params.overlayY || 50;
+    
+    overlayImg.style.transform = `translate(-50%, -50%) scale(${scale / 100})`;
+    overlayImg.style.opacity = opacity / 100;
+    overlayImg.style.left = `${x}%`;
+    overlayImg.style.top = `${y}%`;
+  } else {
+    overlayImg.style.display = 'none';
+  }
+}
+
+/**
+ * Show error message
+ */
+function showError(message) {
+  console.error('❌ Player error:', message);
+  if (errorMessage) errorMessage.textContent = message;
+  if (errorDisplay) errorDisplay.style.display = 'flex';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INITIALIZATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Setup window resize handler
+ */
+function setupResizeHandler(ZM) {
+  window.addEventListener('resize', () => {
+    if (ZM.p5Instance) {
+      // Update dimensions
+      if (ZM.params.stereoscopicMode) {
+        ZM.W = Math.floor(window.innerWidth / 2);
+        ZM.H = window.innerHeight;
+      } else {
+        ZM.W = window.innerWidth;
+        ZM.H = window.innerHeight;
+      }
+      
+      // Resize canvas
+      ZM.p5Instance.resizeCanvas(ZM.W, ZM.H);
+      if (ZM.p5InstanceRight) {
+        ZM.p5InstanceRight.resizeCanvas(ZM.W, ZM.H);
+      }
+      
+      // Update overlay if visible
+      const overlayImg = document.getElementById('overlay-image');
+      if (overlayImg && ZM.params.overlayVisible) {
+        updateOverlayDisplay(ZM, overlayImg);
+      }
+    }
+  });
+}
+
+/**
+ * Initialize the player when DOM is ready
+ */
+function initPlayer() {
+  console.log('🎨 Initializing ZigMap26 Player...');
+  
+  // Initialize dropzone
+  initializeDropzone();
+  
+  console.log('✅ ZigMap26 Player ready');
+  console.log('📁 Drop a .json preset file to start');
+}
+
+// Wait for DOM to be ready (modules are deferred, but be explicit)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPlayer);
+} else {
+  // DOM already loaded
+  initPlayer();
+}

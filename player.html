@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZigMap26 Player</title>
+  
+  <!-- Player CSS -->
+  <link rel="stylesheet" href="css/player.css">
+  
+  <!-- External Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+
+  <!-- JSON Dropzone Overlay -->
+  <div id="dropzone-overlay" class="dropzone-overlay">
+    <div class="dropzone-content">
+      <!-- <div class="dropzone-icon">📁</div> -->
+      <h1 class="dropzone-title">ZigMap26 Player</h1>
+      <p class="dropzone-instructions">Drag & drop a .json preset file here</p>
+      <p class="dropzone-or">or</p>
+      <button id="file-select-btn" class="file-select-btn">Select File</button>
+      <input type="file" id="file-input" accept=".json" style="display:none;">
+      
+      <!-- Keyboard Shortcuts -->
+      <div class="shortcuts-list">
+        <h3 class="shortcuts-title">Keyboard Controls</h3>
+        <ul class="shortcuts-items">
+          <li><kbd>Enter</kbd> Toggle Fullscreen</li>
+          <li><kbd>Space</kbd> Play / Pause</li>
+          <li><kbd>←</kbd> <kbd>→</kbd> Navigate States</li>
+          <li><kbd>0</kbd> Toggle Overlay</li>
+          <li><kbd>1-9</kbd> Load Overlay Presets</li>
+        </ul>
+      </div>
+      
+      <p class="dropzone-hint">Load a preset created with ZigMap26 Editor</p>
+    </div>
+    <div class="dropzone-drag-indicator">
+      <div class="drag-indicator-content">
+        <div class="drag-indicator-icon">⬇</div>
+        <p class="drag-indicator-text">Drop your JSON file</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvas Container -->
+  <div id="canvas-container" class="canvas-container">
+    <img id="overlay-image" class="overlay-image" alt="Overlay" style="display: none;">
+    <div id="canvas-wrapper"></div>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div id="loading-indicator" class="loading-indicator" style="display:none;">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Loading preset...</p>
+  </div>
+
+  <!-- Error Display -->
+  <div id="error-display" class="error-display" style="display:none;">
+    <div class="error-content">
+      <div class="error-icon">⚠️</div>
+      <h2 class="error-title">Error Loading Preset</h2>
+      <p id="error-message" class="error-message"></p>
+      <button id="error-retry-btn" class="error-retry-btn">Try Again</button>
+    </div>
+  </div>
+
+  <!-- Player Module -->
+  <script type="module" src="js/player.js"></script>
+
+</body>
+</html>

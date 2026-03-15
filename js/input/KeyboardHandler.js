@@ -179,6 +179,70 @@ function executeAction(action, ZM) {
       if (ZM.updatePaletteUI) ZM.updatePaletteUI();
       triggerPaletteChange(ZM);
       ZM.saveToLocalStorage();
+    },
+    
+    // Auto-Trigger Controls
+    autoTriggerPlayPause: () => {
+      if (!ZM.autoTriggerTimer || ZM.stateManager.states.length < 2) return;
+      
+      // If auto-trigger is disabled, enable it and start playing
+      if (!ZM.params.autoTriggerStates) {
+        ZM.params.autoTriggerStates = true;
+        const checkbox = document.getElementById('auto-trigger-states');
+        if (checkbox) checkbox.checked = true;
+        ZM.autoTriggerTimer.paused = false;
+        ZM.saveToLocalStorage();
+        console.log('[Auto-Trigger] Enabled and started (via spacebar)');
+      } else {
+        // Toggle pause state
+        if (ZM.autoTriggerTimer.paused) {
+          ZM.autoTriggerTimer.paused = false;
+          console.log('[Auto-Trigger] Resumed (via spacebar)');
+        } else {
+          ZM.autoTriggerTimer.paused = true;
+          ZM.autoTriggerTimer.pausedAt = ZM.autoTriggerTimer.elapsed;
+          console.log('[Auto-Trigger] Paused (via spacebar)');
+        }
+      }
+      
+      if (ZM.stateManager && ZM.stateManager.updateAutoTriggerStatus) {
+        ZM.stateManager.updateAutoTriggerStatus();
+      }
+    },
+    
+    autoTriggerPrevious: () => {
+      if (!ZM.stateHistory || ZM.stateManager.states.length < 2) return;
+      
+      // Navigate to previous state in history
+      const success = ZM.stateManager.navigateHistory(-1);
+      if (!success) {
+        console.log('[History] No previous state in history');
+      }
+    },
+    
+    autoTriggerReset: () => {
+      if (!ZM.autoTriggerTimer || ZM.stateManager.states.length < 2) return;
+      
+      ZM.autoTriggerTimer.elapsed = 0;
+      ZM.autoTriggerTimer.pausedAt = 0;
+      console.log('[Auto-Trigger] Timer reset (via left arrow)');
+      
+      if (ZM.stateManager && ZM.stateManager.updateAutoTriggerStatus) {
+        ZM.stateManager.updateAutoTriggerStatus();
+      }
+    },
+    
+    autoTriggerSkip: () => {
+      if (!ZM.autoTriggerTimer || ZM.stateManager.states.length < 2) return;
+      
+      ZM.autoTriggerTimer.elapsed = 0;
+      ZM.autoTriggerTimer.pausedAt = 0;
+      ZM.stateManager.loadRandomState();
+      console.log('[Auto-Trigger] Skipped to next state (via right arrow)');
+      
+      if (ZM.stateManager && ZM.stateManager.updateAutoTriggerStatus) {
+        ZM.stateManager.updateAutoTriggerStatus();
+      }
     }
   };
   
