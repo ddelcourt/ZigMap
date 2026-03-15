@@ -14,7 +14,7 @@ import { Camera } from './core/Camera.js';
 import { getSpawnDistance, buildRibbonSides } from './core/utils.js';
 
 // Import storage
-import { loadFromLocalStorage, saveToLocalStorage, downloadJSON, loadJSON } from './storage/localStorage.js';
+import { loadFromLocalStorage, saveToLocalStorage, clearLocalStorage, downloadJSON, loadJSON } from './storage/localStorage.js';
 import { initializeStateManager } from './storage/StateManager.js';
 
 // Import rendering
@@ -76,8 +76,19 @@ window.ZigMap26 = {
   },
   downloadJSON: () => downloadJSON(window.ZigMap26),
   loadJSON: (file) => loadJSON(file, (loadedData) => {
+    // Clear localStorage to avoid loading ancient states
+    clearLocalStorage();
+    console.log('📂 Loading project file (localStorage cleared)');
+    
     // Update params
     Object.assign(window.ZigMap26.params, loadedData.params);
+    
+    // Reset auto-trigger timer to prevent weird values
+    if (window.ZigMap26.autoTriggerTimer) {
+      window.ZigMap26.autoTriggerTimer.elapsed = 0;
+      window.ZigMap26.autoTriggerTimer.pausedAt = 0;
+      window.ZigMap26.autoTriggerTimer.paused = false;
+    }
     
     // Restore states if present (v2 format)
     if (loadedData.states && Array.isArray(loadedData.states)) {
@@ -90,10 +101,11 @@ window.ZigMap26 = {
         window.ZigMap26.updateStatePanel();
       }
       
-      // Load the first state in the list to ensure proper state initialization
+      // Load the first state INSTANTLY (no transitions) to match exact parameters from JSON
       if (loadedData.states.length > 0) {
         const firstState = loadedData.states[0];
-        window.ZigMap26.stateManager.load(firstState.id);
+        console.log('🎯 Loading first state instantly:', firstState.name);
+        window.ZigMap26.stateManager.load(firstState.id, true); // instant = true
       }
       
       // Sync UI to reflect loaded params (including project-wide settings like ambientSpeedMaster)
@@ -212,8 +224,8 @@ async function init() {
     if (ZM.updateStatePanel) {
       ZM.updateStatePanel();
     }
-    // Then load the first state
-    ZM.stateManager.load(ZM._initialStateId);
+    // Then load the first state INSTANTLY (no transition on first load)
+    ZM.stateManager.load(ZM._initialStateId, true); // instant = true
     delete ZM._initialStateId;
   } else if (hadSavedSettings && ZM.syncUIFromParams) {
     // Sync UI if we loaded saved settings

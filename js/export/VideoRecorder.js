@@ -42,11 +42,8 @@ export function startVideoRecording(ZM) {
   document.getElementById('video-progress').style.display = 'block';
   document.getElementById('video-progress').textContent = 'Recording: 0%';
   
-  // Clear emitter for clean start
-  if (ZM.emitterInstance) {
-    ZM.emitterInstance.lines = [];
-    ZM.emitterInstance.accumulator = 0;
-  }
+  // Don't clear emitter - preserve current animation state
+  // This allows recording to start with the current visual state
   
   // Initialize CCapture
   capturer = new CCapture({

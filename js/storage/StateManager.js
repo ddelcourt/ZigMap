@@ -19,7 +19,7 @@ export function initializeStateManager(ZM) {
     
     // Core operations
     save: (name) => saveState(ZM, name),
-    load: (id) => loadState(ZM, id),
+    load: (id, instant) => loadState(ZM, id, instant),
     update: (id) => updateState(ZM, id),
     delete: (id) => deleteState(ZM, id),
     rename: (id, newName) => renameState(ZM, id, newName),
@@ -142,8 +142,8 @@ function captureCurrentState(ZM, name) {
  * @param {Object} ZM - Main application object
  * @param {Object} state - State to restore
  */
-function restoreState(ZM, state) {
-  console.log('Restoring state:', state.name, 'Palettes:', state.params.palettes);
+function restoreState(ZM, state, instant = false) {
+  console.log('Restoring state:', state.name, 'Palettes:', state.params.palettes, instant ? '(instant)' : '(with transitions)');
   
   // Store old values for transition
   const oldParams = JSON.parse(JSON.stringify(ZM.params));
@@ -195,24 +195,44 @@ function restoreState(ZM, state) {
   console.log('ZM.params after assign, active palette:', ZM.params.activePaletteIndex);
   console.log('ZM.params.palettes:', ZM.params.palettes);
   
-  // Trigger camera transition (4.5 seconds)
+  // Trigger camera transition (or instant if specified)
   if (state.camera && ZM.camera) {
-    ZM.camera.transitionTo(
-      state.camera.rotationX,
-      state.camera.rotationY,
-      state.camera.distance,
-      state.camera.offsetX,
-      state.camera.offsetY
-    );
+    if (instant) {
+      // Instant mode: directly set camera values
+      ZM.camera.rotationX = state.camera.rotationX;
+      ZM.camera.rotationY = state.camera.rotationY;
+      ZM.camera.distance = state.camera.distance;
+      ZM.camera.offsetX = state.camera.offsetX || 0;
+      ZM.camera.offsetY = state.camera.offsetY || 0;
+    } else {
+      // Normal mode: use transitions
+      ZM.camera.transitionTo(
+        state.camera.rotationX,
+        state.camera.rotationY,
+        state.camera.distance,
+        state.camera.offsetX,
+        state.camera.offsetY
+      );
+    }
   }
   
   // Trigger FOV transition (only if sketch has been initialized)
   if (ZM.fovTransition && state.params.fov !== undefined) {
-    ZM.fovTransition.start = ZM.fovTransition.current;
-    ZM.fovTransition.target = state.params.fov;
-    ZM.fovTransition.progress = 0.0;
-    ZM.fovTransition.duration = ZM.params.stateTransitionDuration; // Use current transition duration
-    ZM.fovTransition.isTransitioning = true;
+    if (instant) {
+      // Instant mode: directly set FOV
+      ZM.fovTransition.current = state.params.fov;
+      ZM.fovTransition.start = state.params.fov;
+      ZM.fovTransition.target = state.params.fov;
+      ZM.fovTransition.progress = 1.0;
+      ZM.fovTransition.isTransitioning = false;
+    } else {
+      // Normal mode: use transitions
+      ZM.fovTransition.start = ZM.fovTransition.current;
+      ZM.fovTransition.target = state.params.fov;
+      ZM.fovTransition.progress = 0.0;
+      ZM.fovTransition.duration = ZM.params.stateTransitionDuration;
+      ZM.fovTransition.isTransitioning = true;
+    }
   } else if (!ZM.fovTransition && state.params.fov !== undefined) {
     // Sketches not initialized yet - directly set FOV
     ZM.params.fov = state.params.fov;
@@ -220,11 +240,21 @@ function restoreState(ZM, state) {
   
   // Trigger emitter rotation transition (only if sketch has been initialized)
   if (ZM.emitterRotationTransition && state.params.emitterRotation !== undefined) {
-    ZM.emitterRotationTransition.start = ZM.emitterRotationTransition.current;
-    ZM.emitterRotationTransition.target = state.params.emitterRotation;
-    ZM.emitterRotationTransition.progress = 0.0;
-    ZM.emitterRotationTransition.duration = ZM.params.stateTransitionDuration; // Use current transition duration
-    ZM.emitterRotationTransition.isTransitioning = true;
+    if (instant) {
+      // Instant mode: directly set rotation
+      ZM.emitterRotationTransition.current = state.params.emitterRotation;
+      ZM.emitterRotationTransition.start = state.params.emitterRotation;
+      ZM.emitterRotationTransition.target = state.params.emitterRotation;
+      ZM.emitterRotationTransition.progress = 1.0;
+      ZM.emitterRotationTransition.isTransitioning = false;
+    } else {
+      // Normal mode: use transitions
+      ZM.emitterRotationTransition.start = ZM.emitterRotationTransition.current;
+      ZM.emitterRotationTransition.target = state.params.emitterRotation;
+      ZM.emitterRotationTransition.progress = 0.0;
+      ZM.emitterRotationTransition.duration = ZM.params.stateTransitionDuration;
+      ZM.emitterRotationTransition.isTransitioning = true;
+    }
   } else if (!ZM.emitterRotationTransition && state.params.emitterRotation !== undefined) {
     // Sketches not initialized yet - directly set rotation
     ZM.params.emitterRotation = state.params.emitterRotation;
@@ -232,24 +262,39 @@ function restoreState(ZM, state) {
   
   // Trigger geometry scale transition (only if sketch has been initialized)
   if (ZM.geometryScaleTransition && state.params.geometryScale !== undefined) {
-    ZM.geometryScaleTransition.start = ZM.geometryScaleTransition.current;
-    ZM.geometryScaleTransition.target = state.params.geometryScale;
-    ZM.geometryScaleTransition.progress = 0.0;
-    ZM.geometryScaleTransition.duration = ZM.params.stateTransitionDuration; // Use current transition duration
-    ZM.geometryScaleTransition.isTransitioning = true;
+    if (instant) {
+      // Instant mode: directly set scale
+      ZM.geometryScaleTransition.current = state.params.geometryScale;
+      ZM.geometryScaleTransition.start = state.params.geometryScale;
+      ZM.geometryScaleTransition.target = state.params.geometryScale;
+      ZM.geometryScaleTransition.progress = 1.0;
+      ZM.geometryScaleTransition.isTransitioning = false;
+    } else {
+      // Normal mode: use transitions
+      ZM.geometryScaleTransition.start = ZM.geometryScaleTransition.current;
+      ZM.geometryScaleTransition.target = state.params.geometryScale;
+      ZM.geometryScaleTransition.progress = 0.0;
+      ZM.geometryScaleTransition.duration = ZM.params.stateTransitionDuration;
+      ZM.geometryScaleTransition.isTransitioning = true;
+    }
   } else if (!ZM.geometryScaleTransition && state.params.geometryScale !== undefined) {
     // Sketches not initialized yet - directly set scale
     ZM.params.geometryScale = state.params.geometryScale;
   }
   
-  // Check if palette changed - trigger smooth transition
+  // Check if palette changed - trigger smooth transition (unless instant mode)
   const paletteChanged = oldParams.activePaletteIndex !== ZM.params.activePaletteIndex ||
                          JSON.stringify(oldParams.palettes) !== JSON.stringify(ZM.params.palettes);
   
   console.log('Palette changed?', paletteChanged);
   
-  if (paletteChanged) {
+  if (paletteChanged && !instant) {
+    // Smooth palette transition
     triggerPaletteChange(ZM);
+  } else if (paletteChanged && instant) {
+    // Instant mode: directly apply palette without transition
+    console.log('Instant palette change - no transition');
+    // The palette is already set in ZM.params, just update UI
   }
   
   // Update all UI elements WITHOUT triggering events
@@ -444,14 +489,14 @@ function saveState(ZM, name) {
  * @param {String} id - State ID
  * @returns {Boolean} Success status
  */
-function loadState(ZM, id) {
+function loadState(ZM, id, instant = false) {
   const state = getStateById(ZM, id);
   if (!state) {
     console.warn('State not found:', id);
     return false;
   }
   
-  restoreState(ZM, state);
+  restoreState(ZM, state, instant);
   ZM.stateManager.activeStateId = id;
   saveActiveStateId(id);
   

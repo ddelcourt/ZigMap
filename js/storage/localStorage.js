@@ -8,6 +8,18 @@ import { DEFAULT_PARAMS } from '../config/defaults.js';
 import { OVERLAY_FILES } from '../../config/overlayPresets.js';
 
 /**
+ * Clear all localStorage data
+ */
+export function clearLocalStorage() {
+  try {
+    localStorage.clear();
+    console.log('✓ localStorage cleared');
+  } catch (e) {
+    console.warn('localStorage clear failed:', e);
+  }
+}
+
+/**
  * Save parameters to localStorage
  * @param {Object} params - Parameters object to save
  */
