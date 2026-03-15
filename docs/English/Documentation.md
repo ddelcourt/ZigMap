@@ -819,7 +819,7 @@ Adjusts canvas resolution and scaling.
 
 ---
 
-#### `loadInitialPreset()` **NEW**
+#### `loadInitialPreset()`
 
 Automatically loads a curated starter project for first-time users.
 
@@ -962,8 +962,6 @@ async function init() {
 
 ### State Management
 
-**NEW IN v26:** Enhanced state system with transition duration controls and auto-trigger random state switching.
-
 #### State Architecture
 
 States capture complete snapshots of parameters and camera position for instant recall with smooth transitions.
@@ -1005,7 +1003,7 @@ States capture complete snapshots of parameters and camera position for instant 
 }
 ```
 
-#### Transition Duration Controls **NEW**
+#### Transition Duration Controls
 
 Two independent transition timers control smooth morphing between states:
 
@@ -1021,7 +1019,7 @@ Two independent transition timers control smooth morphing between states:
 
 **Storage:** Both are **project-wide** settings (not saved per-state).
 
-#### Auto-Trigger System **NEW**
+#### Auto-Trigger System
 
 Automatically switches between states using a shuffle pool algorithm to eliminate short-term repetition.
 
@@ -1571,8 +1569,6 @@ newDistance = oldDistance × tan(oldFOV/2) / tan(newFOV/2)
 
 ## Camera System
 
-**NEW IN v26:** Bidirectional camera synchronization with `syncToParams()` and `syncFromParams()` methods.
-
 ### Camera Class
 
 **File:** `js/core/Camera.js`
@@ -1615,7 +1611,7 @@ Called when:
 - Exporting projects
 - Manual camera updates
 
-#### `syncFromParams(params)` **NEW**
+#### `syncFromParams(params)`
 Loads camera state from parameters object:
 ```javascript
 syncFromParams(params) {
@@ -1738,9 +1734,7 @@ distance = clamp(distance, 50, 10000);
 
 ### PNG Export with Overlay Compositing
 
-**NEW IN v26:** Automatic overlay image compositing with pixelDensity correction.
-
-PNG exports now automatically composite the overlay image (if enabled) onto the p5.js canvas, accounting for high-resolution (Retina) displays.
+PNG exports automatically composite the overlay image (if enabled) onto the p5.js canvas, accounting for high-resolution (Retina) displays.
 
 **Implementation (js/export/PNGExporter.js):**
 
@@ -1943,11 +1937,22 @@ function exportDepthMap() {
     
     const poly = [...leftProj, ...[...rightProj].reverse()];
     rasteriseDepthPolygon(ctx, poly, minDepth, maxDepth, params.depthInvert, line._alpha());
-  }\n  \n  // 6. Download as PNG\n  offCanvas.toBlob(blob => {\n    const url = URL.createObjectURL(blob);\n    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);\n    const a = document.createElement('a');\n    a.href = url;\n    a.download = `zigzag-depthmap-${ts}.png`;\n    a.click();\n    URL.revokeObjectURL(url);\n  }, 'image/png');\n}\n```\n\n**Auto-Ranging Algorithm:**\n\n```javascript\nfunction scanDepthRange(lines) {\n  let minD = Infinity;\n  let maxD = -Infinity;\n  \n  for (const line of lines) {\n    if (line._alpha() <= 0) continue;\n    for (const pt of line._buildVertices()) {\n      const p = depthProjectVertex(line, pt.x, pt.y);\n      if (!p) continue;  // Clipped\n      if (p.depth < minD) minD = p.depth;\n      if (p.depth > maxD) maxD = p.depth;\n    }\n  }\n  \n  // Nudge minDepth down 3% to ensure nearest geometry maps to pure white\n  const nudge = (maxD - minD) * 0.03;\n  return { minDepth: Math.max(0.01, minD - nudge), maxDepth: maxD };\n}\n```\n\n**Depth Encoding:**\n\n```javascript\nfunction rasteriseDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {\n  // Average depth across polygon vertices\n  let depthSum = 0;\n  for (const p of pts) depthSum += p.depth;\n  const avgDepth = depthSum / pts.length;\n  \n  // Normalize to [0, 1]\n  let t = (avgDepth - minDepth) / (maxDepth - minDepth);\n  t = Math.max(0, Math.min(1, t));\n  \n  // Apply power curve for contrast enhancement\n  t = Math.pow(t, 0.6);  // Gamma 0.6 boosts midtones toward white\n  \n  // Encode as greyscale\n  const grey = Math.round((invert ? t : 1 - t) * 255);\n  \n  // Rasterize polygon\n  ctx.fillStyle = `rgba(${grey},${grey},${grey},${alpha.toFixed(4)})`;\n  ctx.beginPath();\n  ctx.moveTo(pts[0].sx, pts[0].sy);\n  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sx, pts[i].sy);\n  ctx.closePath();\n  ctx.fill();\n}\n```\n\n**Key Features:**\n- **Auto-ranging**: No manual near/far cutoff needed\n- **Power curve**: Gamma 0.6 enhances contrast in midtones\n- **Inversion**: Optional black = near, white = far\n- **Alignment**: Exact pixel correspondence with PNG export\n- **Performance**: CPU-based, works on all browsers\n\n---
+  }
+  
+  // 6. Download as PNG
+  offCanvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `zigzag-depthmap-${ts}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
+```\n\n**Auto-Ranging Algorithm:**\n\n```javascript\nfunction scanDepthRange(lines) {\n  let minD = Infinity;\n  let maxD = -Infinity;\n  \n  for (const line of lines) {\n    if (line._alpha() <= 0) continue;\n    for (const pt of line._buildVertices()) {\n      const p = depthProjectVertex(line, pt.x, pt.y);\n      if (!p) continue;  // Clipped\n      if (p.depth < minD) minD = p.depth;\n      if (p.depth > maxD) maxD = p.depth;\n    }\n  }\n  \n  // Nudge minDepth down 3% to ensure nearest geometry maps to pure white\n  const nudge = (maxD - minD) * 0.03;\n  return { minDepth: Math.max(0.01, minD - nudge), maxDepth: maxD };\n}\n```\n\n**Depth Encoding:**\n\n```javascript\nfunction rasteriseDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {\n  // Average depth across polygon vertices\n  let depthSum = 0;\n  for (const p of pts) depthSum += p.depth;\n  const avgDepth = depthSum / pts.length;\n  \n  // Normalize to [0, 1]\n  let t = (avgDepth - minDepth) / (maxDepth - minDepth);\n  t = Math.max(0, Math.min(1, t));\n  \n  // Apply power curve for contrast enhancement\n  t = Math.pow(t, 0.6);  // Gamma 0.6 boosts midtones toward white\n  \n  // Encode as greyscale\n  const grey = Math.round((invert ? t : 1 - t) * 255);\n  \n  // Rasterize polygon\n  ctx.fillStyle = `rgba(${grey},${grey},${grey},${alpha.toFixed(4)})`;\n  ctx.beginPath();\n  ctx.moveTo(pts[0].sx, pts[0].sy);\n  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sx, pts[i].sy);\n  ctx.closePath();\n  ctx.fill();\n}\n```\n\n**Key Features:**\n- **Auto-ranging**: No manual near/far cutoff needed\n- **Power curve**: Gamma 0.6 enhances contrast in midtones\n- **Inversion**: Optional black = near, white = far\n- **Alignment**: Exact pixel correspondence with PNG export\n- **Performance**: CPU-based, works on all browsers\n\n---
 
 ## Overlay System
-
-**NEW IN v26:** Static image overlay composited on top of canvas for branding, watermarks, or design elements.
 
 ### Architecture
 
@@ -2082,7 +2087,7 @@ function setupOverlayControls(ZM) {
 - Automatically saved to localStorage
 - Included in project JSON exports
 
-### Preset System **NEW**
+### Preset System
 
 **Architecture Overview:**
 

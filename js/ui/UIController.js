@@ -908,7 +908,8 @@ function setupDocumentationButtons() {
     'doc-tech-en': 'Documentation.md',
     'doc-tech-fr': 'Documentation-fr.md',
     'doc-projection-en': 'Projection-Matrix-Guide.md',
-    'doc-projection-fr': 'Projection-Matrix-Guide-fr.md'
+    'doc-projection-fr': 'Projection-Matrix-Guide-fr.md',
+    'doc-player': 'PLAYER-README.md'
   };
   
   for (const [id, doc] of Object.entries(docButtons)) {
