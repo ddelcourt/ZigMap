@@ -96,6 +96,11 @@ window.ZigMap26 = {
       window.ZigMap26.stateManager.activeStateId = loadedData.activeStateId;
       window.ZigMap26.stateManager.saveToStorage();
       
+      // Clear shuffle pool so it regenerates with new state IDs
+      if (window.ZigMap26.shufflePool) {
+        window.ZigMap26.shufflePool = [];
+      }
+      
       // Update state UI
       if (window.ZigMap26.updateStatePanel) {
         window.ZigMap26.updateStatePanel();

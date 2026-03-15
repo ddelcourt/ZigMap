@@ -106,6 +106,13 @@ function captureCurrentState(ZM, name) {
   delete params.stereoscopicMode;
   delete params.eyeSeparation;
   
+  // Exclude camera parameters (stored separately in camera object)
+  delete params.cameraRotationX;
+  delete params.cameraRotationY;
+  delete params.cameraDistance;
+  delete params.cameraOffsetX;
+  delete params.cameraOffsetY;
+  
   // Verify palettes are captured correctly
   if (!params.palettes || params.palettes.length !== 4) {
     console.error('Warning: Palettes not properly captured', params.palettes);
