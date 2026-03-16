@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+#
+# Update welcome.html preset list from config/presets/ directory
+#
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+cd "$PROJECT_ROOT"
+
+python3 - <<'EOF'
+import os
+import json
+from pathlib import Path
+
+# Configuration
+PRESETS_DIR = Path('config/presets')
+WELCOME_FILE = Path('welcome.html')
+MANIFEST_FILE = Path('config/presets/manifest.json')
+START_MARKER = '<!-- PRESETS_START -->'
+END_MARKER = '<!-- PRESETS_END -->'
+
+def get_preset_type(filename):
+    """Determine preset type from filename"""
+    if 'init' in filename.lower():
+        return 'Init'
+    return 'Preset'
+
+def generate_preset_html(filename):
+    """Generate HTML for a single preset"""
+    name = filename.replace('.json', '')
+    preset_type = get_preset_type(filename)
+    
+    return f'''        <li class="preset-item">
+          <div class="preset-info">
+            <span class="preset-name">{filename}</span>
+            <span class="preset-type">{preset_type}</span>
+          </div>
+          <div class="preset-actions">
+            <a href="index.html?preset={name}" class="preset-button">Editor</a>
+            <a href="player.html?preset={name}" class="preset-button">Player</a>
+          </div>
+        </li>'''
+
+def get_presets():
+    """Scan presets directory and return sorted list of .json files"""
+    if not PRESETS_DIR.exists():
+        print(f"Error: {PRESETS_DIR} not found")
+        return []
+    
+    presets = [f.name for f in PRESETS_DIR.glob('*.json') if f.is_file() and f.name != 'manifest.json']
+    
+    # Sort: init files first, then alphabetically
+    def sort_key(filename):
+        if 'init' in filename.lower():
+            return (0, filename)
+        return (1, filename)
+    
+    return sorted(presets, key=sort_key)
+
+def generate_manifest(presets):
+    """Generate manifest.json file with preset list"""
+    manifest = {
+        'presets': [
+            {
+                'filename': preset,
+                'name': preset.replace('.json', ''),
+                'type': get_preset_type(preset)
+            }
+            for preset in presets
+        ]
+    }
+    
+    with open(MANIFEST_FILE, 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, indent=2)
+    
+    print(f"Generated {MANIFEST_FILE}")
+
+def update_welcome_html():
+    """Update welcome.html with current preset list"""
+    if not WELCOME_FILE.exists():
+        print(f"Error: {WELCOME_FILE} not found")
+        return False
+    
+    # Read current file
+    with open(WELCOME_FILE, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Check for markers
+    if START_MARKER not in content or END_MARKER not in content:
+        print(f"Error: Markers not found in {WELCOME_FILE}")
+        print(f"Add {START_MARKER} and {END_MARKER} around preset list")
+        return False
+    
+    # Get presets
+    presets = get_presets()
+    if not presets:
+        print("Warning: No presets found")
+        return False
+    
+    # Generate manifest
+    generate_manifest(presets)
+    
+    # Generate preset HTML
+    preset_html = '\n'.join(generate_preset_html(p) for p in presets)
+    
+    # Replace content between markers
+    start_idx = content.find(START_MARKER) + len(START_MARKER)
+    end_idx = content.find(END_MARKER)
+    
+    new_content = (
+        content[:start_idx] +
+        '\n' + preset_html + '\n' +
+        content[end_idx:]
+    )
+    
+    # Write updated file
+    with open(WELCOME_FILE, 'w', encoding='utf-8') as f:
+        f.write(new_content)
+    
+    print(f"Updated {WELCOME_FILE}")
+    print(f"Found {len(presets)} preset(s):")
+    for preset in presets:
+        print(f"  - {preset}")
+    
+    return True
+
+if __name__ == '__main__':
+    update_welcome_html()
+EOF

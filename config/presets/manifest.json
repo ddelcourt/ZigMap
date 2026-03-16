@@ -1,0 +1,24 @@
+{
+  "presets": [
+    {
+      "filename": "zigmap_init.json",
+      "name": "zigmap_init",
+      "type": "Init"
+    },
+    {
+      "filename": "zigmap_horizon.json",
+      "name": "zigmap_horizon",
+      "type": "Preset"
+    },
+    {
+      "filename": "zigmap_horizon2.json",
+      "name": "zigmap_horizon2",
+      "type": "Preset"
+    },
+    {
+      "filename": "zigmap_horizon3.json",
+      "name": "zigmap_horizon3",
+      "type": "Preset"
+    }
+  ]
+}

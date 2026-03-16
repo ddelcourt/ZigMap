@@ -144,6 +144,33 @@
       background: #111;
     }
 
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .refresh-button {
+      background: #000;
+      border: 1px solid #333;
+      color: #fff;
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+    }
+
+    .refresh-button:hover {
+      background: #111;
+    }
+
+    .refresh-button:active {
+      background: #222;
+    }
+
     footer {
       margin-top: 80px;
       padding-top: 24px;
@@ -214,8 +241,12 @@
     </section>
 
     <section class="section">
-      <h2 class="section-title">Project Presets</h2>
-      <ul class="preset-list">
+      <div class="section-header">
+        <h2 class="section-title">Project Presets</h2>
+        <button class="refresh-button" onclick="loadPresets()">Refresh</button>
+      </div>
+      <ul class="preset-list" id="preset-list">
+<!-- PRESETS_START -->
         <li class="preset-item">
           <div class="preset-info">
             <span class="preset-name">zigmap_init.json</span>
@@ -256,6 +287,7 @@
             <a href="player.html?preset=zigmap_horizon3" class="preset-button">Player</a>
           </div>
         </li>
+<!-- PRESETS_END -->
       </ul>
     </section>
 
@@ -263,6 +295,50 @@
       © ddelcourt 26 — Mapping festival
     </footer>
   </div>
+
+  <script>
+    async function loadPresets() {
+      try {
+        const response = await fetch('config/presets/manifest.json');
+        if (!response.ok) {
+          console.error('Failed to load manifest');
+          return;
+        }
+        
+        const data = await response.json();
+        const presetList = document.getElementById('preset-list');
+        
+        // Clear current list
+        presetList.innerHTML = '';
+        
+        // Generate preset items
+        data.presets.forEach(preset => {
+          const li = document.createElement('li');
+          li.className = 'preset-item';
+          
+          li.innerHTML = `
+            <div class="preset-info">
+              <span class="preset-name">${preset.filename}</span>
+              <span class="preset-type">${preset.type}</span>
+            </div>
+            <div class="preset-actions">
+              <a href="index.html?preset=${preset.name}" class="preset-button">Editor</a>
+              <a href="player.html?preset=${preset.name}" class="preset-button">Player</a>
+            </div>
+          `;
+          
+          presetList.appendChild(li);
+        });
+        
+        console.log(`Loaded ${data.presets.length} preset(s)`);
+      } catch (error) {
+        console.error('Error loading presets:', error);
+      }
+    }
+    
+    // Load presets on page load
+    document.addEventListener('DOMContentLoaded', loadPresets);
+  </script>
 </body>
 </html>
           </div>
