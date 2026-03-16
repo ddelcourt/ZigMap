@@ -819,7 +819,7 @@ Adjusts canvas resolution and scaling.
 
 ---
 
-#### `loadInitialPreset()`
+#### `loadInitialPreset()` **NEW**
 
 Automatically loads a curated starter project for first-time users.
 
@@ -962,6 +962,8 @@ async function init() {
 
 ### State Management
 
+**NEW IN v26:** Enhanced state system with transition duration controls and auto-trigger random state switching.
+
 #### State Architecture
 
 States capture complete snapshots of parameters and camera position for instant recall with smooth transitions.
@@ -971,39 +973,25 @@ States capture complete snapshots of parameters and camera position for instant 
 {
   name: "State Name",
   params: {
-    // All parameters except project-wide settings and camera
+    // All parameters except project-wide settings
     segmentLength: 30,
     lineThickness: 12,
     emitRate: 1.5,
     speed: 80,
-    fov: 70,
+    cameraRotationX: 0.2,
+    cameraRotationY: 0.5,
+    cameraDistance: 800,
     // ... all other parameters
     
     // Project-wide (excluded from state capture):
     // - overlayImageSrc, overlayVisible, overlayScale, overlayOpacity, overlayX, overlayY
     // - stateTransitionDuration, colorTransitionDuration
     // - autoTriggerEnabled, autoTriggerFrequency
-    // - near, far, framebufferMode, framebufferWidth/Height
-    // - stereoscopicMode, eyeSeparation
-    
-    // Camera parameters (stored separately in camera object):
-    // - cameraRotationX, cameraRotationY, cameraDistance
-    // - cameraOffsetX, cameraOffsetY
-  },
-  camera: {
-    rotationX: 0.2,
-    rotationY: 0.5,
-    distance: 800,
-    offsetX: 0,
-    offsetY: 0
-  },
-  metadata: {
-    version: "1.0"
   }
 }
 ```
 
-#### Transition Duration Controls
+#### Transition Duration Controls **NEW**
 
 Two independent transition timers control smooth morphing between states:
 
@@ -1019,7 +1007,7 @@ Two independent transition timers control smooth morphing between states:
 
 **Storage:** Both are **project-wide** settings (not saved per-state).
 
-#### Auto-Trigger System
+#### Auto-Trigger System **NEW**
 
 Automatically switches between states using a shuffle pool algorithm to eliminate short-term repetition.
 
@@ -1569,6 +1557,8 @@ newDistance = oldDistance × tan(oldFOV/2) / tan(newFOV/2)
 
 ## Camera System
 
+**NEW IN v26:** Bidirectional camera synchronization with `syncToParams()` and `syncFromParams()` methods.
+
 ### Camera Class
 
 **File:** `js/core/Camera.js`
@@ -1611,7 +1601,7 @@ Called when:
 - Exporting projects
 - Manual camera updates
 
-#### `syncFromParams(params)`
+#### `syncFromParams(params)` **NEW**
 Loads camera state from parameters object:
 ```javascript
 syncFromParams(params) {
@@ -1734,7 +1724,9 @@ distance = clamp(distance, 50, 10000);
 
 ### PNG Export with Overlay Compositing
 
-PNG exports automatically composite the overlay image (if enabled) onto the p5.js canvas, accounting for high-resolution (Retina) displays.
+**NEW IN v26:** Automatic overlay image compositing with pixelDensity correction.
+
+PNG exports now automatically composite the overlay image (if enabled) onto the p5.js canvas, accounting for high-resolution (Retina) displays.
 
 **Implementation (js/export/PNGExporter.js):**
 
@@ -1759,22 +1751,10 @@ export function createCompositeCanvas(ZM, sourceCanvas) {
   // 2. Draw overlay if visible
   const overlayImg = document.getElementById('overlay-image');
   if (params.overlayVisible && overlayImg && overlayImg.src && overlayImg.complete) {
-    // Calculate overlay size to match on-screen display
-    const overlayNaturalWidth = overlayImg.naturalWidth;
-    const overlayNaturalHeight = overlayImg.naturalHeight;
-    const userScale = params.overlayScale / 100;
-    
-    // On-screen: image displays at naturalWidth CSS pixels, then scaled by userScale
-    const displayWidth = overlayNaturalWidth * userScale;
-    const displayHeight = overlayNaturalHeight * userScale;
-    
-    // Convert to canvas buffer pixels
-    // sourceCanvas.width = buffer size (includes pixelDensity)
-    // ZM.W = logical size (CSS pixels)
-    const bufferToLogicalRatio = sourceCanvas.width / ZM.W;
-    // × 2 accounts for image pixels → CSS pixels → buffer pixels conversion
-    const overlayWidth = displayWidth * bufferToLogicalRatio * 2;
-    const overlayHeight = displayHeight * bufferToLogicalRatio * 2;
+    // Calculate scaled dimensions with pixelDensity
+    const scale = params.overlayScale / 100;
+    const overlayWidth = overlayImg.naturalWidth * scale * pixelDensity;
+    const overlayHeight = overlayImg.naturalHeight * scale * pixelDensity;
     
     // Calculate position (0-100% → pixel coordinates)
     const x = (params.overlayX / 100) * actualWidth - overlayWidth / 2;
@@ -1937,22 +1917,11 @@ function exportDepthMap() {
     
     const poly = [...leftProj, ...[...rightProj].reverse()];
     rasteriseDepthPolygon(ctx, poly, minDepth, maxDepth, params.depthInvert, line._alpha());
-  }
-  
-  // 6. Download as PNG
-  offCanvas.toBlob(blob => {
-    const url = URL.createObjectURL(blob);
-    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `zigzag-depthmap-${ts}.png`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, 'image/png');
-}
-```\n\n**Auto-Ranging Algorithm:**\n\n```javascript\nfunction scanDepthRange(lines) {\n  let minD = Infinity;\n  let maxD = -Infinity;\n  \n  for (const line of lines) {\n    if (line._alpha() <= 0) continue;\n    for (const pt of line._buildVertices()) {\n      const p = depthProjectVertex(line, pt.x, pt.y);\n      if (!p) continue;  // Clipped\n      if (p.depth < minD) minD = p.depth;\n      if (p.depth > maxD) maxD = p.depth;\n    }\n  }\n  \n  // Nudge minDepth down 3% to ensure nearest geometry maps to pure white\n  const nudge = (maxD - minD) * 0.03;\n  return { minDepth: Math.max(0.01, minD - nudge), maxDepth: maxD };\n}\n```\n\n**Depth Encoding:**\n\n```javascript\nfunction rasteriseDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {\n  // Average depth across polygon vertices\n  let depthSum = 0;\n  for (const p of pts) depthSum += p.depth;\n  const avgDepth = depthSum / pts.length;\n  \n  // Normalize to [0, 1]\n  let t = (avgDepth - minDepth) / (maxDepth - minDepth);\n  t = Math.max(0, Math.min(1, t));\n  \n  // Apply power curve for contrast enhancement\n  t = Math.pow(t, 0.6);  // Gamma 0.6 boosts midtones toward white\n  \n  // Encode as greyscale\n  const grey = Math.round((invert ? t : 1 - t) * 255);\n  \n  // Rasterize polygon\n  ctx.fillStyle = `rgba(${grey},${grey},${grey},${alpha.toFixed(4)})`;\n  ctx.beginPath();\n  ctx.moveTo(pts[0].sx, pts[0].sy);\n  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sx, pts[i].sy);\n  ctx.closePath();\n  ctx.fill();\n}\n```\n\n**Key Features:**\n- **Auto-ranging**: No manual near/far cutoff needed\n- **Power curve**: Gamma 0.6 enhances contrast in midtones\n- **Inversion**: Optional black = near, white = far\n- **Alignment**: Exact pixel correspondence with PNG export\n- **Performance**: CPU-based, works on all browsers\n\n---
+  }\n  \n  // 6. Download as PNG\n  offCanvas.toBlob(blob => {\n    const url = URL.createObjectURL(blob);\n    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);\n    const a = document.createElement('a');\n    a.href = url;\n    a.download = `zigzag-depthmap-${ts}.png`;\n    a.click();\n    URL.revokeObjectURL(url);\n  }, 'image/png');\n}\n```\n\n**Auto-Ranging Algorithm:**\n\n```javascript\nfunction scanDepthRange(lines) {\n  let minD = Infinity;\n  let maxD = -Infinity;\n  \n  for (const line of lines) {\n    if (line._alpha() <= 0) continue;\n    for (const pt of line._buildVertices()) {\n      const p = depthProjectVertex(line, pt.x, pt.y);\n      if (!p) continue;  // Clipped\n      if (p.depth < minD) minD = p.depth;\n      if (p.depth > maxD) maxD = p.depth;\n    }\n  }\n  \n  // Nudge minDepth down 3% to ensure nearest geometry maps to pure white\n  const nudge = (maxD - minD) * 0.03;\n  return { minDepth: Math.max(0.01, minD - nudge), maxDepth: maxD };\n}\n```\n\n**Depth Encoding:**\n\n```javascript\nfunction rasteriseDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {\n  // Average depth across polygon vertices\n  let depthSum = 0;\n  for (const p of pts) depthSum += p.depth;\n  const avgDepth = depthSum / pts.length;\n  \n  // Normalize to [0, 1]\n  let t = (avgDepth - minDepth) / (maxDepth - minDepth);\n  t = Math.max(0, Math.min(1, t));\n  \n  // Apply power curve for contrast enhancement\n  t = Math.pow(t, 0.6);  // Gamma 0.6 boosts midtones toward white\n  \n  // Encode as greyscale\n  const grey = Math.round((invert ? t : 1 - t) * 255);\n  \n  // Rasterize polygon\n  ctx.fillStyle = `rgba(${grey},${grey},${grey},${alpha.toFixed(4)})`;\n  ctx.beginPath();\n  ctx.moveTo(pts[0].sx, pts[0].sy);\n  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sx, pts[i].sy);\n  ctx.closePath();\n  ctx.fill();\n}\n```\n\n**Key Features:**\n- **Auto-ranging**: No manual near/far cutoff needed\n- **Power curve**: Gamma 0.6 enhances contrast in midtones\n- **Inversion**: Optional black = near, white = far\n- **Alignment**: Exact pixel correspondence with PNG export\n- **Performance**: CPU-based, works on all browsers\n\n---
 
 ## Overlay System
+
+**NEW IN v26:** Static image overlay composited on top of canvas for branding, watermarks, or design elements.
 
 ### Architecture
 
@@ -1988,46 +1957,15 @@ overlayY: 50,               // Vertical position (0-100%)
 **Implementation (js/storage/StateManager.js):**
 ```javascript
 export function captureCurrentState(ZM) {
-  const params = { ...ZM.params };
+  const state = { ...ZM.params };
   
   // Remove project-wide settings
-  delete params.near;
-  delete params.far;
-  delete params.framebufferMode;
-  delete params.framebufferPreset;
-  delete params.framebufferWidth;
-  delete params.framebufferHeight;
-  delete params.stereoscopicMode;
-  delete params.eyeSeparation;
-  
-  // Exclude camera parameters (stored separately in camera object)
-  delete params.cameraRotationX;
-  delete params.cameraRotationY;
-  delete params.cameraDistance;
-  delete params.cameraOffsetX;
-  delete params.cameraOffsetY;
-  
-  delete params.overlayImageSrc;
-  delete params.overlayVisible;
-  delete params.overlayScale;
-  delete params.overlayOpacity;
-  delete params.overlayX;
-  delete params.overlayY;
-  
-  // Create state with separate camera object
-  const state = {
-    params: params,
-    camera: {
-      rotationX: ZM.camera.rotationX,
-      rotationY: ZM.camera.rotationY,
-      distance: ZM.camera.distance,
-      offsetX: ZM.camera.offsetX,
-      offsetY: ZM.camera.offsetY
-    },
-    metadata: {
-      version: "1.0"
-    }
-  };
+  delete state.overlayImageSrc;
+  delete state.overlayVisible;
+  delete state.overlayScale;
+  delete state.overlayOpacity;
+  delete state.overlayX;
+  delete state.overlayY;
   
   return state;
 }
@@ -2087,7 +2025,7 @@ function setupOverlayControls(ZM) {
 - Automatically saved to localStorage
 - Included in project JSON exports
 
-### Preset System
+### Preset System **NEW**
 
 **Architecture Overview:**
 

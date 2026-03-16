@@ -1,120 +1,132 @@
-# Émetteur Zigzag — Documentation technique
+# Émetteur Zigzag - Documentation Technique
 ddelcourt2026
 
-**Version 26** — Architecture du code, guide d'implémentation — Structure du code, modèles d'architecture et détails d'implémentation.
+**Version 26** - Architecture du Code & Guide d'Implémentation
+
+Ce document fournit une vue d'ensemble complète de la structure du code, des modèles d'architecture et des détails d'implémentation pour les développeurs qui souhaitent comprendre, modifier ou étendre l'Émetteur Zigzag.
 
 ---
 
-## Table des matières
+## Table des Matières
 
-- [Vue d'ensemble de l'architecture](#vue-densemble-de-larchitecture)
-- [Stack technologique](#stack-technologique)
-- [Structure des fichiers](#structure-des-fichiers)
-- [Concepts fondamentaux](#concepts-fondamentaux)
-- [Structures de données](#structures-de-données)
-- [Référence des classes](#référence-des-classes)
-- [Référence des fonctions](#référence-des-fonctions)
-- [Pipeline de rendu](#pipeline-de-rendu)
-- [Système de caméra](#système-de-caméra)
-- [Système d'incrustation](#système-dincrustation)
-- [Système d'export](#système-dexport)
-- [Gestion d'état](#gestion-détat)
-- [Gestion des événements](#gestion-des-événements)
-- [Considérations de performance](#considérations-de-performance)
-- [Guide d'extension](#guide-dextension)
+- [Vue d'Ensemble de l'Architecture](#vue-densemble-de-larchitecture)
+- [Stack Technologique](#stack-technologique)
+- [Structure des Fichiers](#structure-des-fichiers)
+- [Concepts Fondamentaux](#concepts-fondamentaux)
+- [Structures de Données](#structures-de-données)
+- [Référence des Classes](#référence-des-classes)
+- [Référence des Fonctions](#référence-des-fonctions)
+- [Pipeline de Rendu](#pipeline-de-rendu)
+- [Système de Caméra](#système-de-caméra)
+- [Système d'Incrustation](#système-dincrustation)
+- [Système d'Export](#système-dexport)
+- [Gestion d'État](#gestion-détat)
+- [Gestion des Événements](#gestion-des-événements)
+- [Considérations de Performance](#considérations-de-performance)
+- [Guide d'Extension](#guide-dextension)
 - [Débogage](#débogage)
 
 ---
 
-## Vue d'ensemble de l'architecture
+## Vue d'Ensemble de l'Architecture
 
-L'application suit une architecture à fichier unique avec une séparation des préoccupations assurée par l'organisation du code et l'espacement de noms.
+L'Émetteur Zigzag suit une **architecture à fichier unique** avec une séparation claire des préoccupations grâce à l'organisation du code et l'espacement de noms. L'application est structurée comme suit :
 
 ```
 ┌─────────────────────────────────────────────┐
 │        Structure HTML & CSS                 │
-│  (Contrôles UI, mise en page, style)        │
+│  (Contrôles UI, Mise en page, Style)        │
 └─────────────────────────────────────────────┘
                     ↓
 ┌─────────────────────────────────────────────┐
 │        Application JavaScript               │
 │                                             │
-│  ┌───────────────────────────────────────┐  │
-│  │     État global & paramètres          │  │
-│  │  (params, camera, instances)          │  │
-│  └───────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────┐ │
+│  │     État Global & Paramètres          │ │
+│  │  (params, camera, instances)          │ │
+│  └───────────────────────────────────────┘ │
 │                    ↓                        │
-│  ┌───────────────────────────────────────┐  │
-│  │      Classes principales              │  │
-│  │  • ZigzagLine                         │  │
-│  │  • Emitter                            │  │
-│  └───────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────┐ │
+│  │      Classes Principales              │ │
+│  │  • ZigzagLine                         │ │
+│  │  • Emitter                            │ │
+│  └───────────────────────────────────────┘ │
 │                    ↓                        │
-│  ┌───────────────────────────────────────┐  │
-│  │      Factory de sketch p5.js          │  │
-│  │  (fonction createSketch)              │  │
-│  └───────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────┐ │
+│  │      Factory de Sketch p5.js          │ │
+│  │  (fonction createSketch)              │ │
+│  └───────────────────────────────────────┘ │
 │                    ↓                        │
-│  ┌───────────────────────────────────────┐  │
-│  │      Fonctions utilitaires            │  │
-│  │  • Aides géométriques                 │  │
-│  │  • Fonctions d'export                 │  │
-│  │  • Persistance d'état                 │  │
-│  └───────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────┐ │
+│  │      Fonctions Utilitaires            │ │
+│  │  • Aides géométriques                 │ │
+│  │  • Fonctions d'export                 │ │
+│  │  • Persistance d'état                 │ │
+│  └───────────────────────────────────────┘ │
 │                    ↓                        │
-│  ┌───────────────────────────────────────┐  │
-│  │      Gestionnaires d'événements UI    │  │
-│  │  • Câblage des curseurs               │  │
-│  │  • Gestionnaires de boutons           │  │
-│  │  • Raccourcis clavier                 │  │
-│  └───────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────┐ │
+│  │      Gestionnaires d'Événements UI    │ │
+│  │  • Câblage des curseurs               │ │
+│  │  • Gestionnaires de boutons           │ │
+│  │  • Raccourcis clavier                 │ │
+│  └───────────────────────────────────────┘ │
 └─────────────────────────────────────────────┘
 ```
 
-### Modèles de conception
+### Modèles de Conception
 
-- **Factory** : `createSketch()` génère des instances p5.js
-- **Observer** : les contrôles UI mettent à jour l'objet `params`, déclenchant une persistance automatique
-- **Singleton** : instance unique d'`Emitter` partagée entre les vues stéréo
-- **Module** : regroupement logique de fonctions apparentées avec commentaires
-
----
-
-## Stack technologique
-
-### Bibliothèques principales
-
-**[p5.js](https://p5js.org/) v1.9.0**
-Framework de codage créatif. Fournit un moteur de rendu WebGL, la gestion du canevas, le dessin, les transformations et la projection en perspective.
-
-**[CCapture.js](https://github.com/spite/ccapture.js/) v1.1.0**
-Capture vidéo image par image. Rendu déterministe pour une sortie cohérente. Support WebM et autres formats.
-
-### APIs du navigateur
-
-- **Canvas 2D** : export PNG via `toDataURL()`
-- **WebGL** : rendu 3D accéléré via p5.js
-- **LocalStorage** : persistance des paramètres
-- **File API** : import/export de configuration JSON
-- **Fullscreen API** : bascule du mode plein écran
-
-### Fonctionnalités du langage
-
-JavaScript ES6+ : classes, fonctions fléchées, décomposition, littéraux de modèle, opérateur de propagation, portée de bloc `const`/`let`.
+1. **Modèle Factory** : `createSketch()` génère des instances p5.js
+2. **Modèle Observer** : Les contrôles UI mettent à jour l'objet `params`, déclenchant une persistance automatique
+3. **Modèle Singleton** : Instance unique d'`Emitter` partagée entre les vues stéréo
+4. **Modèle Module** : Regroupement logique de fonctions apparentées avec des commentaires clairs
 
 ---
 
-## Structure des fichiers
+## Stack Technologique
+
+### Bibliothèques Principales
+
+- **[p5.js](https://p5js.org/) v1.9.0**
+  - Framework de codage créatif
+  - Fournit un moteur de rendu WebGL et la gestion du canevas
+  - Gère le dessin, les transformations et la projection en perspective
+  
+- **[CCapture.js](https://github.com/spite/ccapture.js/) v1.1.0**
+  - Capture vidéo image par image
+  - Rendu déterministe pour une sortie cohérente
+  - Support WebM et autres formats
+
+### APIs du Navigateur
+
+- **API Canvas 2D** : Export PNG via `toDataURL()`
+- **WebGL** : Rendu 3D accéléré par matériel via p5.js
+- **LocalStorage** : Persistance des paramètres
+- **API File** : Import/export de configuration JSON
+- **API Fullscreen** : Bascule du mode plein écran
+
+### Fonctionnalités du Langage
+
+- **JavaScript ES6+**
+  - Classes et constructeurs
+  - Fonctions fléchées
+  - Affectation par décomposition
+  - Littéraux de modèle
+  - Opérateur de propagation
+  - Portée de bloc `const`/`let`
+
+---
+
+## Structure des Fichiers
 
 ```
-ZigzagEmitter_10.html    (application à fichier unique)
+ZigzagEmitter_10.html    (Application à fichier unique)
 ├── <!DOCTYPE html>
 ├── <head>
 │   ├── Balises meta
 │   ├── Imports de bibliothèques externes (p5.js, CCapture.js)
 │   └── <style> (CSS)
 ├── <body>
-│   ├── .controls (barre latérale gauche)
+│   ├── .controls (Barre latérale gauche)
 │   │   ├── Section UI
 │   │   ├── Section Fichier
 │   │   ├── Section Caméra
@@ -124,7 +136,7 @@ ZigzagEmitter_10.html    (application à fichier unique)
 │   │   ├── Section Couleurs
 │   │   └── Section Export
 │   └── #canvas-container
-│       └── #canvas-wrapper (contenu dynamique)
+│       └── #canvas-wrapper (Contenu dynamique)
 └── <script>
     ├── Constantes globales & état
     ├── Fonctions d'aide
@@ -139,40 +151,53 @@ ZigzagEmitter_10.html    (application à fichier unique)
 
 ---
 
-## Concepts fondamentaux
+## Concepts Fondamentaux
 
-### 1. Systèmes de coordonnées
+### 1. Systèmes de Coordonnées
 
-**Espace écran**
-- Origine : coin supérieur gauche
-- Unités : pixels
+L'application utilise trois systèmes de coordonnées :
+
+#### Espace Écran
+- Origine : Coin supérieur gauche
+- Unités : Pixels
 - Plage : `[0, W)` × `[0, H)`
-- Utilisation : entrée souris, éléments UI
+- Utilisé pour : Entrée souris, éléments UI
 
-**Espace canevas**
-- Origine : centre du canevas
-- Unités : pixels
+#### Espace Canevas
+- Origine : Centre du canevas
+- Unités : Pixels
 - Plage : `[-W/2, W/2)` × `[-H/2, H/2)`
-- Utilisation : génération de géométrie 2D, limites de génération
+- Utilisé pour : Génération de géométrie 2D, limites de génération
 
-**Espace monde**
-- Origine : centre de la scène après transformations
-- Unités : arbitraires, mis à l'échelle par `geometryScale`
-- Utilisation : rendu 3D, transformations de caméra
-- Transformations appliquées : translation, rotation, échelle
+#### Espace Monde
+- Origine : Centre de la scène (après transformations)
+- Unités : Arbitraires (mis à l'échelle par `geometryScale`)
+- Utilisé pour : Rendu 3D, transformations de caméra
+- Transformations appliquées : Translation, rotation, échelle
 
-### 2. Modes de rendu
+### 2. Modes de Rendu
 
-**Monoscopique (défaut)**
-Canevas unique remplissant la fenêtre. Rendu en perspective standard. Bordure gris foncé (1px).
+#### Monoscopique (Défaut)
+- Canevas unique remplissant la fenêtre
+- Rendu en perspective standard
+- Bordure gris foncé (1px)
 
-**Stéréoscopique (mode VR)**
-Deux canevas côte à côte (œil gauche / droit). Chaque canevas : largeur W/2. Caméra décalée de `±eyeSeparation/2` le long de l'axe X. Bordures vertes indiquant le mode stéréo. Animation synchronisée via `sharedLastTime`.
+#### Stéréoscopique (Mode VR)
+- Deux canevas côte à côte (œil gauche/droit)
+- Chaque canevas : largeur W/2
+- Caméra décalée de `±eyeSeparation/2` le long de l'axe X
+- Bordures vertes indiquant le mode stéréo
+- Animation synchronisée via `sharedLastTime`
 
-**Mode framebuffer**
-Résolution fixe indépendante de la taille de la fenêtre. Canevas mis à l'échelle pour s'adapter à la fenêtre. Active l'export au pixel près. Bordure gris foncé autour du canevas fixe.
+#### Mode Framebuffer
+- Résolution fixe indépendante de la taille de la fenêtre
+- Canevas mis à l'échelle pour s'adapter à la fenêtre
+- Active l'export au pixel près
+- Bordure gris foncé autour du canevas fixe
 
-### 3. Boucle d'animation
+### 3. Boucle d'Animation
+
+Cycle de mise à jour image par image :
 
 ```
 1. Effacer l'arrière-plan (noir)
@@ -181,22 +206,22 @@ Résolution fixe indépendante de la taille de la fenêtre. Canevas mis à l'éc
 4. Mettre à jour l'émetteur (générer nouvelles lignes, déplacer existantes)
 5. Appliquer les transformations de caméra (translation, rotation, perspective)
 6. Dessiner toutes les lignes zigzag
-7. (Si enregistrement) capturer l'image pour l'encodeur vidéo
+7. (Si enregistrement) Capturer l'image pour l'encodeur vidéo
 ```
 
-### 4. Génération de géométrie
+### 4. Génération de Géométrie
 
-Les motifs zigzag sont construits comme suit :
+Les motifs zigzag sont générés comme :
 
-1. **Ligne centrale** : série de points formant le chemin zigzag
-2. **Décalage de ruban** : décalages perpendiculaires créant l'épaisseur
-3. **Joints en onglet** : connexions lisses aux sommets
-4. **Embouts** : capuchons verticaux plats au début et en fin
-5. **Construction de maillage** : bande de quads depuis les côtés gauche et droit
+1. **Ligne centrale** : Série de points formant le chemin zigzag
+2. **Décalage de ruban** : Décalages perpendiculaires créant l'épaisseur
+3. **Joints en onglet** : Connexions lisses aux sommets
+4. **Embouts** : Capuchons verticaux plats au début/fin
+5. **Construction de maillage** : Bande de quads depuis les côtés gauche/droit
 
 ---
 
-## Structures de données
+## Structures de Données
 
 ### Objet `params`
 
@@ -210,8 +235,8 @@ const params = {
   emitterRotation: 0,        // Rotation axe Z (degrés)
   geometryScale: 100,        // Échelle uniforme (%)
   fadeDuration: 0.8,         // Durée de fondu d'entrée/sortie (secondes)
-
-  // Palettes de couleurs
+  
+  // Palettes de Couleurs
   palettes: [                // 4 palettes × 4 couleurs chacune
     [
       { color: [255, 255, 255], role: 'line' },
@@ -219,16 +244,16 @@ const params = {
       { color: [255, 200, 200], role: 'line' },
       { color: [200, 255, 200], role: 'none' }
     ],
-    // ... palettes 2–4
+    // ... palettes 2-4
   ],
-  activePaletteIndex: 0,         // Palette sélectionnée (0–3)
-  colorTransitionDuration: 3.0,  // Durée de transition de palette (secondes)
-  colorSlotZOffset: 100,         // Multiplicateur de séparation Z
-
+  activePaletteIndex: 0,     // Palette actuellement sélectionnée (0-3)
+  colorTransitionDuration: 3.0,  // Temps de transition de palette (secondes)
+  colorSlotZOffset: 100,     // Multiplicateur de séparation Z pour emplacements de couleur
+  
   // Animation
   emitRate: 1.5,             // Lignes générées par seconde
   speed: 80,                 // Vitesse de mouvement de base (px/s)
-
+  
   // Caméra
   fov: 60,                   // Champ de vision (degrés)
   near: 0.01,                // Plan de découpe proche
@@ -238,7 +263,7 @@ const params = {
   cameraDistance: 600,       // Distance depuis l'origine
   cameraOffsetX: 0,          // Décalage de déplacement X
   cameraOffsetY: 0,          // Décalage de déplacement Y
-
+  
   // Modulation
   randomThickness: false,    // Activer variation d'épaisseur
   randomSpeed: false,        // Activer variation de vitesse
@@ -247,18 +272,22 @@ const params = {
   speedRangeMin: 50,         // Multiplicateur de vitesse min (%)
   speedRangeMax: 150,        // Multiplicateur de vitesse max (%)
   ambientSpeedMaster: 100,   // Multiplicateur de vitesse global (%)
-
+  
   // Rendu
   stereoscopicMode: false,   // Activer stéréo double caméra
   eyeSeparation: 30,         // Distance entre caméras
   framebufferMode: false,    // Verrouiller à résolution fixe
-  framebufferPreset: '1920x1080',
+  framebufferPreset: '1920x1080',  // Nom du préréglage de résolution
   framebufferWidth: 1920,    // Largeur du canevas (px)
   framebufferHeight: 1080,   // Hauteur du canevas (px)
-
+  
   // Export
-  videoDuration: 10,         // Durée d'enregistrement (secondes)
-  videoFPS: 30,              // Fréquence d'images
+  videoDuration: 10,         // Longueur d'enregistrement (secondes)
+  videoFPS: 30,              // Fréquence d'images d'enregistrement
+  videoFormat: 'webm'        // Codec vidéo
+};
+```
+  videoFPS: 30,              // Fréquence d'images d'enregistrement
   videoFormat: 'webm'        // Codec vidéo
 };
 ```
@@ -266,8 +295,6 @@ const params = {
 ### Objet `camera`
 
 État de la caméra indépendant de `params` pour éviter les mises à jour circulaires.
-
-**IMPORTANT** : Lors de la sauvegarde d'états, les paramètres de caméra (`rotationX`, `rotationY`, `distance`, `offsetX`, `offsetY`) sont stockés dans un objet `camera` séparé, distinct de l'objet `params`. Cette séparation permet une gestion plus claire des états et élimine la redondance dans les fichiers JSON de projet.
 
 ```javascript
 const camera = {
@@ -292,7 +319,7 @@ const FADE_OUT_DISTANCE = 80;       // Pixels de la limite pour commencer le fon
 const STORAGE_KEY = 'zigzagEmitterSettings';  // Clé LocalStorage
 ```
 
-### Variables d'état global
+### Variables d'État Global
 
 ```javascript
 let W, H;                    // Dimensions logiques du canevas
@@ -301,17 +328,17 @@ let p5Instance;              // Instance de sketch p5 primaire
 let p5InstanceRight;         // Instance secondaire (droite stéréo)
 let emitterInstance;         // Objet Emitter partagé
 let capturer;                // Instance CCapture
-let isRecording;             // Indicateur d'enregistrement actif
+let isRecording;             // Drapeau d'enregistrement actif
 let recordingFrameCount;     // Image actuelle dans l'enregistrement
 let recordingTotalFrames;    // Nombre d'images cible
 let sharedLastTime;          // Horodatage synchronisé pour stéréo
-let activeCanvasId;          // Canevas ayant le contrôle de la caméra
+let activeCanvasId;          // Quel canevas a le contrôle de la caméra
 let isUpdatingCanvasSize;    // Empêcher redimensionnement récursif
 ```
 
 ---
 
-## Référence des classes
+## Référence des Classes
 
 ### `ZigzagLine`
 
@@ -323,28 +350,28 @@ Représente un seul ruban zigzag animé.
 constructor({ p, x, y, segmentLength, lineThickness, colorData, vy })
 ```
 
-**Paramètres**
-- `p` (p5) : référence à l'instance p5.js
-- `x` (Number) : position X initiale (espace canevas)
-- `y` (Number) : position Y initiale (espace canevas)
-- `segmentLength` (Number) : hauteur de chaque segment
-- `lineThickness` (Number) : largeur du ruban
-- `colorData` (Object) : `{color: [r,g,b], slotIndex: 0–3}`
-- `vy` (Number) : vélocité en Y (px/s, négatif = vers le haut)
+**Paramètres :**
+- `p` (p5) : Référence à l'instance p5.js
+- `x` (Number) : Position X initiale (espace canevas)
+- `y` (Number) : Position Y initiale (espace canevas)
+- `segmentLength` (Number) : Hauteur de chaque segment
+- `lineThickness` (Number) : Largeur du ruban
+- `colorData` (Object) : Données de couleur avec `{color: [r,g,b], slotIndex: 0-3}`
+- `vy` (Number) : Vélocité en direction Y (px/s, négatif = vers le haut)
 
-**Propriétés**
-- `segments` (Number) : toujours 16
-- `step` (Number) : distance de pas diagonal = `segmentLength / √2`
-- `totalWidth` (Number) : largeur horizontale totale = `segments × step`
-- `alive` (Boolean) : ligne toujours visible
-- `age` (Number) : secondes depuis la génération
-- `currentColor` (Array) : couleur RGB actuelle `[r, g, b]`
-- `startColor` (Array) : couleur au début de la transition
-- `targetColor` (Array) : couleur à la fin de la transition
-- `colorTransitionProgress` (Number) : progression de transition (0–1)
-- `isTransitioning` (Boolean) : transition active
-- `colorSlotIndex` (Number) : index (0–3) pour calcul de Z-offset
-- `zOffset` (Number) : `(colorSlotIndex - 2) × params.colorSlotZOffset`
+**Propriétés :**
+- `segments` (Number) : Toujours 16
+- `step` (Number) : Distance de pas diagonal = `segmentLength / √2`
+- `totalWidth` (Number) : Largeur horizontale totale = `segments × step`
+- `alive` (Boolean) : Si la ligne est toujours visible
+- `age` (Number) : Secondes depuis la génération
+- `currentColor` (Array) : Couleur RGB actuelle `[r, g, b]`
+- `startColor` (Array) : Couleur au début de la transition
+- `targetColor` (Array) : Couleur à la fin de la transition
+- `colorTransitionProgress` (Number) : Progression de transition (0-1)
+- `isTransitioning` (Boolean) : Si en transition active
+- `colorSlotIndex` (Number) : Index (0-3) pour calcul de Z-offset
+- `zOffset` (Number) : Décalage de profondeur axe Z = `(colorSlotIndex - 2) × params.colorSlotZOffset`
 
 #### Méthodes
 
@@ -352,50 +379,59 @@ constructor({ p, x, y, segmentLength, lineThickness, colorData, vy })
 
 Génère les points de ligne centrale pour le motif zigzag.
 
-**Retourne** : `Array<{x, y}>` — points 2D dans l'espace local
+**Retourne :** `Array<{x, y}>` - Tableau de points 2D dans l'espace local
 
-**Algorithme**
+**Algorithme :**
 1. Commencer au bord gauche : `x = -totalWidth / 2, y = 0`
-2. Pour chaque segment : déplacer à droite de `step`, alterner déplacement haut/bas de `step`
+2. Pour chaque segment :
+   - Déplacer à droite de `step`
+   - Alterner déplacement haut/bas de `step`
 3. Produit un motif zigzag horizontal
 
 ##### `update(dt)`
 
 Met à jour la position et vérifie si la ligne doit être éliminée.
 
-**Paramètres** : `dt` (Number) — temps delta en secondes
+**Paramètres :**
+- `dt` (Number) : Temps delta en secondes
 
-**Logique**
+**Logique :**
 1. Incrémenter l'âge de `dt`
-2. Déplacer la position Y de `vy × dt`
+2. Déplacer position Y de `vy × dt`
 3. Convertir en espace monde : `worldY = y - H/2`
-4. Vérifier si hors des limites de génération, définir `alive = false` si c'est le cas
+4. Vérifier si hors des limites de génération, définir `alive = false` si oui
 
 ##### `_alpha()`
 
 Calcule l'opacité combinée du fondu d'entrée et de sortie.
 
-**Retourne** : `Number` — valeur alpha dans la plage [0, 1]
+**Retourne :** `Number` - Valeur alpha dans la plage [0, 1]
 
-**Algorithme**
+**Algorithme :**
 1. **Fondu d'entrée** : `min(age / FADE_IN_DURATION, 1)`
-2. **Fondu de sortie** : calculer la distance à la limite la plus proche, `min(distToBoundary / FADE_OUT_DISTANCE, 1)`
-3. Retourner le minimum des deux valeurs
+2. **Fondu de sortie** : 
+   - Calculer distance à la limite de génération la plus proche
+   - `min(distToBoundary / FADE_OUT_DISTANCE, 1)`
+3. Retourner le minimum du fondu d'entrée et de sortie
 
 ##### `draw(p)`
 
 Rend la ligne zigzag comme une forme remplie.
 
-**Paramètres** : `p` (p5) — instance p5.js
+**Paramètres :**
+- `p` (p5) : Instance p5.js
 
-**Étapes**
-1. Calculer alpha (plage 0–255)
-2. Construire la géométrie du ruban via `buildRibbonSides()`
-3. Push matrice (sauvegarder l'état de transformation)
+**Étapes :**
+1. Calculer alpha (plage 0-255)
+2. Construire géométrie du ruban via `buildRibbonSides()`
+3. Push matrice (sauvegarder état de transformation)
 4. Translater à la position monde de la ligne
-5. Définir la couleur de remplissage avec alpha
-6. Dessiner la forme (boucle de sommets côté gauche, boucle inversée côté droit, fermer le polygone)
-7. Pop matrice (restaurer l'état de transformation)
+5. Définir couleur de remplissage avec alpha
+6. Dessiner forme :
+   - Boucle de sommets pour côté gauche
+   - Boucle de sommets inversée pour côté droit
+   - Fermer forme pour former polygone
+7. Pop matrice (restaurer état de transformation)
 
 ---
 
@@ -409,14 +445,14 @@ Gère la génération et la mise à jour de toutes les lignes zigzag.
 constructor({ p, x, y })
 ```
 
-**Paramètres**
-- `p` (p5) : référence à l'instance p5.js
-- `x` (Number) : position de génération X (espace canevas)
-- `y` (Number) : position de génération Y (espace canevas)
+**Paramètres :**
+- `p` (p5) : Référence à l'instance p5.js
+- `x` (Number) : Position de génération X (espace canevas)
+- `y` (Number) : Position de génération Y (espace canevas)
 
-**Propriétés**
-- `lines` (Array) : collection d'instances `ZigzagLine`
-- `accumulator` (Number) : tampon temporel pour le timing d'émission
+**Propriétés :**
+- `lines` (Array) : Collection d'instances `ZigzagLine`
+- `accumulator` (Number) : Tampon temporel pour le timing d'émission
 
 #### Méthodes
 
@@ -424,11 +460,16 @@ constructor({ p, x, y })
 
 Met à jour toutes les lignes et en génère de nouvelles selon le taux d'émission.
 
-**Algorithme**
+**Paramètres :**
+- `dt` (Number) : Temps delta en secondes
+
+**Algorithme :**
 1. Ajouter `dt` à l'accumulateur
-2. Calculer le taux effectif : `emitRate × (ambientSpeedMaster / 100)`
-3. Calculer l'intervalle : `1 / effectiveRate`
-4. Tant que accumulateur ≥ intervalle : soustraire l'intervalle, appeler `_emit()`
+2. Calculer taux d'émission effectif : `emitRate × (ambientSpeedMaster / 100)`
+3. Calculer intervalle de génération : `1 / effectiveRate`
+4. Tant que accumulateur ≥ intervalle :
+   - Soustraire intervalle de l'accumulateur
+   - Appeler `_emit()` pour générer nouvelle ligne
 5. Mettre à jour toutes les lignes existantes
 6. Filtrer les lignes mortes (`alive === false`)
 
@@ -436,21 +477,37 @@ Met à jour toutes les lignes et en génère de nouvelles selon le taux d'émiss
 
 Génère une seule nouvelle ligne zigzag.
 
-**Algorithme**
-
-1. **Calcul d'épaisseur**
+**Algorithme :**
+1. **Calcul d'épaisseur :**
    - Commencer avec `params.lineThickness`
-   - Si `randomThickness` activé : échantillonner le bruit de Perlin et une onde sinusoïdale, mélanger (`noise × 0.7 + sine × 0.3`), mapper à la plage `[thicknessRangeMin%, thicknessRangeMax%]`, multiplier par l'épaisseur de base
+   - Si `randomThickness` activé :
+     - Échantillonner bruit de Perlin : `noise(noiseOffset)`
+     - Échantillonner onde sinusoïdale : `sin(noiseOffset × 2)`
+     - Mélanger : `variation = noise × 0.7 + sine × 0.3`
+     - Mapper à la plage : `[thicknessRangeMin%, thicknessRangeMax%]`
+     - Multiplier par épaisseur de base
 
-2. **Calcul de vitesse**
+2. **Calcul de vitesse :**
    - Commencer avec `params.speed`
-   - Si `randomSpeed` activé : mélange similaire bruit + sinusoïde, mapper à la plage `[speedRangeMin%, speedRangeMax%]`, multiplier par la vitesse de base
-   - Appliquer le maître ambiant : `speed × ambientSpeedMaster / 100`
+   - Si `randomSpeed` activé :
+     - Mélange similaire bruit + sinusoïde
+     - Mapper à la plage : `[speedRangeMin%, speedRangeMax%]`
+     - Multiplier par vitesse de base
+   - Appliquer maître ambiant : `speed × ambientSpeedMaster / 100`
 
-3. **Créer la ligne** : instancier `ZigzagLine` avec les valeurs calculées, vélocité négative (mouvement vers le haut), ajouter au tableau `lines`
+3. **Créer ligne :**
+   - Instancier `ZigzagLine` avec valeurs calculées
+   - Vélocité négative (mouvement vers le haut)
+   - Ajouter au tableau `lines`
 
 ##### `draw(p)`
 
+Rend toutes les lignes.
+
+**Paramètres :**
+- `p` (p5) : Instance p5.js
+
+**Implémentation :**
 ```javascript
 for (const line of this.lines) {
   line.draw(p);
@@ -459,62 +516,78 @@ for (const line of this.lines) {
 
 ---
 
-## Référence des fonctions
+## Référence des Fonctions
 
-### Fonctions d'aide
+### Fonctions d'Aide
 
 #### `getSpawnDistance()`
 
 Calcule la demi-largeur du champ de génération.
 
-**Retourne** : `Number` — distance en pixels
+**Retourne :** `Number` - Distance en pixels
 
+**Formule :**
 ```javascript
 const step = params.segmentLength / Math.SQRT2;
-return (SEGMENTS * step) / 2;
+return (SEGMENTS × step) / 2;
 ```
+
+**But :** Détermine quand les lignes doivent être éliminées (vérification des limites).
+
+---
 
 #### `buildRibbonSides(points, halfWidth)`
 
 Convertit une polyligne en chemins décalés pour le rendu de ruban.
 
-**Paramètres**
-- `points` (Array) : sommets de ligne centrale `[{x, y}, ...]`
-- `halfWidth` (Number) : moitié de l'épaisseur désirée
+**Paramètres :**
+- `points` (Array) : Sommets de ligne centrale `[{x, y}, ...]`
+- `halfWidth` (Number) : Moitié de l'épaisseur de ruban désirée
 
-**Retourne** : `Object` — `{ leftSide: [{x,y}, ...], rightSide: [{x,y}, ...] }`
+**Retourne :** `Object` - `{ leftSide: [{x,y}, ...], rightSide: [{x,y}, ...] }`
 
-**Algorithme**
+**Algorithme :**
 
-Pour les extrémités (premier / dernier point) : capuchons verticaux plats.
+**Pour les extrémités (premier/dernier) :**
+- Capuchons verticaux plats
 - `leftSide` : `{x: curr.x, y: curr.y + halfWidth}`
 - `rightSide` : `{x: curr.x, y: curr.y - halfWidth}`
 
-Pour les points intermédiaires :
-1. Obtenir les segments adjacents (précédent et suivant)
-2. Calculer les vecteurs perpendiculaires normalisés : `perp1 = normalize([-dy1, dx1])`, `perp2 = normalize([-dy2, dx2])`
-3. Moyenner les perpendiculaires : `perp = normalize((perp1 + perp2) / 2)`
-4. Décaler le point de `perp × halfWidth`
+**Pour les points intermédiaires :**
+1. Obtenir segments adjacents :
+   - Précédent : `(prev → curr)`
+   - Suivant : `(curr → next)`
+2. Calculer vecteurs perpendiculaires (normalisés) :
+   - `perp1 = normalize([-dy1, dx1])`
+   - `perp2 = normalize([-dy2, dx2])`
+3. Moyenner perpendiculaires (direction onglet) :
+   - `perp = normalize((perp1 + perp2) / 2)`
+4. Décaler point de `perp × halfWidth`
+
+**But :** Utilisé à la fois par le rendu canevas et l'export SVG pour une géométrie cohérente.
 
 ---
 
-### Cycle de vie du sketch
+### Cycle de Vie du Sketch
 
 #### `createSketch(parentId, cameraOffset, isPrimary)`
 
-Fonction factory retournant un sketch p5.js.
+Fonction factory qui retourne un sketch p5.js.
 
-**Paramètres**
+**Paramètres :**
 - `parentId` (String) : ID d'élément DOM pour attacher le canevas
-- `cameraOffset` (Number) : décalage de caméra axe X pour stéréo (0 pour mono)
-- `isPrimary` (Boolean) : sketch principal (contrôle les mises à jour de l'émetteur)
+- `cameraOffset` (Number) : Décalage de caméra axe X pour stéréo (0 pour mono)
+- `isPrimary` (Boolean) : Si c'est le sketch principal (contrôle mises à jour émetteur)
 
-**Structure**
+**Retourne :** `Function` - Fonction de sketch p5.js
+
+**Structure :**
+
 ```javascript
 return function(p) {
-  let emitter;
-  let lastTime;
-
+  let emitter;        // Référence émetteur local ou partagé
+  let lastTime;       // Timing d'image
+  
   p.setup = function() { /* ... */ };
   p.draw = function() { /* ... */ };
   p.mouseWheel = function(event) { /* ... */ };
@@ -524,11 +597,21 @@ return function(p) {
 
 ##### `p.setup()`
 
-1. Définir la densité de pixels à 1 (performance)
-2. Créer le canevas WebGL : `createCanvas(W, H, WEBGL)`
-3. Attacher le canevas à l'élément DOM parent
-4. Initialiser ou référencer l'émetteur partagé
-5. Configurer les gestionnaires d'événements souris :
+Phase d'initialisation appelée une fois.
+
+**Étapes :**
+1. Définir densité de pixels à 1 (performance)
+2. Créer canevas WebGL : `createCanvas(W, H, WEBGL)`
+3. Attacher canevas à l'élément DOM parent
+4. Initialiser ou référencer émetteur partagé
+5. Configurer gestionnaires d'événements souris :
+   - **contextmenu** : Empêcher menu clic droit
+   - **mousePressed** : Détecter clic gauche/droit, définir états caméra
+   - **mouseReleased** : Effacer drapeaux glissement/déplacement
+6. Appliquer dimensionnement framebuffer si nécessaire
+7. Initialiser `lastTime` pour calcul delta
+
+**Événements Souris :**
 
 ```javascript
 cnv.mousePressed((event) => {
@@ -541,220 +624,178 @@ cnv.mousePressed((event) => {
   }
   camera.lastMouseX = p.mouseX;
   camera.lastMouseY = p.mouseY;
-  return false;
+  return false;  // Empêcher défaut
 });
 ```
 
-6. Appliquer le dimensionnement framebuffer si nécessaire
-7. Initialiser `lastTime` pour le calcul delta
-
 ##### `p.draw()`
 
-1. **Effacer l'image** : `p.background(0)`
+Boucle de rendu principale appelée chaque image.
 
-2. **Contrôles caméra** (si canevas actif) :
-   - Calculer le delta souris : `dx = mouseX - lastMouseX`
-   - Si glissement (bouton gauche) : mettre à jour la rotation, contraindre le tangage à `[-π/2, π/2]`
-   - Si déplacement (bouton droit) : calculer la sensibilité `max(0.5, distance / 500)`, mettre à jour les décalages
-   - Sauvegarder dans `params` et localStorage
+**Étapes de Rendu :**
 
-3. **Définir la projection** :
-```javascript
-p.perspective(
-  fov * Math.PI / 180,
-  W / H,
-  Math.max(0.01, params.near),
-  params.far
-);
-```
+1. **Effacer image :**
+   ```javascript
+   p.background(0);  // Noir
+   ```
 
-4. **Calculer le temps delta** :
-   - Normal : `dt = (millis() - lastTime) / 1000`
-   - Enregistrement : `dt = 1 / fps` (pas de temps fixe)
-   - Stéréo secondaire : `dt = 0`
+2. **Contrôles caméra (si canevas actif) :**
+   - Calculer delta souris : `dx = mouseX - lastMouseX`
+   - Si glissement (bouton gauche) :
+     - Mettre à jour rotation : `rotationY += dx × 0.005`
+     - Contraindre tangage : `rotationX = constrain(rotationX + dy × 0.005, -π/2, π/2)`
+   - Si déplacement (bouton droit) :
+     - Calculer sensibilité : `sens = max(0.5, distance / 500)`
+     - Mettre à jour décalages : `offsetX += dx × sens`
+   - Sauvegarder dans params et localStorage
 
-5. **Appliquer la transformation caméra** :
-```javascript
-p.push();
-if (stereo) p.translate(cameraOffset, 0, 0);
-p.translate(camera.offsetX, camera.offsetY, 0);
-p.translate(0, 0, -camera.distance);
-p.rotateX(camera.rotationX);
-p.rotateY(camera.rotationY);
-p.rotateZ(emitterRotation * Math.PI / 180);
-p.scale(geometryScale / 100);
-```
+3. **Définir projection en perspective :**
+   ```javascript
+   p.perspective(
+     fov × π / 180,           // Champ de vision (radians)
+     W / H,                   // Ratio d'aspect
+     max(0.01, params.near),  // Plan de découpe proche
+     params.far               // Plan de découpe lointain
+   );
+   ```
 
-6. **Mettre à jour la simulation** (primaire seulement) :
-```javascript
-if (!stereoscopicMode || isPrimary) {
-  noiseOffset += dt * 4;
-  emitter.update(dt);
-}
-```
+4. **Calculer temps delta :**
+   - **Normal** : `dt = (millis() - lastTime) / 1000`
+   - **Enregistrement** : `dt = 1 / fps` (pas de temps fixe)
+   - **Stéréo** : Primaire calcule, secondaire utilise 0
 
-7. **Dessiner** : `emitter.draw(p)`
+5. **Appliquer transformation caméra :**
+   ```javascript
+   p.push();
+   if (stereo) p.translate(cameraOffset, 0, 0);  // Séparation des yeux
+   p.translate(camera.offsetX, camera.offsetY, 0);  // Déplacement
+   p.translate(0, 0, -camera.distance);             // Zoom
+   p.rotateX(camera.rotationX);                     // Tangage
+   p.rotateY(camera.rotationY);                     // Lacet
+   p.rotateZ(emitterRotation × π / 180);            // Rotation Z
+   p.scale(geometryScale / 100);                    // Échelle uniforme
+   ```
 
-8. **Restaurer** : `p.pop()`
+6. **Mettre à jour simulation (primaire seulement) :**
+   ```javascript
+   if (!stereoscopicMode || isPrimary) {
+     noiseOffset += dt × 4;
+     emitter.update(dt);
+   }
+   ```
+
+7. **Dessiner émetteur :**
+   ```javascript
+   emitter.draw(p);
+   ```
+
+8. **Restaurer transformation :**
+   ```javascript
+   p.pop();
+   ```
 
 ##### `p.mouseWheel(event)`
 
-```javascript
-distance = clamp(distance + event.delta * 20, 50, 10000);
-```
-Retourne `false` pour empêcher le défilement de page.
+Gère le zoom via la molette de défilement.
+
+**Paramètres :**
+- `event` (Object) : Événement molette souris avec propriété `delta`
+
+**Logique :**
+1. Vérifier si le panneau de contrôles devrait défiler à la place
+2. Mettre à jour distance : `distance = clamp(distance + delta × 20, 50, 10000)`
+3. Sauvegarder dans params et localStorage
+4. Retourner `false` pour empêcher défilement de page
 
 ##### `p.windowResized()`
 
+Gère le redimensionnement de fenêtre du navigateur.
+
+**Implémentation :**
 ```javascript
 if (!isRecording) {
   updateCanvasSize();
 }
 ```
 
+**Note :** Ignore redimensionnement pendant enregistrement pour maintenir sortie cohérente.
+
 ---
 
-### Fonctions d'initialisation
+### Fonctions d'Initialisation
 
 #### `initializeSketches()`
 
 Crée ou recrée les instances p5.js selon le mode actuel.
 
-**Logique**
+**Logique :**
 
-1. **Nettoyage** : supprimer les instances p5 existantes, effacer le HTML du wrapper, réinitialiser l'état partagé
+1. **Nettoyage :**
+   - Supprimer instances p5 existantes
+   - Effacer HTML du wrapper de canevas
+   - Réinitialiser état partagé
 
-2. **Calcul des dimensions** :
-   - Mode framebuffer : utiliser `framebufferWidth/Height`
-   - Stéréoscopique : chaque canevas obtient `windowWidth / 2`
-   - Monoscopique : `windowWidth` complet
+2. **Calculer dimensions :**
+   - **Mode framebuffer** : Utiliser `framebufferWidth/Height`
+   - **Stéréoscopique** : Chaque canevas obtient `windowWidth / 2`
+   - **Monoscopique** : `windowWidth` complet
 
-3. **Configuration stéréoscopique** : créer un conteneur avec divs œil gauche/droite, instancier deux sketches p5 (gauche : `cameraOffset = -eyeSeparation`, droite : `cameraOffset = +eyeSeparation`), partager un émetteur unique
+3. **Configuration stéréoscopique :**
+   - Créer conteneur stéréo avec divs œil gauche/droite
+   - Instancier deux sketches p5 :
+     - Gauche : `cameraOffset = -eyeSeparation`
+     - Droite : `cameraOffset = +eyeSeparation`
+   - Partager émetteur unique entre les deux
 
-4. **Configuration monoscopique** : créer un div unique, instancier un sketch p5 avec `cameraOffset = 0`
+4. **Configuration monoscopique :**
+   - Créer div de canevas unique
+   - Instancier un sketch p5
+   - `cameraOffset = 0`
 
-5. **Post-traitement** : appeler `updateCanvasSize()`, délai de 50ms pour assurer la mise à jour du DOM
+5. **Post-traitement :**
+   - Appeler `updateCanvasSize()` pour mode framebuffer
+   - Léger délai (50ms) pour assurer mise à jour DOM
+
+---
 
 #### `updateCanvasSize()`
 
 Ajuste la résolution et l'échelle du canevas.
 
-**Mode framebuffer**
-1. Définir les dimensions à `framebufferWidth/Height`
-2. Calculer l'échelle : `min(windowW / canvasW, windowH / canvasH, 1)`
-3. Redimensionner le canevas à la résolution cible
-4. Appliquer la transformation d'échelle CSS
-5. Ajouter la classe `framebuffer-mode` (bordure gris foncé)
+**Gardes :**
+- Ignorer si pas d'instance p5
+- Ignorer si déjà en mise à jour (empêcher récursion)
 
-**Mode ajustement fenêtre**
-1. Stéréo : `W = windowWidth / 2` ; mono : `W = windowWidth` ; `H = windowHeight`
-2. Redimensionner le canevas
-3. Supprimer les transformations CSS
-4. Supprimer la classe `framebuffer-mode`
+**Mode Framebuffer :**
+1. Définir dimensions à `framebufferWidth/Height`
+2. Calculer échelle pour ajuster fenêtre : `min(windowW / canvasW, windowH / canvasH, 1)`
+3. Redimensionner canevas à résolution cible
+4. Appliquer transformation d'échelle CSS si nécessaire
+5. Définir taille du wrapper explicitement
+6. Ajouter classe framebuffer-mode (bordure gris foncé)
 
-**Mise à jour émetteur** : repositionner au centre du canevas `(W/2, H/2 + getSpawnDistance())`.
+**Mode Ajustement Fenêtre :**
+1. Calculer dimensions :
+   - Stéréo : `W = windowWidth / 2`
+   - Mono : `W = windowWidth`
+   - `H = windowHeight`
+2. Redimensionner canevas pour ajuster fenêtre
+3. Supprimer transformations CSS
+4. Définir wrapper à taille 100%
+5. Supprimer classe framebuffer-mode
 
----
-
-## Gestion d'état
-
-### Architecture des états
-
-Les états capturent des instantanés complets des paramètres et de la position de caméra pour un rappel instantané avec transitions fluides.
-
-**Structure d'objet état** :
-```javascript
-{
-  name: "Nom de l'état",
-  params: {
-    // Tous les paramètres sauf réglages globaux et caméra
-    segmentLength: 30,
-    lineThickness: 12,
-    emitRate: 1.5,
-    speed: 80,
-    fov: 70,
-    // ... tous les autres paramètres
-    
-    // Globaux (exclus de la capture d'état) :
-    // - overlayImageSrc, overlayVisible, overlayScale, overlayOpacity, overlayX, overlayY
-    // - stateTransitionDuration, colorTransitionDuration
-    // - autoTriggerEnabled, autoTriggerFrequency
-    // - near, far, framebufferMode, framebufferWidth/Height
-    // - stereoscopicMode, eyeSeparation
-    
-    // Paramètres de caméra (stockés séparément dans objet camera) :
-    // - cameraRotationX, cameraRotationY, cameraDistance
-    // - cameraOffsetX, cameraOffsetY
-  },
-  camera: {
-    rotationX: 0.2,
-    rotationY: 0.5,
-    distance: 800,
-    offsetX: 0,
-    offsetY: 0
-  },
-  metadata: {
-    version: "1.0"
-  }
-}
-```
-
-### Exclusion de la gestion d'état
-
-**Implémentation (js/storage/StateManager.js)** :
-```javascript
-export function captureCurrentState(ZM) {
-  const params = { ...ZM.params };
-  
-  // Supprimer les réglages globaux au projet
-  delete params.near;
-  delete params.far;
-  delete params.framebufferMode;
-  delete params.framebufferPreset;
-  delete params.framebufferWidth;
-  delete params.framebufferHeight;
-  delete params.stereoscopicMode;
-  delete params.eyeSeparation;
-  
-  // Exclure les paramètres de caméra (stockés séparément dans objet camera)
-  delete params.cameraRotationX;
-  delete params.cameraRotationY;
-  delete params.cameraDistance;
-  delete params.cameraOffsetX;
-  delete params.cameraOffsetY;
-  
-  delete params.overlayImageSrc;
-  delete params.overlayVisible;
-  delete params.overlayScale;
-  delete params.overlayOpacity;
-  delete params.overlayX;
-  delete params.overlayY;
-  
-  // Créer l'état avec objet camera séparé
-  const state = {
-    params: params,
-    camera: {
-      rotationX: ZM.camera.rotationX,
-      rotationY: ZM.camera.rotationY,
-      distance: ZM.camera.distance,
-      offsetX: ZM.camera.offsetX,
-      offsetY: ZM.camera.offsetY
-    },
-    metadata: {
-      version: "1.0"
-    }
-  };
-  
-  return state;
-}
-```
-
-Les réglages d'incrustation persistent lors des changements d'état, permettant une marque cohérente sur tous les états.
+**Mise à Jour Émetteur :**
+- Repositionner émetteur au centre du canevas : `(W/2, H/2 + getSpawnDistance())`
 
 ---
+
+### Gestion d'État
 
 #### `saveToLocalStorage()`
 
+Persiste les `params` actuels dans le localStorage du navigateur.
+
+**Implémentation :**
 ```javascript
 try {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(params));
@@ -763,114 +804,241 @@ try {
 }
 ```
 
-Appelé après chaque changement de paramètre.
+**Déclencheur :** Appelé après chaque changement de paramètre.
+
+---
 
 #### `loadFromLocalStorage()`
 
-**Retourne** : `Boolean` — vrai si des données ont été chargées
+Charge les paramètres sauvegardés depuis localStorage.
 
+**Retourne :** `Boolean` - Vrai si données chargées
+
+**Logique :**
 1. Tenter de récupérer l'élément par clé
-2. Parser la chaîne JSON
-3. Fusionner dans `params` via `Object.assign()`
-4. Valider et corriger les valeurs problématiques : `near < 0.01` → `0.01`, `camera.distance < 50` → `600`, `camera.offsetX/Y === undefined` → `0`
-5. Synchroniser l'état de caméra avec l'objet `camera` via `camera.syncFromParams()`
+2. Si non trouvé, retourner false
+3. Parser chaîne JSON
+4. Fusionner dans `params` via `Object.assign()`
+5. Valider et corriger valeurs problématiques :
+   - `near < 0.01` → `0.01`
+   - `cameraDistance < 50` → `600`
+   - `cameraOffsetX/Y === undefined` → `0`
+6. Retourner true
+
+**Déclencheur :** Appelé une fois au chargement de page.
+
+---
 
 #### `syncUIFromParams()`
 
 Met à jour tous les contrôles UI pour correspondre aux valeurs `params` actuelles.
 
-1. **Curseurs** : `slider.value = params[key]` + mise à jour de l'affichage
-2. **Cases à cocher** : `checkbox.checked = params[key]`
-3. **Entrées numériques** : `input.value = params[key]`
-4. **Menus déroulants** : `select.value = params[key]`
-5. **Boutons bascule** : définir la classe `active` selon `params[key]`
-6. **État caméra** : synchroniser `camera.rotationX/Y`, `camera.distance`, `camera.offsetX/Y`
-7. **Mise à jour canevas** : appeler `updateCanvasSize()` si nécessaire
+**But :** Maintenir UI synchronisée quand params chargés depuis fichier ou localStorage.
 
-#### `wire(sliderId, displayId, paramKey, decimals, suffix)`
+**Étapes :**
 
-Lie un curseur à un paramètre avec persistance automatique.
+1. **Curseurs :** Pour chaque curseur :
+   ```javascript
+   slider.value = params[key];
+   display.textContent = formatValue(params[key]);
+   ```
 
-```javascript
-wire('thickness', 'thickness-val', 'lineThickness', 1);
-```
+2. **Cases à cocher :**
+   ```javascript
+   checkbox.checked = params[key];
+   ```
 
-1. Obtenir les éléments DOM
-2. Définir la valeur du curseur depuis `params`
-3. Ajouter un écouteur `input` : mettre à jour `params`, mettre à jour l'affichage, appeler `saveToLocalStorage()`
+3. **Entrées numériques :**
+   ```javascript
+   input.value = params[key];
+   ```
+
+4. **Menus déroulants :**
+   ```javascript
+   select.value = params[key];
+   ```
+
+5. **Boutons bascule :** Définir classe `active` selon `params[key]`
+
+6. **État caméra :**
+   ```javascript
+   camera.rotationX = params.cameraRotationX;
+   camera.rotationY = params.cameraRotationY;
+   camera.distance = max(50, params.cameraDistance);
+   camera.offsetX = params.cameraOffsetX || 0;
+   camera.offsetY = params.cameraOffsetY || 0;
+   ```
+
+7. **Mise à jour canevas :** Appeler `updateCanvasSize()` si nécessaire
 
 ---
 
-## Référence des fonctions (export)
+#### `wire(sliderId, displayId, paramKey, decimals = 0, suffix = '')`
+
+Lie un curseur à un paramètre avec persistance automatique.
+
+**Paramètres :**
+- `sliderId` (String) : ID HTML de l'input range
+- `displayId` (String) : ID HTML du span d'affichage de valeur
+- `paramKey` (String) : Nom de propriété dans objet `params`
+- `decimals` (Number) : Décimales pour affichage
+- `suffix` (String) : Texte à ajouter à valeur d'affichage
+
+**Configuration :**
+1. Obtenir éléments DOM
+2. Définir valeur curseur depuis params
+3. Définir texte d'affichage depuis params
+4. Ajouter écouteur d'événement input :
+   - Mettre à jour param depuis curseur
+   - Mettre à jour texte d'affichage
+   - Appeler `saveToLocalStorage()`
+
+**Exemple :**
+```javascript
+wire('thickness', 'thickness-val', 'lineThickness', 1);
+// Câble curseur d'épaisseur, affiche avec 1 décimale
+```
+
+---
+
+### Fonctions d'Export
 
 #### `downloadJSON()`
 
-1. `JSON.stringify(params, null, 2)`
-2. Créer un Blob de type `application/json`
-3. Déclencher le téléchargement via un `<a>` temporaire
+Exporte les paramètres actuels en tant que fichier JSON.
 
-Format du nom de fichier : `zigzag-emitter-AAAA-MM-JJTHH-MM-SS.json`
+**Implémentation :**
+1. Stringifier params avec indentation : `JSON.stringify(params, null, 2)`
+2. Créer Blob avec type `application/json`
+3. Créer URL d'objet
+4. Créer élément `<a>` temporaire
+5. Définir nom de fichier de téléchargement avec horodatage
+6. Déclencher clic
+7. Révoquer URL d'objet
+
+**Format nom de fichier :** `zigzag-emitter-AAAA-MM-JJTHH-MM-SS.json`
+
+---
 
 #### `loadJSON(file)`
 
-1. Créer un `FileReader`
-2. Au chargement : parser le JSON, vérifier si le mode stéréoscopique a changé, appeler `initializeSketches()` si nécessaire, `syncUIFromParams()`, sauvegarder dans localStorage
-3. Gestion d'erreurs : try-catch avec alerte en cas d'échec de parsing
+Importe paramètres depuis fichier JSON téléchargé.
+
+**Paramètres :**
+- `file` (File) : Objet File JavaScript depuis input
+
+**Implémentation :**
+1. Créer FileReader
+2. Au chargement :
+   - Parser JSON
+   - Vérifier si mode stéréoscopique changé
+   - Si mode changé, appeler `initializeSketches()`
+   - Appeler `syncUIFromParams()`
+   - Sauvegarder dans localStorage
+3. Lire fichier en tant que texte
+
+**Gestion erreurs :** Try-catch avec alerte en cas d'échec de parsing.
+
+---
 
 #### `exportPNG()`
 
-1. Créer un canevas composite avec incrustation (si visible)
-2. Obtenir le canevas de l'instance p5 active
-3. Calculer les dimensions d'incrustation avec correction de densité de pixels
-4. Superposer l'image d'incrustation avec mise à l'échelle et opacité
-5. `canvas.toBlob()` pour créer le blob PNG
-6. Déclencher le téléchargement
+Capture le canevas actuel en tant qu'image PNG.
 
-**Formule de mise à l'échelle de l'incrustation** :
-```javascript
-const displayWidth = overlayNaturalWidth × overlayScale / 100;
-const bufferToLogicalRatio = sourceCanvas.width / ZM.W;
-const imgWidth = displayWidth × bufferToLogicalRatio × 2;
-```
+**Implémentation :**
+1. Obtenir élément canevas de l'instance p5 active
+2. Appeler `toDataURL('image/png')`
+3. Créer `<a>` temporaire avec URL de données comme href
+4. Définir nom de fichier de téléchargement avec horodatage
+5. Déclencher clic
 
-Le multiplicateur × 2 convertit les pixels CSS en pixels de tampon sur les écrans Retina.
+**Format nom de fichier :** `zigzag-emitter-AAAA-MM-JJTHH-MM-SS.png`
 
-Format : `zigmap26-AAAA-MM-JJTHH-MM-SS.png`
+**Résolution :** Correspond aux dimensions pixel actuelles du canevas.
+
+---
 
 #### `exportSVG()`
 
-1. **Configuration** : obtenir les dimensions, calculer la distance de génération, créer l'en-tête SVG
-2. **Pour chaque ligne** : construire les sommets, calculer l'alpha, construire les côtés via `buildRibbonSides()`, générer la chaîne de chemin (`M x,y L ... Z`), créer un élément `<path>` avec couleur et opacité
-3. **Export** : créer un Blob de type `image/svg+xml`, déclencher le téléchargement
+Exporte l'image actuelle en tant que fichier SVG vectoriel.
+
+**Algorithme :**
+
+1. **Configuration :**
+   - Obtenir dimensions du canevas
+   - Calculer distance de génération
+   - Créer en-tête SVG
+
+2. **Pour chaque ligne dans l'émetteur :**
+   - Construire sommets de ligne centrale
+   - Calculer alpha (pour opacité)
+   - Construire côtés de ruban via `buildRibbonSides()`
+   - Générer chaîne de chemin :
+     ```javascript
+     M x,y L ... L ... Z  // Move, Lines, Close
+     ```
+   - Créer élément `<path>` avec :
+     - Couleur de remplissage
+     - Opacité de remplissage (alpha)
+     - Pas de contour
+
+3. **Export :**
+   - Fermer balise SVG
+   - Créer Blob de type `image/svg+xml`
+   - Télécharger via lien temporaire
+
+**Avantages :**
+- Indépendant de la résolution
+- Éditable dans logiciels vectoriels
+- Petite taille de fichier
+- Géométrie précise
+
+---
 
 #### `startVideoCapture()`
 
-```javascript
-capturer = new CCapture({
-  format: params.videoFormat,
-  framerate: params.videoFPS,
-  verbose: false
-});
-capturer.start();
-```
+Commence l'enregistrement vidéo image par image.
 
-Les images sont capturées dans `p.draw()` après le rendu. Le pas de temps fixe assure une sortie déterministe.
+**Configuration :**
+1. Calculer images totales : `duration × fps`
+2. Configurer CCapture :
+   ```javascript
+   capturer = new CCapture({
+     format: params.videoFormat,
+     framerate: params.videoFPS,
+     verbose: false
+   });
+   ```
+3. Démarrer capture : `capturer.start()`
+4. Définir drapeaux d'état d'enregistrement
+5. Mettre à jour UI (barre de progression, état bouton)
+
+**Boucle d'enregistrement :**
+- Images capturées dans `p.draw()` après rendu
+- Pas de temps fixe assure sortie déterministe
+- Indicateur de progression se met à jour chaque image
+
+---
 
 #### `stopVideoCapture()`
 
-```javascript
-capturer.stop();
-capturer.save();
-```
+Termine l'enregistrement et sauvegarde le fichier.
 
-CCapture gère l'encodage et le téléchargement automatiquement.
+**Implémentation :**
+1. Arrêter capturer : `capturer.stop()`
+2. Sauvegarder fichier : `capturer.save()`
+3. Réinitialiser état d'enregistrement
+4. Restaurer UI (masquer progression, réinitialiser bouton)
+
+**Note :** CCapture gère encodage et téléchargement automatiquement.
 
 ---
 
 ### Initialisation UI
 
-#### Sections repliables
+#### Sections Repliables
 
+**Implémentation :**
 ```javascript
 document.querySelectorAll('.section-header').forEach(header => {
   header.addEventListener('click', () => {
@@ -881,45 +1049,54 @@ document.querySelectorAll('.section-header').forEach(header => {
 });
 ```
 
-#### Raccourcis clavier
+**Comportement :** Cliquer sur titre de section pour développer/replier contrôles.
 
-Tous les raccourcis sont gérés par `js/input/KeyboardHandler.js`, les mappages étant définis dans `config/keyboardShortcuts.json`.
+---
 
+#### Raccourcis Clavier
+
+**Architecture de raccourcis clavier :**
+
+Tous les raccourcis clavier sont gérés par `js/input/KeyboardHandler.js` avec les mappages définis dans `config/keyboardShortcuts.json`.
+
+**Définition de Tableaux :**
 ```javascript
 const KEYBOARD_SHORTCUTS = [
-  { key: 'Tab',        preventDefault: true,  action: 'toggleUIVisibility' },
-  { key: 'Enter',      preventDefault: false, action: 'toggleFullscreen' },
-  { key: 'p',          preventDefault: false, action: 'exportPNG' },
-  { key: 's',          preventDefault: false, action: 'exportSVG' },
-  { key: 'd',          preventDefault: false, action: 'exportDepthMap' },
-  { key: 'v',          preventDefault: false, action: 'toggleVideoRecording' },
-  { key: 'r',          preventDefault: false, action: 'resetCamera' },
-  { key: 'R',          preventDefault: false, action: 'resetCameraDistance' },
-  { key: '0',          preventDefault: false, action: 'resetCameraRotation' },
-  { key: 't',          preventDefault: false, action: 'toggleModulationT' },
-  { key: 'm',          preventDefault: false, action: 'toggleModulationM' },
-  { key: 'l',          preventDefault: false, action: 'toggleStereoMode' },
-  { key: 'ArrowUp',    preventDefault: true,  action: 'incrementSpeed' },
-  { key: 'ArrowDown',  preventDefault: true,  action: 'decrementSpeed' },
-  { key: 'ArrowLeft',  preventDefault: true,  action: 'rotateCameraLeft' },
-  { key: 'ArrowRight', preventDefault: true,  action: 'rotateCameraRight' },
-  { key: ' ',          preventDefault: true,  action: 'togglePause' },
-  { key: '[',          preventDefault: false, action: 'decreaseLineThickness' },
-  { key: ']',          preventDefault: false, action: 'increaseLineThickness' },
-  { key: 'Escape',     preventDefault: false, action: 'closeModals' }
+  { key: 'Tab', preventDefault: true, action: 'toggleUIVisibility', ctrl: false, shift: false, alt: false, description: 'Basculer visibilité UI' },
+  { key: 'Enter', preventDefault: false, action: 'toggleFullscreen', ctrl: false, shift: false, alt: false, description: 'Basculer plein écran' },
+  { key: 'p', preventDefault: false, action: 'exportPNG', ctrl: false, shift: false, alt: false, description: 'Exporter PNG' },
+  { key: 's', preventDefault: false, action: 'exportSVG', ctrl: false, shift: false, alt: false, description: 'Exporter SVG' },
+  { key: 'd', preventDefault: false, action: 'exportDepthMap', ctrl: false, shift: false, alt: false, description: 'Exporter carte de profondeur' },
+  { key: 'v', preventDefault: false, action: 'toggleVideoRecording', ctrl: false, shift: false, alt: false, description: 'Démarrer/Arrêter enregistrement vidéo' },
+  { key: 'r', preventDefault: false, action: 'resetCamera', ctrl: false, shift: false, alt: false, description: 'Réinitialiser caméra (distance+rotation)' },
+  { key: 'R', preventDefault: false, action: 'resetCameraDistance', ctrl: false, shift: true, alt: false, description: 'Réinitialiser distance caméra uniquement' },
+  { key: '0', preventDefault: false, action: 'resetCameraRotation', ctrl: false, shift: false, alt: false, description: 'Réinitialiser rotation caméra uniquement' },
+  { key: 't', preventDefault: false, action: 'toggleModulationT', ctrl: false, shift: false, alt: false, description: 'Basculer modulation T' },
+  { key: 'm', preventDefault: false, action: 'toggleModulationM', ctrl: false, shift: false, alt: false, description: 'Basculer modulation M' },
+  { key: 'l', preventDefault: false, action: 'toggleStereoMode', ctrl: false, shift: false, alt: false, description: 'Basculer mode stéréoscopique' },
+  { key: 'c', preventDefault: false, action: 'cycleCameraPresets', ctrl: false, shift: false, alt: false, description: 'Parcourir préréglages caméra' },
+  { key: 'z', preventDefault: false, action: 'toggleDebugOverlay', ctrl: false, shift: false, alt: false, description: 'Basculer superposition debug' },
+  { key: 'ArrowUp', preventDefault: true, action: 'incrementSpeed', ctrl: false, shift: false, alt: false, description: 'Incrémenter vitesse animation' },
+  { key: 'ArrowDown', preventDefault: true, action: 'decrementSpeed', ctrl: false, shift: false, alt: false, description: 'Décrémenter vitesse animation' },
+  { key: 'ArrowLeft', preventDefault: true, action: 'rotateCameraLeft', ctrl: false, shift: false, alt: false, description: 'Tourner caméra vers gauche' },
+  { key: 'ArrowRight', preventDefault: true, action: 'rotateCameraRight', ctrl: false, shift: false, alt: false, description: 'Tourner caméra vers droite' },
+  { key: ' ', preventDefault: true, action: 'togglePause', ctrl: false, shift: false, alt: false, description: 'Pause/Reprendre animation' },
+  { key: '[', preventDefault: false, action: 'decreaseLineThickness', ctrl: false, shift: false, alt: false, description: 'Diminuer épaisseur ligne' },
+  { key: ']', preventDefault: false, action: 'increaseLineThickness', ctrl: false, shift: false, alt: false, description: 'Augmenter épaisseur ligne' },
+  { key: 'Escape', preventDefault: false, action: 'closeModals', ctrl: false, shift: false, alt: false, description: 'Fermer fenêtres modales' }
 ];
 ```
 
-Gestionnaire d'événement :
-
+**Gestionnaire d'Événement :**
 ```javascript
 document.addEventListener('keydown', e => {
-  const shortcut = KEYBOARD_SHORTCUTS.find(sc =>
+  const shortcut = KEYBOARD_SHORTCUTS.find(sc => 
     sc.key === e.key &&
     sc.ctrl === (e.ctrlKey || e.metaKey) &&
     sc.shift === e.shiftKey &&
     sc.alt === e.altKey
   );
+
   if (shortcut) {
     if (shortcut.preventDefault) e.preventDefault();
     executeAction(shortcut.action);
@@ -927,8 +1104,7 @@ document.addEventListener('keydown', e => {
 });
 ```
 
-Exemple de fonctions action :
-
+**Exemple de Fonctions Action :**
 ```javascript
 function executeAction(actionName) {
   const actions = {
@@ -937,11 +1113,15 @@ function executeAction(actionName) {
       body.classList.toggle('ui-hidden');
     },
     toggleFullscreen: () => {
-      if (document.fullscreenElement) document.exitFullscreen();
-      else document.documentElement.requestFullscreen();
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        document.documentElement.requestFullscreen();
+      }
     },
     exportPNG: () => exportPNGButton.click(),
     exportSVG: () => exportSVGButton.click(),
+    exportDepthMap: () => exportDepthMapButton.click(),
     toggleVideoRecording: () => {
       if (isRecording) stopVideoCapture();
       else startVideoCapture();
@@ -952,35 +1132,52 @@ function executeAction(actionName) {
       params.camRotationY = 0;
     }
   };
+  
   if (actions[actionName]) actions[actionName]();
 }
 ```
 
-#### Système de palettes de couleurs
+**Bénéfices Architecture :**
+- Gestion centralisée (22 raccourcis dans tableau)
+- Support touches modificatrices (Ctrl/⌘, Shift, Alt)
+- Facilement extensible (ajouter nouvelles entrées)
+- Auto-documenté (descriptions intégrées)
+- Prévention événement contrôlée par raccourci
 
-**Architecture** : 4 palettes × 4 emplacements. Chaque emplacement : `color` (tableau RGB) et `role` ('line', 'background', 'none'). Les lignes sélectionnent aléatoirement parmi les couleurs de rôle 'line' à la génération. L'arrière-plan utilise la première couleur de rôle 'background', ou noir si aucune.
+---
 
+#### Système de Palettes de Couleurs
+
+**Architecture :**
+- **4 palettes** × **4 emplacements de couleur** chacune
+- Chaque emplacement a : `color` (tableau RGB) et `role` ('line', 'background', ou 'none')
+- Les lignes sélectionnent aléatoirement parmi les couleurs avec role='line' au moment de la génération
+- L'arrière-plan utilise la première couleur avec role='background', ou noir si aucune
+
+**Changement de palette :**
 ```javascript
+// Déclenché par les raccourcis clavier (1-2-3-4) ou les boutons UI
 function triggerPaletteChange(newIndex) {
   params.activePaletteIndex = newIndex;
-
+  
+  // Déclencher transitions de couleur dans toutes les lignes existantes
   emitterInstance.lines.forEach(line => {
     const colorData = pickRandomLineColor();
     line.transitionToColor(colorData.color);
   });
-
+  
+  // Déclencher transition d'arrière-plan
   SketchFactory.backgroundTransition.start = SketchFactory.backgroundTransition.current;
   SketchFactory.backgroundTransition.target = getBackgroundColor();
   SketchFactory.backgroundTransition.progress = 0;
   SketchFactory.backgroundTransition.isTransitioning = true;
-
+  
   syncUIFromParams();
   saveToLocalStorage();
 }
 ```
 
-Transition de couleur dans `ZigzagLine` :
-
+**Transition de couleur dans ZigzagLine :**
 ```javascript
 transitionToColor(newColor) {
   this.startColor = [...this.currentColor];
@@ -990,8 +1187,12 @@ transitionToColor(newColor) {
 }
 
 update(dt) {
+  // ... mises à jour de position
+  
+  // Interpolation de couleur pendant transition (mise en cache pour éviter recalcul 60fps)
   if (this.isTransitioning) {
     this.colorTransitionProgress += dt / params.colorTransitionDuration;
+    
     if (this.colorTransitionProgress >= 1) {
       this.currentColor = [...this.targetColor];
       this.isTransitioning = false;
@@ -1006,92 +1207,127 @@ update(dt) {
 }
 ```
 
-Z-offset pour séparation de profondeur :
-
+**Z-offset pour séparation de profondeur :**
+Chaque emplacement de couleur obtient un décalage d'axe Z distinct pour empêcher z-fighting WebGL :
 ```javascript
+// Dans le constructeur ZigzagLine
 this.zOffset = (colorSlotIndex - 2) * params.colorSlotZOffset;
-// slotIndex 0 → zOffset: -200
-// slotIndex 1 → zOffset: -100
-// slotIndex 2 → zOffset:    0
-// slotIndex 3 → zOffset: +100
+// colorSlotIndex: 0 → zOffset: -200 (au multiplicateur par défaut 100)
+// colorSlotIndex: 1 → zOffset: -100
+// colorSlotIndex: 2 → zOffset: 0
+// colorSlotIndex: 3 → zOffset: +100
 ```
 
-#### Curseurs à double plage
+**Stockage :**
+Toutes les données de palette persistent dans localStorage et les exports JSON avec compatibilité ascendante pour les anciennes sauvegardes.
 
+**Déclencheur :** Bouton de palette/clavier → toutes les lignes transitionnent en douceur sur 3 secondes.
+
+---
+
+#### Curseurs à Double Plage
+
+Utilisés pour découpe Proche/Lointain et plages épaisseur/vitesse.
+
+**Logique de contrainte :**
 ```javascript
 nearSlider.addEventListener('input', () => {
   if (nearSlider.value >= farSlider.value) {
     nearSlider.value = farSlider.value - 1;
   }
+  // Mettre à jour params & affichage
 });
 
 farSlider.addEventListener('input', () => {
   if (farSlider.value <= nearSlider.value) {
-    farSlider.value = Number(nearSlider.value) + 1;
+    farSlider.value = nearSlider.value + 1;
   }
+  // Mettre à jour params & affichage
 });
 ```
 
-#### FOV avec compensation de distance
+**But :** Empêcher plages invalides (min ≥ max).
 
+---
+
+#### FOV avec Compensation de Distance
+
+**Implémentation :**
 ```javascript
 fovSlider.addEventListener('input', () => {
   const oldFOV = params.fov;
   const newFOV = parseFloat(fovSlider.value);
-
+  
+  // Calculer ratio de compensation
   const oldFOVRad = oldFOV * Math.PI / 180;
   const newFOVRad = newFOV * Math.PI / 180;
   const ratio = Math.tan(oldFOVRad / 2) / Math.tan(newFOVRad / 2);
-
-  const newDistance = clamp(camera.distance * ratio, 50, 10000);
-
+  
+  // Appliquer à distance
+  const oldDistance = camera.distance;
+  const newDistance = clamp(oldDistance * ratio, 50, 10000);
+  
+  // Mettre à jour état
   params.fov = newFOV;
   camera.distance = newDistance;
   params.cameraDistance = newDistance;
-
+  
+  // Logger pour débogage
+  console.log(`FOV: ${oldFOV}° → ${newFOV}°, Distance: ${oldDistance} → ${newDistance}`);
+  
   saveToLocalStorage();
 });
 ```
 
-Formule : pour une taille apparente constante, `newDistance = oldDistance × tan(oldFOV/2) / tan(newFOV/2)`.
+**Théorie :**
+Pour taille apparente constante :
+```
+newDistance = oldDistance × tan(oldFOV/2) / tan(newFOV/2)
+```
+
+**Effet :**
+- FOV plus large → caméra plus proche (maintient taille)
+- FOV plus étroit → caméra plus éloignée (maintient taille)
+- Seule la distorsion de perspective change
 
 ---
 
-## Pipeline de rendu
+## Pipeline de Rendu
 
-### Séquence de rendu d'image
+### Séquence de Rendu d'Image
 
 ```
 ┌─────────────────────────────────────┐
 │  1. p.background(0)                 │
-│     Effacer le canevas en noir      │
+│     Effacer canevas en noir         │
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
-│  2. Mettre à jour la caméra         │
+│  2. Mettre à jour caméra depuis     │
+│     souris                          │
 │     - Rotation (glissement gauche)  │
 │     - Déplacement (glissement droit)│
 │     - Zoom (molette)                │
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
-│  3. Définir la matrice de           │
-│     projection                      │
+│  3. Définir matrice de projection   │
 │     p.perspective(fov, aspect, ...) │
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
-│  4. Calculer le temps delta         │
+│  4. Calculer temps delta            │
 │     dt = (now - lastTime) / 1000    │
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
-│  5. Push matrice                    │
+│  5. Push matrice (sauvegarder état) │
 │     p.push()                        │
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
-│  6. Appliquer les transformations   │
+│  6. Appliquer transformations       │
+│     caméra                          │
 │     - Décalage stéréo (si activé)   │
 │     - Décalage de déplacement       │
 │     - Zoom (translate Z)            │
@@ -1101,36 +1337,43 @@ Formule : pour une taille apparente constante, `newDistance = oldDistance × tan
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
-│  7. Mettre à jour la simulation     │
-│     (primaire uniquement)           │
+│  7. Mettre à jour simulation        │
+│     (primaire)                      │
 │     - noiseOffset += dt × 4         │
 │     - emitter.update(dt)            │
+│       - Générer nouvelles lignes    │
+│       - Mettre à jour positions     │
+│       - Éliminer lignes mortes      │
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
 │  8. Dessiner toutes les lignes      │
 │     emitter.draw(p)                 │
+│     - Pour chaque ligne :           │
+│       - Calculer alpha              │
+│       - Construire géométrie ruban  │
+│       - Dessiner forme remplie      │
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
-│  9. Pop matrice                     │
+│  9. Pop matrice (restaurer état)    │
 │     p.pop()                         │
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
-│  10. Capturer l'image               │
-│      (si enregistrement)            │
+│  10. Capturer image (si             │
+│      enregistrement)                │
 │      capturer.capture(canvas)       │
 └─────────────────────────────────────┘
 ```
 
 ---
 
-## Système de caméra
+## Système de Caméra
 
-### Hiérarchie de transformation
+### Hiérarchie de Transformation
 
-Ordre d'application (de l'intérieur vers l'extérieur) :
+Les transformations sont appliquées dans cet ordre (de l'intérieur vers l'extérieur) :
 
 ```
 1. Espace local géométrie (sommets zigzag)
@@ -1144,7 +1387,7 @@ Ordre d'application (de l'intérieur vers l'extérieur) :
 9. Projection (perspective avec FOV)
 ```
 
-### Exemple de transformation de coordonnées
+### Exemple de Transformation de Coordonnées
 
 Point au sommet zigzag `(vx, vy, 0)` :
 
@@ -1159,13 +1402,14 @@ worldX *= scale / 100
 worldY *= scale / 100
 
 // 3. Rotation Z
-θ = emitterRotation * Math.PI / 180
-x' = worldX * cos(θ) - worldY * sin(θ)
-y' = worldX * sin(θ) + worldY * cos(θ)
+θ = emitterRotation × π/180
+x' = worldX × cos(θ) - worldY × sin(θ)
+y' = worldX × sin(θ) + worldY × cos(θ)
 
-// 4. Rotation d'orbite : appliquer rotateX puis rotateY
+// 4. Rotation d'orbite
+// Appliquer matrices rotateX puis rotateY
 
-// 5. Zoom + déplacement
+// 5. Zoom + Déplacement
 x'' = x' + offsetX
 y'' = y' + offsetY
 z'' = z' - distance
@@ -1173,70 +1417,78 @@ z'' = z' - distance
 // 6. Décalage stéréo (si applicable)
 x''' = x'' + cameraOffset
 
-// 7. Projection : division perspective par profondeur
+// 7. Projection
+// Division perspective par profondeur
 ```
 
-### Mapping souris → caméra
+### Mapping Souris vers Caméra
 
-**Rotation (glissement gauche)**
+**Rotation (glissement gauche) :**
 ```javascript
-const sensitivity = 0.005;
+const sensitivity = 0.005;  // radians par pixel
 rotationY += dx * sensitivity;
-rotationX = clamp(rotationX + dy * sensitivity, -Math.PI/2, Math.PI/2);
+rotationX += dy * sensitivity;
+rotationX = clamp(rotationX, -π/2, π/2);  // Limiter tangage
 ```
 
-**Déplacement (glissement droit)**
+**Déplacement (glissement droit) :**
 ```javascript
-const sensitivity = Math.max(0.5, distance / 500);
+const sensitivity = max(0.5, distance / 500);
 offsetX += dx * sensitivity;
 offsetY += dy * sensitivity;
 ```
 
-La sensibilité évolue avec la distance : plus la caméra est éloignée, plus le déplacement est rapide.
+**La sensibilité évolue avec la distance** - caméra plus éloignée = déplacement plus rapide.
 
-**Zoom (défilement)**
+**Zoom (défilement) :**
 ```javascript
-distance = clamp(distance + event.delta * 20, 50, 10000);
+const zoomSpeed = 20;  // pixels par cran de défilement
+distance += event.delta * zoomSpeed;
+distance = clamp(distance, 50, 10000);
 ```
 
 ---
 
-## Système d'incrustation
+## Système d'Incrustation
 
-Système d'image statique composée par-dessus le canevas pour le branding, les filigranes ou les éléments de design. Introduit dans la v26.
+**NOUVEAU DANS v26 :** Système d'image statique en incrustation composée par-dessus le canevas pour le branding, les filigranes ou les éléments de design.
 
 ### Architecture
 
-L'incrustation utilise un élément `<img>` HTML positionné de manière absolue au-dessus du canevas, puis composité dans les exports PNG et vidéo.
+Le système d'incrustation utilise des éléments d'image HTML positionnés de manière absolue au-dessus du canevas, puis composités dans les exports PNG/vidéo.
 
+**Structure HTML (index.html) :**
 ```html
-<img id="overlay-image" alt="Overlay"
-  style="position: absolute; z-index: 1000; pointer-events: none; display: none;">
+<img id="overlay-image" alt="Overlay" style="position: absolute; z-index: 1000; pointer-events: none; display: none;">
 ```
 
-- `position: absolute` : positionné au-dessus du canevas en 2D
-- `z-index: 1000` : toujours sur la couche supérieure
-- `pointer-events: none` : ne bloque pas l'interaction souris
-- `display: none` : caché par défaut
+**Attributs Clés :**
+- `position: absolute`: Positionné au-dessus du canevas dans l'espace 2D
+- `z-index: 1000`: Toujours sur la couche supérieure
+- `pointer-events: none`: Ne bloque pas l'interaction souris avec le canevas
+- `display: none`: Caché par défaut
 
-### Stockage des paramètres
+### Stockage des Paramètres
 
-Les paramètres d'incrustation sont globaux au projet (non sauvegardés par état) :
+Les paramètres d'incrustation sont **globaux au projet** (non sauvegardés par état) :
 
 ```javascript
-overlayImageSrc: null,   // URL ou URI de données de l'image
-overlayVisible: false,   // Visibilité
-overlayScale: 100,       // Taille (10–200%)
-overlayOpacity: 100,     // Transparence (0–100%)
-overlayX: 50,            // Position horizontale (0–100%)
-overlayY: 50,            // Position verticale (0–100%)
+// js/config/defaults.js
+overlayImageSrc: null,        // URL/URI de données de l'image
+overlayVisible: false,        // Basculer la visibilité
+overlayScale: 100,           // Taille (10-200%)
+overlayOpacity: 100,         // Transparence (0-100%)
+overlayX: 50,                // Position horizontale (0-100%)
+overlayY: 50,                // Position verticale (0-100%)
 ```
 
-### Système de préréglages
+### Système de Préréglages **NOUVEAU**
 
-Les préréglages permettent le chargement instantané d'images préconfigurées depuis `assets/overlays/`.
+**Vue d'Ensemble de l'Architecture :**
 
-**Structure du répertoire**
+Le système de préréglages permet le chargement instantané d'images d'incrustation préconfigurées depuis le dossier `assets/overlays/`, éliminant le besoin pour les utilisateurs de charger manuellement des logos ou filigranes communs.
+
+**Structure de Répertoire :**
 ```
 assets/overlays/
 ├── area-zero-white.json
@@ -1247,7 +1499,7 @@ assets/overlays/
 └── zigmap-white.json
 ```
 
-**Format JSON**
+**Format de Fichier JSON :**
 ```json
 {
   "id": "logo1",
@@ -1257,7 +1509,14 @@ assets/overlays/
 }
 ```
 
-**Chargement**
+**Descriptions des Champs :**
+- `id`: Identifiant unique (nom de fichier sans extension)
+- `filename`: Nom de fichier image original
+- `type`: Type MIME (image/png, image/jpeg, image/svg+xml)
+- `data`: URI de données encodée en Base64
+
+**Implémentation du Chargement (js/ui/UIController.js) :**
+
 ```javascript
 async function loadOverlayPresets(ZM) {
   const overlayFiles = [
@@ -1268,49 +1527,59 @@ async function loadOverlayPresets(ZM) {
     'promo-logo.json',
     'zigmap-white.json'
   ];
-
+  
   ZM.overlayPresets = [];
-
+  
   for (const filename of overlayFiles) {
     try {
       const response = await fetch(`assets/overlays/${filename}`);
       if (!response.ok) {
-        console.warn(`Préréglage introuvable : ${filename}`);
+        console.warn(`Préréglage d'incrustation introuvable : ${filename}`);
         continue;
       }
       const preset = await response.json();
       ZM.overlayPresets.push(preset);
     } catch (err) {
-      console.warn(`Échec du chargement : ${filename}`, err);
+      console.warn(`Échec du chargement du préréglage : ${filename}`, err);
     }
   }
+  
+  console.log(`${ZM.overlayPresets.length} préréglages d'incrustation chargés`);
 }
 ```
 
-**Intégration UI**
+**Intégration UI :**
+
 ```javascript
 function setupOverlayControls(ZM) {
-  await loadOverlayPresets(ZM);
-
+  await loadOverlayPresets(ZM);  // Charger les préréglages d'abord
+  
   const presetSelect = document.getElementById('overlay-preset');
-
+  const loadCustomBtn = document.getElementById('load-overlay-btn');
+  
+  // Peupler le menu déroulant avec les préréglages
   ZM.overlayPresets.forEach((preset) => {
     const option = document.createElement('option');
     option.value = preset.id;
     option.textContent = preset.filename.replace('.json', '').replace(/_/g, ' ');
     presetSelect.appendChild(option);
   });
-
+  
+  // Ajouter l'option "Image personnalisée" à la fin
   const customOption = document.createElement('option');
   customOption.value = 'custom';
   customOption.textContent = '-- Image personnalisée --';
   presetSelect.appendChild(customOption);
-
+  
+  // Gérer la sélection de préréglage
   presetSelect.addEventListener('change', (e) => {
     if (e.target.value === 'custom') {
+      // Déclencher le sélecteur de fichier personnalisé
       loadCustomBtn.click();
       return;
     }
+    
+    // Charger le préréglage depuis les données Base64
     const preset = ZM.overlayPresets.find(p => p.id === e.target.value);
     if (preset) {
       const overlayImg = document.getElementById('overlay-image');
@@ -1325,52 +1594,85 @@ function setupOverlayControls(ZM) {
 }
 ```
 
-### Outil utilitaire de conversion
+**Outil Utilitaire de Conversion :**
 
 Emplacement : `utilities/overlay-converter.html`
 
-Outil HTML autonome pour convertir des images au format JSON Base64.
+Un outil HTML autonome pour convertir des images au format JSON Base64 de préréglage :
 
-**Fonctionnalités** : interface glisser-déposer, conversion par lots, prévisualisation, génération de fichiers JSON. Formats supportés : SVG, PNG, JPG, GIF.
+**Fonctionnalités :**
+- Interface glisser-déposer HTML5 native (aucune dépendance externe)
+- Support de conversion par lots
+- Prévisualisation instantanée des images sélectionnées
+- Génération automatique de fichiers JSON
+- Formats supportés : SVG, PNG, JPG, GIF
 
+**Logique de Conversion Principale :**
 ```javascript
 async function convertToBase64(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      resolve({
-        id: file.name.replace(/\.[^.]+$/, ''),
+      const json = {
+        id: file.name.replace(/\.[^.]+$/, ''),  // Enlever l'extension
         filename: file.name,
         type: file.type || 'image/png',
-        data: e.target.result
-      });
+        data: e.target.result  // URI de données Base64
+      };
+      resolve(json);
     };
     reader.readAsDataURL(file);
   });
 }
+
+function downloadJSON(jsonObj, filename) {
+  const blob = new Blob(
+    [JSON.stringify(jsonObj, null, 2)], 
+    { type: 'application/json' }
+  );
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 ```
 
-**Procédure**
+**Flux de Travail d'Utilisation :**
 1. Ouvrir `utilities/overlay-converter.html` dans le navigateur
-2. Glisser-déposer des fichiers images ou les sélectionner via le navigateur de fichiers
-3. Cliquer sur **Convert All to Base64**
-4. Déplacer les fichiers JSON générés vers `assets/overlays/`
-5. Ajouter les noms de fichiers au tableau `overlayFiles` dans `UIController.js`
-6. Recharger l'application
+2. Glisser-déposer des fichiers images ou cliquer pour parcourir
+3. Prévisualiser les images sélectionnées dans l'interface
+4. Cliquer sur le bouton "Convertir Tout en Base64"
+5. Chaque image se télécharge comme fichier JSON séparé
+6. Déplacer les fichiers JSON vers le dossier `assets/overlays/`
+7. Ajouter les noms de fichiers au tableau `overlayFiles` dans UIController.js
+8. Recharger l'application - les nouveaux préréglages apparaissent dans le menu déroulant
 
-**Caractéristiques techniques**
-- Aucun serveur requis : Base64 embarqué directement dans le JSON
-- Compatible avec le contrôle de version (fichiers JSON suivis dans git)
-- Aucune dépendance d'hébergement externe
-- L'encodage Base64 augmente la taille de fichier d'environ 33%
-- Les préréglages sont mis en cache dans la mémoire du navigateur après le premier chargement
+**Avantages Techniques :**
+- **Aucun serveur requis**: Base64 embarqué directement dans JSON
+- **Chargement rapide**: Tous les préréglages chargeables en parallèle au démarrage
+- **Compatible avec le contrôle de version**: Fichiers JSON suivis dans git
+- **Multi-plateforme**: Fonctionne identiquement sur tous les systèmes d'exploitation
+- **Capacité hors ligne**: Aucune dépendance d'hébergement d'image externe
+- **Sécurité de type**: Type MIME préservé dans JSON pour validation
 
-### Synchronisation de l'affichage
+**Considérations de Performance :**
+- L'encodage Base64 augmente la taille de fichier de ~33%
+- Logo moyen (PNG 50Ko) → JSON ~67Ko
+- 6 préréglages (~400Ko total) se chargent en <100ms sur connexion typique
+- Images mises en cache dans la mémoire du navigateur après premier chargement
+- Aucun impact sur les performances d'exécution (chargé une fois au démarrage)
 
+### Synchronisation de l'Affichage
+
+**Mise à Jour Position & Échelle :**
 ```javascript
 function updateOverlayPosition(ZM) {
   const overlayImg = document.getElementById('overlay-image');
   const { params } = ZM;
+  
+  // Calculer la position CSS
   overlayImg.style.left = `${params.overlayX}%`;
   overlayImg.style.top = `${params.overlayY}%`;
   overlayImg.style.transform = `translate(-50%, -50%) scale(${params.overlayScale / 100})`;
@@ -1378,235 +1680,281 @@ function updateOverlayPosition(ZM) {
 }
 ```
 
-Chaîne de transformation CSS :
-1. `translate(-50%, -50%)` : centre l'incrustation sur le point de position
-2. `scale(...)` : applique la mise à l'échelle
-3. `left/top` : positionne le point central (0–100% du canevas)
-4. `opacity` : transparence (0–1)
+**Chaîne de Transformation CSS :**
+1. `translate(-50%, -50%)`: Centre l'incrustation sur le point de position
+2. `scale(${overlayScale / 100})`: Applique la mise à l'échelle de taille
+3. `left/top`: Positionne le point central (0-100% du canevas)
+4. `opacity`: Transparence (0-1)
 
-### Export PNG avec composition d'incrustation
+### Compositing d'Export
 
-**Implémentation (js/export/PNGExporter.js)** :
+Voir la section **Système d'Export** ci-dessous pour les détails sur :
+- Correction de densité de pixels
+- Positionnement d'incrustation dans les exports
+- Compositing vidéo image par image
 
-```javascript
-function createCompositeCanvas(ZM, sourceCanvas) {
-  const overlayImg = document.getElementById('overlay-image');
-  const hasOverlay = ZM.params.overlayVisible && ZM.params.overlayImageSrc && 
-                     overlayImg && overlayImg.complete;
-  
-  if (!hasOverlay) {
-    return sourceCanvas;
-  }
-  
-  // Créer un canevas composite aux dimensions du tampon
-  const composite = document.createElement('canvas');
-  composite.width = sourceCanvas.width;
-  composite.height = sourceCanvas.height;
-  const ctx = composite.getContext('2d');
-  
-  // 1. Dessiner le canevas p5
-  ctx.drawImage(sourceCanvas, 0, 0);
-  
-  // 2. Calculer les dimensions d'incrustation
-  const overlayNaturalWidth = overlayImg.naturalWidth;
-  const overlayNaturalHeight = overlayImg.naturalHeight;
-  const userScale = ZM.params.overlayScale / 100;
-  const opacity = ZM.params.overlayOpacity / 100;
-  
-  // Taille d'affichage en pixels CSS
-  const displayWidth = overlayNaturalWidth * userScale;
-  const displayHeight = overlayNaturalHeight * userScale;
-  
-  // Convertir en pixels de tampon
-  // sourceCanvas.width = taille du tampon (inclut pixelDensity)
-  // ZM.W = taille logique (pixels CSS)
-  const bufferToLogicalRatio = sourceCanvas.width / ZM.W;
-  
-  // × 2 convertit pixels CSS → pixels de tampon sur écrans Retina
-  const imgWidth = displayWidth * bufferToLogicalRatio * 2;
-  const imgHeight = displayHeight * bufferToLogicalRatio * 2;
-  
-  // Position en pourcentage → coordonnées pixel
-  const x = (ZM.params.overlayX / 100) * composite.width;
-  const y = (ZM.params.overlayY / 100) * composite.height;
-  
-  // Dessiner l'incrustation avec opacité
-  ctx.globalAlpha = opacity;
-  ctx.drawImage(
-    overlayImg,
-    x - imgWidth / 2,
-    y - imgHeight / 2,
-    imgWidth,
-    imgHeight
-  );
-  ctx.globalAlpha = 1.0;
-  
-  return composite;
-}
-```
+### Contrôles UI
 
-**Fonctionnalités clés** :
-- **Correction de densité de pixels** : mise à l'échelle correcte pour écrans Retina/haute résolution
-- **Opacité d'incrustation** : respecte le réglage d'opacité (0–100%)
-- **Positionnement précis** : Position X/Y (0–100%) convertie en coordonnées pixel
-- **Support de mise à l'échelle** : échelle d'incrustation (10–200%) appliquée correctement
-- **Qualité d'export** : utilise la résolution de rendu réelle (ex. 3840px sur canevas Retina 1920px)
+**Panneau de Contrôle d'Incrustation :**
+- **Afficher l'Incrustation**: ☑️ Case à cocher pour basculer la visibilité
+- **Menu Déroulant de Préréglages**: Sélection rapide de logos préconfigurés
+- **Charger Image Personnalisée**: Bouton pour importer PNG/JPG/SVG propre
+- **Échelle** (10-200%): Redimensionner l'incrustation
+- **Opacité** (0-100%): Transparence
+- **Position X/Y** (0-100%): Placer l'incrustation n'importe où
+- **Effacer Image**: Supprimer l'incrustation et réinitialiser
 
-**Formule de calcul** :
+### Flux de Travail
 
-Mode normal (sans framebuffer) :
-```
-Largeur affichage = naturalWidth × (overlayScale / 100)
-Ratio = sourceCanvas.width / ZM.W      (= pixelDensity, ex. 2 sur Retina)
-Largeur image = Largeur affichage × Ratio × 2
-```
+**Utilisation Typique :**
+1. Sélectionner un préréglage depuis le menu déroulant (ou charger image personnalisée)
+2. Ajuster l'échelle et la position
+3. Définir l'opacité (ex., 50% pour filigrane subtil)
+4. Créer plusieurs états avec différentes animations
+5. Exporter PNG/vidéo - l'incrustation est incluse automatiquement
 
-Mode framebuffer :
-```
-Largeur affichage = naturalWidth × (overlayScale / 100)
-Ratio = sourceCanvas.width / ZM.W      (= 1 en mode framebuffer)
-Largeur image = Largeur affichage × Ratio × 2     (= Largeur affichage × 2)
-```
-
-Le multiplicateur × 2 est essentiel car `naturalWidth` retourne des pixels d'image qui correspondent à des pixels CSS à l'affichage, mais le contexte 2D du canevas dessine en pixels de tampon (2× sur écrans Retina).
+**Meilleures Pratiques :**
+- Utiliser PNG avec transparence pour les logos
+- Définir opacité 30-50% pour filigranes subtils
+- Positionner dans les coins (X/Y: 10% ou 90%) pour le branding
+- Centrer (X/Y: 50%) pour éléments de design principaux
+- Réduire l'échelle (50-80%) pour incrustations non intrusives
 
 ---
 
-## Système d'export
+## Système d'Export
 
-### Comparaison d'export
+### Comparaison d'Export
 
-| Fonctionnalité | PNG | SVG | Carte de profondeur | Vidéo |
-|----------------|-----|-----|---------------------|-------|
-| Type | Raster | Vectoriel | Raster niveaux de gris | Flux vidéo |
-| Résolution | Fixe | Infinie | Fixe | Fixe |
-| Éditable | Non | Oui | Non | Non |
-| Taille fichier | 100 Ko – 2 Mo | 10 Ko – 500 Ko | 100 Ko – 2 Mo | 5 Mo – 100 Mo+ |
-| Animation | Image unique | Image unique | Image unique | Complète |
-| Meilleur usage | Partage, réseaux sociaux | Impression, édition | Compositing, post-prod | Présentation |
+| Fonctionnalité | PNG | SVG | Carte Profondeur | Vidéo |
+|----------------|-----|-----|------------------|-------|
+| **Type** | Raster | Vectoriel | Raster (niveaux gris) | Flux vidéo |
+| **Résolution** | Fixe (pixels canevas) | Infinie | Fixe (pixels canevas) | Fixe (pixels canevas) |
+| **Éditabilité** | Non | Oui (chemins) | Non | Non |
+| **Taille Fichier** | ~100Ko - 2Mo | ~10Ko - 500Ko | ~100Ko - 2Mo | ~5Mo - 100Mo+ |
+| **Animation** | Image unique | Image unique | Image unique | Animation complète |
+| **Qualité** | Avec perte (après redimensionnement) | Sans perte | Sans perte | Compressée |
+| **Meilleur Usage** | Partage rapide | Travail design | Compositing/Post-prod | Présentation |
+| **Cas d'Usage** | Aperçus, réseaux sociaux | Impressions, édition | Effets de profondeur, Z-buffer | Démos animées |
 
-### Détails techniques — enregistrement vidéo
+### Détails Techniques Export Vidéo
 
-**Pas de temps fixe**
-```javascript
-if (isRecording) {
-  dt = 1 / params.videoFPS;  // ex. 1/30 = 0.0333...
-}
-```
+**Intégration CCapture.js :**
 
-**Capture d'image**
-```javascript
-if (isRecording) {
-  capturer.capture(p5Instance.canvas);
-  recordingFrameCount++;
-  updateProgressBar();
-  if (recordingFrameCount >= recordingTotalFrames) {
-    stopVideoCapture();
-  }
-}
-```
+1. **Pas de Temps Fixe :**
+   ```javascript
+   if (isRecording) {
+     dt = 1 / params.videoFPS;  // ex., 1/30 = 0.0333...
+   }
+   ```
+   - Assure vitesse d'animation cohérente
+   - Indépendant du temps de rendu réel
+   - Garantit sortie déterministe
 
-### Détails techniques — carte de profondeur
+2. **Capture d'Image :**
+   ```javascript
+   if (isRecording) {
+     capturer.capture(p5Instance.canvas);
+     recordingFrameCount++;
+     updateProgressBar();
+     
+     if (recordingFrameCount >= recordingTotalFrames) {
+       stopVideoCapture();
+     }
+   }
+   ```
 
-**Flux d'implémentation**
+3. **Encodage :**
+   - Dépendant du navigateur (codec WebM varie)
+   - CCapture gère encodage du flux
+   - Fichier téléchargé une fois terminé
+
+**Limitations :**
+- Pas d'interaction pendant enregistrement
+- Résolution élevée + longue durée = processus lent
+- Taille fichier croît linéairement avec images
+
+---
+
+### Détails Techniques Export Carte de Profondeur
+
+**Architecture :**
+
+**Architecture :**
+1. Capture position polygones 3D actuels (coordonnées monde)
+2. Projette tous les sommets via matrice caméra exacte (comme export SVG)
+3. Scanne profondeurs min/max à travers scène complète
+4. Normalise valeurs profondeur vers plage 0-255 avec courbe puissance gamma
+5. Rastérise triangles projetés dans buffer greyscale PNG
+
+**Flux d'Implémentation :**
 ```javascript
 function exportDepthMap() {
+  // 1. CONFIGURATION DU CANEVAS
   const buffer = createGraphics(width, height);
   buffer.pixelDensity(1);
-  buffer.background(0);
-
+  buffer.background(0);  // Noir = loin
+  
+  // 2. EXTRACTION DE POLYGONES
   const polys = activeElements.map(el => ({
-    vertices: el.getVertices(),
+    vertices: el.getVertices(),  // [x, y, z, x, y, z, ...]
     color: el.getColor()
   }));
-
+  
+  // 3. SCAN DE PLAGE DE PROFONDEUR
   const [zMin, zMax] = scanDepthRange(polys);
-  polys.forEach(poly => rasteriseDepthPolygon(poly.vertices, zMin, zMax, buffer));
+  
+  // 4. RASTÉRISATION
+  polys.forEach(poly => {
+    rasteriseDepthPolygon(poly.vertices, zMin, zMax, buffer);
+  });
+  
+  // 5. TÉLÉCHARGEMENT
   buffer.save('depth_map.png');
 }
 ```
 
-**Algorithme d'auto-ajustement**
+**Algorithme d'Auto-Ajustement :**
 ```javascript
 function scanDepthRange(polygons) {
   let zMin = Infinity;
   let zMax = -Infinity;
-
+  
   polygons.forEach(poly => {
     for (let i = 0; i < poly.vertices.length; i += 3) {
       const [x, y, z] = [poly.vertices[i], poly.vertices[i+1], poly.vertices[i+2]];
+      
+      // Projeter via matrice caméra complète
       const projected = projectVertex(x, y, z, camMatrix);
-      zMin = Math.min(zMin, projected.z);
-      zMax = Math.max(zMax, projected.z);
+      const depth = projected.z;  // Profondeur après transformation
+      
+      zMin = min(zMin, depth);
+      zMax = max(zMax, depth);
     }
   });
-
+  
   return [zMin, zMax];
 }
 ```
 
-Scanner d'abord la plage permet d'utiliser l'intégralité des 256 niveaux de gris et d'éviter le découpage par des plans fixes.
+**Pourquoi scanner d'abord ?**
+- Utilise plage complète 0-255 (maximise résolution profondeur)
+- Évite découpage (zNear/zFar fixes causeraient pertes)
+- Adapte automatiquement à composition scène variée
 
-**Encodage de profondeur**
+**Encodage Profondeur :**
 ```javascript
-let normalized = (depth - zMin) / (zMax - zMin);
-normalized = 1.0 - normalized;        // Inverser : proche = blanc
-normalized = Math.pow(normalized, 0.6); // Correction gamma
-const brightness = Math.floor(normalized * 255);
+function rasteriseDepthPolygon(vertices, zMin, zMax, buffer) {
+  buffer.loadPixels();
+  
+  // Projeter tous sommets
+  const projected = [];
+  for (let i = 0; i < vertices.length; i += 3) {
+    const [x, y, z] = [vertices[i], vertices[i+1], vertices[i+2]];
+    const p = projectVertex(x, y, z, camMatrix);
+    projected.push(p);
+  }
+  
+  // Logique scanline pour remplissage triangle
+  // (Simplifié - version réelle utilise interpolation barycentrique)
+  for (let py = minY; py <= maxY; py++) {
+    for (let px = minX; px <= maxX; px++) {
+      if (pointInTriangle(px, py, projected)) {
+        // Interpoler profondeur à travers triangle
+        const depth = interpolateDepth(px, py, projected);
+        
+        // Normaliser vers 0-1, puis inverser et appliquer gamma
+        let normalized = (depth - zMin) / (zMax - zMin);
+        normalized = 1.0 - normalized;  // Inverser (proche=blanc)
+        normalized = pow(normalized, 0.6);  // Correction gamma
+        
+        const brightness = floor(normalized * 255);
+        const idx = (py * width + px) * 4;
+        buffer.pixels[idx] = brightness;      // R
+        buffer.pixels[idx+1] = brightness;    // G
+        buffer.pixels[idx+2] = brightness;    // B
+        buffer.pixels[idx+3] = 255;           // A
+      }
+    }
+  }
+  
+  buffer.updatePixels();
+}
 ```
 
-**Caractéristiques**
-- Alignement avec SVG : transformation caméra identique (cohérence géométrique)
-- Auto-ajustement : plage complète de niveaux de gris utilisée
-- Gamma 0.6 : meilleure distribution tonale visuelle
-- Convention standard : proche = blanc, loin = noir
-- Calcul CPU pur (sans dépendance GPU)
-- Format PNG : compatible avec After Effects, Nuke, Blender
+**Caractéristiques Clés :**
+- **Alignement avec SVG** : Utilise transformation caméra identique (cohérence géométrique)
+- **Auto-Ajustement** : Scanne zMin/zMax pour utiliser gamme complète greyscale
+- **Courbe Puissance** : Gamma 0.6 génère meilleure distribution tonale visuelle
+- **Inversion** : Proche=blanc, loin=noir (convention de passe profondeur standard)
+- **Basé-CPU** : Calcul JavaScript pur (aucune dépendance shader GPU)
+- **Format PNG** : Compatible avec logiciels compositing (After Effects, Nuke, Blender)
+
+**Cas d'Usage :**
+- Flou de profondeur de champ en post-production
+- Effets de brouillard/atmosphère
+- Sélection/masquage basé profondeur
+- Intégration 3D (Z-buffer pour compositing)
+- Visualisation de profondeur (debug disposition spatiale)
 
 ---
 
-## Considérations de performance
+## Considérations de Performance
 
-### Stratégies d'optimisation
+### Stratégies d'Optimisation
 
-**Densité de pixels**
-```javascript
-p.pixelDensity(1);
-```
-Empêche la mise à l'échelle haute DPI, réduisant le nombre de pixels jusqu'à 4× sur les écrans 2×.
+1. **Densité de Pixels :**
+   ```javascript
+   p.pixelDensity(1);  // Forcer ratio 1:1
+   ```
+   - Empêche mise à l'échelle haute DPI (écrans Retina)
+   - Réduit nombre de pixels jusqu'à 4× sur écrans 2×
 
-**Taux d'émission**
-Chaque ligne représente environ 34 sommets (16 segments × 2 côtés + capuchons). Un taux élevé augmente proportionnellement la charge de rendu.
+2. **Taux d'Émission :**
+   - Chaque ligne = ~34 sommets (16 segments × 2 côtés + capuchons)
+   - 10 lignes/sec @ 60fps = 600 lignes actives (supposant durée vie 60s)
+   - ~20 400 sommets par image
+   - Taux d'émission plus bas = moins de lignes actives
 
-**Élimination des lignes hors champ**
-Les lignes hors des limites de génération sont supprimées, réduisant les appels de dessin et la consommation mémoire.
+3. **Élimination Canevas :**
+   - Lignes hors limites de génération sont supprimées
+   - Réduit appels de dessin et mémoire
 
-**Émetteur partagé**
-En mode stéréo, l'instance `Emitter` unique est rendue deux fois mais mise à jour une seule fois — le coût CPU des mises à jour est divisé par deux.
+4. **Émetteur Partagé :**
+   - Mode stéréo partage instance Emitter unique
+   - Simulation s'exécute une fois, rendue deux fois
+   - Divise coût CPU des mises à jour par deux
 
-### Métriques de performance
+5. **Limitation LocalStorage :**
+   - Pourrait débouncer `saveToLocalStorage()` pour contrôles haute fréquence
+   - Actuellement sauvegarde à chaque changement (acceptable pour la plupart des paramètres)
+
+### Métriques de Performance
 
 Performance typique sur matériel moderne :
 
-| Scénario | FPS | Lignes actives |
+| Scénario | FPS | Lignes Actives |
 |----------|-----|----------------|
 | Défaut (taux 1.5/s) | 60 | ~90 |
-| Élevé (taux 5/s) | 55–60 | ~300 |
-| Extrême (taux 10/s) | 45–55 | ~600 |
-| Stéréo (défaut) | 50–55 | ~90 par œil |
+| Élevé (taux 5/s) | 55-60 | ~300 |
+| Extrême (taux 10/s) | 45-55 | ~600 |
+| Stéréo (défaut) | 50-55 | ~90 (par œil) |
 
-Principaux goulots d'étranglement : traitement de sommets (WebGL), dessin de formes (p5.js), calcul de géométrie de ruban.
+**Goulots d'Étranglement :**
+- Traitement de sommets (WebGL)
+- Dessin de formes (p5.js)
+- Calcul géométrie ruban
 
 ---
 
-## Guide d'extension
+## Guide d'Extension
 
-### Ajouter un contrôle
+### Ajouter Nouveaux Contrôles
 
-**1. HTML**
+**1. Ajouter HTML :**
 ```html
 <div class="control-group">
-  <label>Nouveau paramètre</label>
+  <label>Nouveau Paramètre</label>
   <div class="slider-row">
     <input type="range" id="new-param" min="0" max="100" value="50"/>
     <span class="value-display" id="new-param-val">50</span>
@@ -1614,60 +1962,87 @@ Principaux goulots d'étranglement : traitement de sommets (WebGL), dessin de fo
 </div>
 ```
 
-**2. Ajouter à `params`**
+**2. Ajouter à `params` :**
 ```javascript
 const params = {
+  // ... params existants
   newParameter: 50
 };
 ```
 
-**3. Câbler**
+**3. Câbler contrôle :**
 ```javascript
 wire('new-param', 'new-param-val', 'newParameter');
 ```
 
-**4. Utiliser**
+**4. Utiliser dans code :**
 ```javascript
+// N'importe où params est accédé
 const value = params.newParameter;
 ```
 
-**5. Ajouter à `syncUIFromParams`**
+**5. Ajouter à `syncUIFromParams` :**
 ```javascript
 { id: 'new-param', key: 'newParameter' }
 ```
 
-### Ajouter une forme personnalisée
+---
 
+### Ajouter Formes Personnalisées
+
+**1. Créer nouvelle classe :**
 ```javascript
 class CustomShape {
   constructor({ p, x, y, ...customParams }) {
     this.p = p;
     this.x = x;
     this.y = y;
+    // Stocker paramètres personnalisés
     this.alive = true;
   }
-
+  
   update(dt) {
-    // Mettre à jour la position, définir this.alive = false quand terminé
+    // Mettre à jour position, vérifier limites
+    // Définir this.alive = false quand terminé
   }
-
+  
   draw(p) {
+    // Logique de rendu
     p.push();
     p.translate(this.x - W/2, this.y - H/2, 0);
-    // Rendu
+    // Dessiner votre forme
     p.pop();
   }
 }
 ```
 
-Modifier `Emitter._emit()` pour instancier la nouvelle classe selon `params.shapeType`.
+**2. Modifier émetteur :**
+```javascript
+_emit() {
+  // Optionnellement alterner ou choisir selon params
+  if (params.shapeType === 'custom') {
+    this.lines.push(new CustomShape({
+      p: this.p,
+      x: this.x,
+      y: this.y,
+      // Paramètres personnalisés
+    }));
+  } else {
+    // ZigzagLine existante
+  }
+}
+```
 
-### Ajouter un format d'export
+---
+
+### Ajouter Formats d'Export
+
+**Exemple : export JPEG**
 
 ```javascript
 function exportJPEG() {
   const canvas = p5Instance.canvas;
-  const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+  const dataURL = canvas.toDataURL('image/jpeg', 0.9);  // Qualité 90%
   const a = document.createElement('a');
   a.href = dataURL;
   a.download = `zigzag-emitter-${formatTimestamp()}.jpg`;
@@ -1675,13 +2050,23 @@ function exportJPEG() {
 }
 ```
 
-### Étendre les palettes de couleurs
+Câbler au bouton dans HTML.
 
-Ajouter une cinquième palette dans `js/config/defaults.js` :
+---
 
+### Palettes de Couleurs Personnalisées
+
+**Personnalisation des palettes existantes :**
+1. Sélectionnez la palette (1-4) via les boutons ou le clavier
+2. Cliquez sur les sélecteurs de couleur pour ajuster les valeurs RGB
+3. Définissez les rôles de couleur via les menus déroulants (Line/Background/None)
+4. Ajustez le curseur **Color Depth Separation** (10-500) pour contrôler le multiplicateur de Z-offset
+
+**Ajout de plus de palettes :**
+Éditez `js/config/defaults.js` :
 ```javascript
 palettes: [
-  // palette 5
+  // Ajouter 5ème palette
   [
     { color: [255, 128, 0], role: 'line' },
     { color: [0, 255, 128], role: 'line' },
@@ -1691,131 +2076,226 @@ palettes: [
 ],
 ```
 
-Mettre à jour `js/ui/UIController.js` pour ajouter un cinquième bouton au sélecteur de palette.
+Mettez à jour `js/ui/UIController.js` pour ajouter un 5ème bouton au sélecteur de palette.
 
-Notes techniques :
-- Les transitions utilisent l'interpolation linéaire RGB (`lerpColor`)
-- Formule de Z-offset : `(slotIndex - 2) × multiplicateur` (centré à 0)
-- Les indicateurs `isTransitioning` évitent les calculs inutiles après la fin des transitions
+**Notes techniques :**
+- Les transitions de couleur utilisent l'interpolation linéaire RGB (lerpColor)
+- Formule de Z-offset : `(slotIndex - 2) × multiplier` centre à 0
+- Les drapeaux isTransitioning empêchent les calculs inutiles après la fin des transitions
 
 ---
 
 ## Débogage
 
-### Journalisation console
+### Journalisation Console
 
-**Chargement de page**
+L'application inclut des logs console stratégiques :
+
+**Chargement page :**
 ```
 Chargé depuis localStorage, camera.distance = 600
 Configuration terminée - camera.distance: 600 isPrimary: true
 ```
 
-**Événements souris**
+**Événements souris :**
 ```
-mousePressed - button: RIGHT
-→ mode déplacement
+mousePressed - button: RIGHT, LEFT: LEFT, RIGHT: RIGHT
+→ Bouton Droit/Central: mode déplacement
 → état caméra: {isDragging: false, isPanning: true}
 ```
 
-**Déplacement**
+**Déplacement :**
 ```
+camera.distance avant calcul: 600 params.cameraDistance: 600
 PANNING: {dx: 5, dy: -3, sens: 1.2, distance: 600, offsetX: 6, offsetY: -3.6}
 ```
 
-**Changements FOV**
+**Changements FOV :**
 ```
 FOV changé: 60.00° → 90.00°, Distance: 600.0 → 346.4 (ratio: 0.577)
 ```
 
-### Problèmes courants
-
-| Problème | Cause probable | Solution |
-|----------|---------------|----------|
-| Lignes absentes | `emitRate` à 0, caméra trop éloignée, plans de découpe | Vérifier ces valeurs |
-| Déplacement inactif | `camera.distance` < 50 | Vérifier dans les logs |
-| Performances faibles | Taux d'émission élevé, résolution haute | Réduire ces valeurs, désactiver les modulations |
-| Exports échouent | Autorisations de téléchargement bloquées | Vérifier les paramètres du navigateur |
-| Vidéo non enregistrée | Page masquée pendant l'enregistrement | Garder l'onglet actif |
-
-### Outils dev navigateur
-
-- **Console** : logs d'état
-- **Réseau** : vérifier le chargement des bibliothèques (p5.js, CCapture.js)
-- **Performance** : profiler le timing d'images
-- **Application → Local Storage** : inspecter `zigzagEmitterSettings`
-- **Éléments** : inspecter les dimensions et classes du canevas
+**Zoom :**
+```
+mouseWheel: camera.distance = 720
+```
 
 ---
 
-# ZigMap26 — Architecture modulaire
+### Problèmes Courants
 
-## Vue d'ensemble
+**Lignes n'apparaissent pas :**
+- Vérifier `emitRate` > 0
+- Vérifier distance caméra pas trop éloignée/proche
+- Vérifier plans de découpe (proche/lointain)
+- Assurer dimensions canevas valides
 
-ZigMap26 est une modularisation complète de l'application ZigzagEmitter originale. Le fichier HTML monolithique a été transformé en une architecture ES6 avec séparation des préoccupations.
+**Déplacement ne fonctionne pas :**
+- Vérifier console pour `camera.distance` - devrait être ≥ 50
+- Vérifier menu contextuel clic droit empêché
+- Vérifier état `camera.isPanning` dans logs
 
-## Structure du projet
+**Problèmes de performance :**
+- Réduire `emitRate`
+- Désactiver modulations aléatoires
+- Baisser résolution canevas
+- Vérifier accélération matérielle navigateur
+
+**Échecs d'export :**
+- PNG/SVG : Vérifier autorisations téléchargement navigateur
+- Vidéo : Assurer page visible pendant enregistrement
+- Vérifier console navigateur pour erreurs
+
+---
+
+### Outils Dev Navigateur
+
+**Inspections utiles :**
+
+1. **Console :** Instructions `console.log()` pour état
+2. **Réseau :** Vérifier chargements bibliothèques (p5.js, CCapture.js)
+3. **Performance :** Profiler timing d'images
+4. **Application → Local Storage :** Voir `zigzagEmitterSettings`
+5. **Éléments :** Inspecter dimensions et classes canevas
+
+---
+
+## Idées d'Amélioration Future
+
+Fonctionnalités potentielles pour versions futures :
+
+- **Physique :**
+  - Gravité
+  - Champs de force de vent
+  - Détection de collision entre lignes
+
+- **Motifs Avancés :**
+  - Chemins courbes (Bézier/Catmull-Rom)
+  - Motifs spirale/circulaires
+  - Zigzag 3D (variation profondeur)
+
+- **Effets Visuels :**
+  - Shader lueur/bloom
+  - Flou de profondeur de champ
+  - Traînées de flou de mouvement
+  - Systèmes de particules aux sommets
+
+- **Améliorations UI :**
+  - Bibliothèque de préréglages (sauvegarder configurations multiples)
+  - Timeline/images-clés d'animation
+  - Support contrôleur MIDI
+  - Système annuler/refaire
+
+- **Export :**
+  - Export GIF
+  - WebM avec transparence
+  - Export modèle 3D OBJ/GLB
+  - Génération script After Effects
+
+- **Performance :**
+  - Rendu d'instance (instancing WebGL)
+  - Web Workers pour physique
+  - Shaders de calcul GPU
+
+---
+
+## Références
+
+- **Documentation p5.js :** https://p5js.org/reference/
+- **GitHub CCapture.js :** https://github.com/spite/ccapture.js/
+- **Fondamentaux WebGL :** https://webglfundamentals.org/
+- **Bruit de Perlin :** https://fr.wikipedia.org/wiki/Bruit_de_Perlin
+- **Joints en Onglet :** https://fr.wikipedia.org/wiki/Assemblage_%C3%A0_onglet
+
+---
+
+## Licence
+
+[Spécifiez votre licence ici]
+
+---
+
+**Version :** 10.0  
+**Dernière Mise à Jour :** 7 mars 2026  
+**Auteur :** [Votre nom/équipe]  
+**Projet :** TheSpaceLab / Mapping 2026
+
+---
+
+Pour questions ou contributions, veuillez contacter [vos informations de contact].
+
+
+---
+
+# ZigMap26 — Architecture Modulaire
+
+## Vue d'Ensemble
+
+ZigMap26 est une modularisation complète de l'application ZigzagEmitter originale. Le fichier HTML monolithique a été transformé en une architecture moderne basée sur les modules ES6 avec une séparation appropriée des préoccupations.
+
+## Structure du Projet
 
 ```
 ZigMap26/
-├── index.html
-├── css/
-│   ├── main.css
-│   ├── canvas.css
-│   └── controls.css
+├── index.html                    # Point d'entrée HTML principal
+├── css/                          # Feuilles de style
+│   ├── main.css                  # Styles de base et mise en page
+│   ├── canvas.css                # Styles de rendu du canevas
+│   └── controls.css              # Styles du panneau de contrôle UI
 ├── js/
-│   ├── main.js
-│   ├── config/
-│   │   ├── defaults.js
-│   │   └── constants.js
-│   ├── core/
-│   │   ├── ZigzagLine.js
-│   │   ├── Emitter.js
-│   │   ├── Camera.js
-│   │   ├── utils.js
-│   │   └── Projection.js
-│   ├── storage/
-│   │   └── localStorage.js
-│   ├── rendering/
-│   │   └── SketchFactory.js
-│   ├── export/
-│   │   ├── SVGExporter.js
-│   │   ├── PNGExporter.js
-│   │   ├── DepthExporter.js
-│   │   └── VideoRecorder.js
-│   ├── ui/
-│   │   └── UIController.js
-│   └── input/
-│       ├── KeyboardHandler.js
-│       └── MouseHandler.js
-├── config/
-│   ├── keyboardShortcuts.json
-│   ├── uiPresets.json
-│   └── appInfo.json
-├── docs/
-│   ├── English/
-│   │   ├── README.md
-│   │   ├── User-Manual.md
-│   │   ├── Documentation.md
-│   │   └── Projection-Matrix-Guide.md
-│   ├── French/
-│   │   ├── README-fr.md
-│   │   ├── User-Manual-fr.md
-│   │   ├── Documentation-fr.md
-│   │   └── Projection-Matrix-Guide-fr.md
-│   └── markdown-viewer.html
-└── backup/
+│   ├── main.js                   # Orchestrateur de l'application
+│   ├── config/                   # Modules de configuration
+│   │   ├── defaults.js           # Export DEFAULT_PARAMS
+│   │   └── constants.js          # Constantes de l'application
+│   ├── core/                     # Classes de rendu principales
+│   │   ├── ZigzagLine.js         # Objet ruban zigzag unique
+│   │   ├── Emitter.js            # Émission et cycle de vie des lignes
+│   │   ├── Camera.js             # Gestion de l'état de la caméra
+│   │   ├── utils.js              # Fonctions utilitaires partagées
+│   │   └── Projection.js         # Mathématiques de projection 3D vers 2D
+│   ├── storage/                  # Persistance
+│   │   └── localStorage.js       # Sauvegarde/chargement des paramètres
+│   ├── rendering/                # Intégration p5.js
+│   │   └── SketchFactory.js      # Création du sketch p5
+│   ├── export/                   # Fonctionnalité d'export
+│   │   ├── SVGExporter.js        # Export graphique vectoriel
+│   │   ├── PNGExporter.js        # Export image raster
+│   │   ├── DepthExporter.js      # Export carte de profondeur
+│   │   └── VideoRecorder.js      # Intégration CCapture.js
+│   ├── ui/                       # Interface utilisateur
+│   │   └── UIController.js       # Liaison des contrôles
+│   └── input/                    # Gestion des entrées
+│       ├── KeyboardHandler.js    # Raccourcis clavier
+│       └── MouseHandler.js       # Contrôles souris de la caméra
+├── config/                       # Configurations JSON
+│   ├── keyboardShortcuts.json    # Raccourcis centralisés
+│   ├── uiPresets.json            # Préréglages framebuffer/couleur
+│   └── appInfo.json              # Métadonnées de l'application
+├── docs/                         # Documentation
+│   ├── English/                  # Documentation anglaise
+│   │   ├── README.md             # Guide utilisateur (EN)
+│   │   ├── User-Manual.md        # Manuel utilisateur (EN)
+│   │   ├── Documentation.md      # Docs techniques (EN)
+│   │   └── Projection-Matrix-Guide.md  # Guide mathématique (EN)
+│   ├── French/                   # Documentation française
+│   │   ├── README-fr.md          # Guide utilisateur (FR)
+│   │   ├── User-Manual-fr.md     # Manuel utilisateur (FR)
+│   │   ├── Documentation-fr.md   # Docs techniques (FR)
+│   │   └── Projection-Matrix-Guide-fr.md  # Guide mathématique (FR)
+│   └── markdown-viewer.html      # Visionneuse de documentation
+└── backup/                       # Fichiers originaux
     └── ZigzagEmitter_12_backup_20260309.html
 ```
 
-## Principes d'architecture
+## Principes d'Architecture
 
-**Séparation des préoccupations**
-- CSS thématique (main, canvas, controls)
-- JavaScript organisé par fonction (core, rendering, export, UI, input)
-- Configuration externe en JSON (raccourcis, préréglages, métadonnées)
+### 1. **Séparation des Préoccupations**
+- **Modules CSS** : Style séparé en fichiers thématiques (main, canvas, controls)
+- **Modules JavaScript** : Code organisé par fonction (core, rendering, export, UI, input)
+- **Configs JSON** : Configuration externe pour raccourcis clavier, préréglages, métadonnées
 
-**Injection de dépendances**
-Les classes acceptent les dépendances comme paramètres plutôt que de recourir à des variables globales :
+### 2. **Injection de Dépendances**
+Les classes principales acceptent les dépendances comme paramètres plutôt que d'utiliser des variables globales :
 ```javascript
 const line = new ZigzagLine(
   canvasWidth,
@@ -1825,35 +2305,70 @@ const line = new ZigzagLine(
 );
 ```
 
-**Modules ES6**
+### 3. **Système de Modules ES6**
+Tout le JavaScript utilise la syntaxe moderne de modules :
 ```javascript
 import { ZigzagLine } from './core/ZigzagLine.js';
 export function exportSVG(ZM) { /* ... */ }
 ```
 
-**Espace de noms global**
+### 4. **Espace de Noms Global**
+Un seul objet `window.ZigMap26` fournit un accès global organisé :
 ```javascript
 window.ZigMap26 = {
-  params,
-  camera,
-  emitterInstance,
-  exportSVG(),
+  params,        // Paramètres de l'application
+  camera,        // État de la caméra
+  emitterInstance, // Référence de l'émetteur principal
+  exportSVG(),   // Fonctions d'export
   // ...
 };
 ```
 
-## Lancement
+## Lancer l'Application
 
-Les modules ES6 nécessitent un serveur HTTP (pas le protocole `file://`).
-
+### Serveur de Développement
 ```bash
 python3 -m http.server 8080
 # Ouvrir http://localhost:8080
 ```
 
-## Fichiers de configuration
+### Exigences du Serveur de Fichiers
+Les modules ES6 nécessitent un serveur web (pas le protocole `file://`). N'importe quel serveur HTTP fonctionne :
+- Python : `python3 -m http.server`
+- Node.js : `npx http-server`
+- VS Code : Extension Live Server
+
+## Fonctionnalités Clés
+
+### Rendu Principal
+- **WebGL 3D** : Moteur de rendu p5.js WEBGL avec contrôles de caméra
+- **Rubans Zigzag** : Géométrie zigzag générée procéduralement
+- **Modulation** : Variations aléatoires d'épaisseur et de vitesse
+- **Mode Stéréoscopique** : Rendu double canevas compatible VR
+
+### Capacités d'Export
+- **PNG** : Export direct du canevas
+- **SVG** : Export vectoriel avec mathématiques de projection exactes
+- **Carte de Profondeur** : Rendu de profondeur basé CPU avec ajustement automatique
+- **Vidéo** : Intégration CCapture.js (WebM/MP4)
+
+### Persistance des Paramètres
+- **localStorage** : Sauvegarde automatique de tous les paramètres
+- **Export/Import JSON** : Partager les configurations sous forme de fichiers
+- **Validation** : Vérification des limites des paramètres critiques
+
+### Gestion des Entrées
+- **Raccourcis Clavier** : Plus de 20 raccourcis configurables
+- **Contrôles Souris** :
+  - Glisser gauche : Pivoter la caméra
+  - Glisser droit : Déplacer la vue
+  - Défilement : Zoom
+- **Mode Framebuffer** : Rendu à résolution fixe
+
+## Fichiers de Configuration
 
 ### `config/keyboardShortcuts.json`
+Définitions centralisées des raccourcis clavier :
 ```json
 [
   {
@@ -1866,6 +2381,7 @@ python3 -m http.server 8080
 ```
 
 ### `config/uiPresets.json`
+Préréglages framebuffer et nuanciers de couleurs :
 ```json
 {
   "framebufferPresets": [
@@ -1879,34 +2395,42 @@ python3 -m http.server 8080
 ```
 
 ### `config/appInfo.json`
+Métadonnées de l'application et liens de documentation :
 ```json
 {
   "name": "ZigMap26",
   "version": "1.0.0",
-  "documentation": { }
+  "documentation": { ... }
 }
 ```
 
-## Détails des modules
+## Détails des Modules
 
-### Classes principales
+### Classes Principales
 
+#### `ZigzagLine`
 ```javascript
 class ZigzagLine {
   constructor(canvasWidth, canvasHeight, getSpawnDistanceFn, buildRibbonSidesFn)
   update(dt)
   draw(p5Instance)
-  _alpha()
-  _buildVertices()
+  _alpha()  // Fondu entrée/sortie
+  _buildVertices()  // Générer les points zigzag
 }
+```
 
+#### `Emitter`
+```javascript
 class Emitter {
   constructor(params, noiseOffsetGetter, canvasWidth, canvasHeight, utilFns)
   update(dt)
   draw(p5Instance)
-  _emit()
+  _emit()  // Créer une nouvelle ligne
 }
+```
 
+#### `Camera`
+```javascript
 class Camera {
   constructor(params)
   syncToParams(params)
@@ -1915,72 +2439,82 @@ class Camera {
 }
 ```
 
-### Système de projection
+### Système de Projection
 
-Mathématiques identiques pour tous les exports (SVG, PNG, profondeur) afin d'assurer l'alignement pixel-parfait.
+Le système de projection utilise des mathématiques identiques pour tous les exports (SVG, PNG, profondeur) afin d'assurer un alignement pixel-parfait :
 
-- **Ordre de rotation** : Z → Y → X (correspond à p5.js WEBGL)
-- **Modèle de caméra** : `distance_totale = default_camera_z + user_distance`
-- **Perspective** : `screen_x = world_x * (camera_z / -view_z) + width/2`
+1. **Ordre de Rotation** : Z → Y → X (correspond à p5.js WEBGL)
+2. **Modèle de Caméra** : `distance_totale = default_camera_z + user_distance`
+3. **Perspective** : `screen_x = world_x * (camera_z / -view_z) + width/2`
 
-Voir `docs/French/Projection-Matrix-Guide-fr.md` pour les détails mathématiques.
+Voir [docs/French/Projection-Matrix-Guide-fr.md](Projection-Matrix-Guide-fr.md) pour les mathématiques détaillées.
 
-## Migration depuis l'original
+## Migration depuis l'Original
 
-`ZigzagEmitter_12.html` (2 334 lignes) a été divisé en :
+Le `ZigzagEmitter_12.html` original (2 334 lignes) a été divisé en :
 - 1 fichier HTML (330 lignes)
-- 3 fichiers CSS (~400 lignes)
-- 15 modules JavaScript (~1 500 lignes)
-- 3 fichiers de configuration JSON (~200 lignes)
+- 3 fichiers CSS (total ~400 lignes)
+- 15 modules JavaScript (total ~1 500 lignes)
+- 3 fichiers de configuration JSON (total ~200 lignes)
 
-**Changements incompatibles** : aucun pour les utilisateurs (clés localStorage préservées). Les développeurs doivent utiliser un serveur HTTP.
+### Changements Incompatibles
+- Aucun pour les utilisateurs (clés localStorage préservées)
+- Les développeurs doivent utiliser un serveur HTTP (pas `file://`)
 
-**Fonctionnalités préservées** : toutes les fonctionnalités originales, chargement automatique depuis localStorage, raccourcis clavier inchangés, formats d'export identiques.
+### Fonctionnalités Préservées
+- Toutes les fonctionnalités originales maintenues
+- Chargement automatique des paramètres depuis localStorage
+- Raccourcis clavier inchangés
+- Formats d'export identiques
 
 ## Développement
 
-**Ajout d'un format d'export**
-1. Créer `js/export/NouvelExporteur.js`, exporter une fonction `exportNouveau(ZM)`
-2. Importer dans `main.js`, ajouter à `window.ZigMap26`
-3. Connecter au bouton UI dans `UIController.js`
+### Ajout de Nouvelles Fonctionnalités
 
-**Ajout d'un paramètre**
-1. Ajouter dans `DEFAULT_PARAMS` (`js/config/defaults.js`)
-2. Ajouter le contrôle UI dans `index.html`
-3. Connecter dans `UIController.js`
+#### Nouveau Format d'Export
+1. Créer `js/export/NouveauExporteur.js`
+2. Exporter une fonction : `export function exportNouveau(ZM) { ... }`
+3. Importer dans `main.js` et ajouter à `window.ZigMap26`
+4. Connecter au bouton UI dans `UIController.js`
+
+#### Nouveau Paramètre
+1. Ajouter à `js/config/defaults.js` dans `DEFAULT_PARAMS`
+2. Ajouter un contrôle UI dans `index.html`
+3. Connecter curseur/case à cocher dans `UIController.js`
 4. Utiliser via `ZM.params.nouveauParametre`
 
-**Ajout d'un raccourci clavier**
+#### Nouveau Raccourci Clavier
 1. Ajouter une entrée à `config/keyboardShortcuts.json`
-2. Ajouter le gestionnaire dans `KeyboardHandler.js::executeAction()`
+2. Ajouter le gestionnaire d'action dans `KeyboardHandler.js::executeAction()`
 
-**Conventions** : modules ES6 (`import`/`export`), dépendances passées comme paramètres, nommage camelCase, commentaires JSDoc pour les fonctions complexes.
+## Compatibilité Navigateurs
 
-## Compatibilité navigateurs
-
-| Navigateur | Support |
-|------------|---------|
-| Chrome / Edge | Complet |
-| Firefox | Complet |
-| Safari | Complet (modules ES6) |
-| Mobile | Limité (absence de clic droit) |
+- **Chrome/Edge** : ✅ Support complet
+- **Firefox** : ✅ Support complet
+- **Safari** : ✅ Support complet (modules ES6)
+- **Mobile** : ⚠️ Limité (pas de clic droit pour déplacer)
 
 ## Dépendances
 
-- **p5.js 1.9.0** : moteur de rendu 3D
-- **CCapture.js 1.1.0** : enregistrement vidéo
+- **p5.js 1.9.0** : Moteur de rendu 3D
+- **CCapture.js 1.1.0** : Enregistrement vidéo
 - Les deux chargés via CDN dans `index.html`
 
-## Références
+## Licence
 
-- Documentation p5.js : https://p5js.org/reference/
-- CCapture.js : https://github.com/spite/ccapture.js/
-- WebGL fundamentals : https://webglfundamentals.org/
-- Bruit de Perlin : https://fr.wikipedia.org/wiki/Bruit_de_Perlin
+Identique au projet original.
 
----
+## Contributions
 
-**Version** : 26
-**Auteur** : ddelcourt2026
-**Date de refactorisation** : 9 mars 2026
-**Licence** : MIT
+Lors de l'ajout de nouveaux modules :
+1. Utiliser la syntaxe `import`/`export` ES6
+2. Passer les dépendances comme paramètres (pas de globales sauf `window.ZigMap26`)
+3. Suivre la convention camelCase pour le nommage
+4. Documenter les fonctions complexes avec des commentaires JSDoc
+5. Tester avec un serveur HTTP avant de committer
+
+## Crédits
+
+**Version Monolithique Originale** : ZigzagEmitter v1-12  
+**Architecture Modulaire** : ZigMap26 v1.0  
+**Date de Refactorisation** : 9 mars 2026
