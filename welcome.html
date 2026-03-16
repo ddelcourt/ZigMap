@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZigMap26 — Welcome</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #1b1b1b;
+      color: #e8e8e8;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: normal;
+      letter-spacing: 2px;
+      text-align: center;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #999;
+      font-size: 16px;
+      margin-bottom: 60px;
+      letter-spacing: 1px;
+    }
+
+    .section {
+      background: rgba(30, 30, 30, 0.6);
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 24px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 2px solid #0087ff;
+      padding-bottom: 8px;
+    }
+
+    .app-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 0;
+    }
+
+    .app-card {
+      background: #2a2a2a;
+      border: 2px solid #444;
+      border-radius: 6px;
+      padding: 24px;
+      text-align: center;
+      text-decoration: none;
+      color: #e8e8e8;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 120px;
+    }
+
+    .app-card:hover {
+      border-color: #0087ff;
+      background: #333;
+      transform: translateY(-2px);
+    }
+
+    .app-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .app-description {
+      font-size: 13px;
+      color: #999;
+    }
+
+    .preset-list {
+      list-style: none;
+    }
+
+    .preset-item {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      padding: 16px 20px;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .preset-item:hover {
+      border-color: #0087ff;
+      background: #333;
+    }
+
+    .preset-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .preset-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #e8e8e8;
+    }
+
+    .preset-badge {
+      background: #0087ff;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .preset-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .preset-button {
+      background: #444;
+      border: 1px solid #555;
+      color: #e8e8e8;
+      padding: 8px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .preset-button:hover {
+      background: #0087ff;
+      border-color: #0087ff;
+      color: #fff;
+    }
+
+    .preset-button.editor {
+      background: #555;
+    }
+
+    .preset-button.player {
+      background: #3a3a3a;
+    }
+
+    .footer {
+      text-align: center;
+      color: #666;
+      font-size: 13px;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #333;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 36px;
+      }
+      
+      .section {
+        padding: 24px 20px;
+      }
+      
+      .app-list {
+        grid-template-columns: 1fr;
+      }
+
+      .preset-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .preset-actions {
+        width: 100%;
+      }
+
+      .preset-button {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ZIGMAP26</h1>
+    <p class="subtitle">Zigzag Space Emitter</p>
+
+    <div class="section">
+      <div class="section-title">Applications</div>
+      <div class="app-list">
+        <a href="index.html" class="app-card">
+          <div class="app-name">Editor</div>
+          <div class="app-description">Full editing environment</div>
+        </a>
+        <a href="player.html" class="app-card">
+          <div class="app-name">Player</div>
+          <div class="app-description">Playback mode</div>
+        </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Project Presets</div>
+      <ul class="preset-list">
+        <li class="preset-item">
+          <div class="preset-info">
+            <span class="preset-name">zigmap_init.json</span>
+            <span class="preset-badge">INIT</span>
+          </div>
+          <div class="preset-actions">
+            <a href="index.html?preset=zigmap_init" class="preset-button editor">Editor</a>
+            <a href="player.html?preset=zigmap_init" class="preset-button player">Player</a>
+          </div>
+        </li>
+        <li class="preset-item">
+          <div class="preset-info">
+            <span class="preset-name">zigmap_horizon.json</span>
+            <span class="preset-badge">PRESET</span>
+          </div>
+          <div class="preset-actions">
+            <a href="index.html?preset=zigmap_horizon" class="preset-button editor">Editor</a>
+            <a href="player.html?preset=zigmap_horizon" class="preset-button player">Player</a>
+          </div>
+        </li>
+        <li class="preset-item">
+          <div class="preset-info">
+            <span class="preset-name">zigmap_horizon2.json</span>
+            <span class="preset-badge">PRESET</span>
+          </div>
+          <div class="preset-actions">
+            <a href="index.html?preset=zigmap_horizon2" class="preset-button editor">Editor</a>
+            <a href="player.html?preset=zigmap_horizon2" class="preset-button player">Player</a>
+          </div>
+        </li>
+        <li class="preset-item">
+          <div class="preset-info">
+            <span class="preset-name">zigmap_horizon3.json</span>
+            <span class="preset-badge">PRESET</span>
+          </div>
+          <div class="preset-actions">
+            <a href="index.html?preset=zigmap_horizon3" class="preset-button editor">Editor</a>
+            <a href="player.html?preset=zigmap_horizon3" class="preset-button player">Player</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <!-- © 2026 ZigMap26 — Mapping Project -->
+    </div>
+  </div>
+</body>
+</html>

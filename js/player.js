@@ -63,6 +63,39 @@ window.ZigMap26 = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// PRESET LOADING FROM URL
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Load preset from URL parameter
+ * @param {string} presetName - Name of preset file (without .json extension)
+ */
+async function loadPresetFromURL(presetName) {
+  try {
+    // Show loading indicator
+    if (loadingIndicator) loadingIndicator.style.display = 'flex';
+    if (dropzoneOverlay) dropzoneOverlay.classList.add('hidden');
+    
+    const response = await fetch(`config/presets/${presetName}.json`);
+    if (!response.ok) {
+      throw new Error(`Preset "${presetName}" not found`);
+    }
+    
+    const jsonData = await response.json();
+    
+    console.log(`✓ Loaded preset: ${presetName}.json`);
+    
+    // Load the preset
+    loadPreset(jsonData);
+    
+  } catch (err) {
+    console.error('❌ Failed to load preset from URL:', err);
+    if (loadingIndicator) loadingIndicator.style.display = 'none';
+    showError('Failed to load preset: ' + err.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // DROPZONE & FILE LOADING
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -569,8 +602,17 @@ function initPlayer() {
   // Initialize dropzone
   initializeDropzone();
   
-  console.log('✅ ZigMap26 Player ready');
-  console.log('📁 Drop a .json preset file to start');
+  // Check for URL parameter preset
+  const urlParams = new URLSearchParams(window.location.search);
+  const presetParam = urlParams.get('preset');
+  
+  if (presetParam) {
+    console.log(`📦 Loading preset from URL: ${presetParam}`);
+    loadPresetFromURL(presetParam);
+  } else {
+    console.log('✅ ZigMap26 Player ready');
+    console.log('📁 Drop a .json preset file to start');
+  }
 }
 
 // Wait for DOM to be ready (modules are deferred, but be explicit)

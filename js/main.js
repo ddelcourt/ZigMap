@@ -147,20 +147,18 @@ window.ZigMap26 = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Load initial preset for first-time users
+ * Load preset from file
+ * @param {string} presetName - Name of preset file (without .json extension)
  */
-async function loadInitialPreset(ZM) {
+async function loadPresetFile(ZM, presetName = 'zigmap_init') {
   try {
-    const response = await fetch('config/presets/zigmap_init.json');
+    const response = await fetch(`config/presets/${presetName}.json`);
     if (!response.ok) {
-      console.warn('Initial preset not found, using defaults');
+      console.warn(`Preset "${presetName}" not found, using defaults`);
       return false;
     }
     
     const loadedData = await response.json();
-    
-    // Update params
-    Object.assign(ZM.params, loadedData.params);
     
     // Restore states if present
     if (loadedData.states && Array.isArray(loadedData.states)) {
@@ -168,28 +166,42 @@ async function loadInitialPreset(ZM) {
       ZM.stateManager.activeStateId = loadedData.activeStateId;
       ZM.stateManager.saveToStorage();
       
-      // Load the first state
+      // Load the first state's params (not top-level params)
       if (loadedData.states.length > 0) {
         const firstState = loadedData.states[0];
+        // Apply first state's params immediately
+        Object.assign(ZM.params, firstState.params);
         // Store for later use after UI initialization
         ZM._initialStateId = firstState.id;
       }
       
       // Update state panel UI will be called after UI initialization
     } else {
-      // Sync camera from loaded params
+      // No states - use top-level params
+      Object.assign(ZM.params, loadedData.params);
+    }
+    
+    // Sync camera from loaded params
+    if (ZM.camera) {
       ZM.camera.syncFromParams(ZM.params);
     }
     
     // Save to localStorage so this only happens once
     ZM.saveToLocalStorage();
     
-    console.log('✓ Loaded initial preset from config/presets/zigmap_init.json');
+    console.log(`✓ Loaded preset from config/presets/${presetName}.json`);
     return true;
   } catch (err) {
-    console.warn('Could not load initial preset:', err);
+    console.warn(`Could not load preset "${presetName}":`, err);
     return false;
   }
+}
+
+/**
+ * Load initial preset for first-time users (alias for backwards compatibility)
+ */
+async function loadInitialPreset(ZM) {
+  return loadPresetFile(ZM, 'zigmap_init');
 }
 
 async function init() {
@@ -198,15 +210,26 @@ async function init() {
   // Initialize camera
   ZM.camera = new Camera(ZM.params);
   
-  // Load saved settings or initial preset
-  const hadSavedSettings = ZM.loadFromLocalStorage();
-  
-  // Initialize preset manager
+  // Initialize preset manager FIRST (needed before loading presets)
   initializeStateManager(ZM);
   
-  // Load initial preset for first-time users
-  if (!hadSavedSettings) {
-    await loadInitialPreset(ZM);
+  // Check for URL parameter preset
+  const urlParams = new URLSearchParams(window.location.search);
+  const presetParam = urlParams.get('preset');
+  let hadSavedSettings = false;
+  
+  if (presetParam) {
+    // Load preset from URL parameter (overrides localStorage)
+    console.log(`Loading preset from URL: ${presetParam}`);
+    await loadPresetFile(ZM, presetParam);
+  } else {
+    // Load saved settings or initial preset
+    hadSavedSettings = ZM.loadFromLocalStorage();
+    
+    // Load initial preset for first-time users
+    if (!hadSavedSettings) {
+      await loadInitialPreset(ZM);
+    }
   }
   
   // Attach rendering functions
@@ -232,6 +255,9 @@ async function init() {
     // Then load the first state INSTANTLY (no transition on first load)
     ZM.stateManager.load(ZM._initialStateId, true); // instant = true
     delete ZM._initialStateId;
+  } else if (!hadSavedSettings && ZM.syncUIFromParams) {
+    // Sync UI if we loaded a preset without states
+    ZM.syncUIFromParams();
   } else if (hadSavedSettings && ZM.syncUIFromParams) {
     // Sync UI if we loaded saved settings
     ZM.syncUIFromParams();
