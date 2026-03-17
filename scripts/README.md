@@ -32,3 +32,12 @@ The welcome page includes a "Refresh" button that reloads the preset list from `
 - After adding a new preset
 - After deleting a preset
 - After renaming a preset file
+
+**VS Code Integration:**
+
+Run the script directly from VS Code:
+1. Open Command Palette: ⇧⌘P (Mac) / Ctrl+Shift+P (Windows/Linux)
+2. Type: `Tasks: Run Task`
+3. Select: `Update Welcome Page Presets`
+
+See `.vscode/README.md` for more details.
