@@ -106,6 +106,12 @@ function captureCurrentState(ZM, name) {
   delete params.stereoscopicMode;
   delete params.eyeSeparation;
   
+  // Exclude export settings (project-wide)
+  delete params.videoDuration;
+  delete params.videoFPS;
+  delete params.videoFormat;
+  delete params.depthInvert;
+  
   // Exclude camera parameters (stored separately in camera object)
   delete params.cameraRotationX;
   delete params.cameraRotationY;
@@ -190,7 +196,12 @@ function restoreState(ZM, state, instant = false) {
     framebufferWidth: ZM.params.framebufferWidth,
     framebufferHeight: ZM.params.framebufferHeight,
     stereoscopicMode: ZM.params.stereoscopicMode,
-    eyeSeparation: ZM.params.eyeSeparation
+    eyeSeparation: ZM.params.eyeSeparation,
+    // Export settings
+    videoDuration: ZM.params.videoDuration,
+    videoFPS: ZM.params.videoFPS,
+    videoFormat: ZM.params.videoFormat,
+    depthInvert: ZM.params.depthInvert
   };
   
   // Update params with deep cloned values
@@ -745,6 +756,11 @@ function importStateFromData(ZM, jsonData) {
           delete state.params.framebufferHeight;
           delete state.params.stereoscopicMode;
           delete state.params.eyeSeparation;
+          // Remove export settings (project-wide)
+          delete state.params.videoDuration;
+          delete state.params.videoFPS;
+          delete state.params.videoFormat;
+          delete state.params.depthInvert;
         }
         ZM.stateManager.states.push(state);
       });
@@ -764,6 +780,11 @@ function importStateFromData(ZM, jsonData) {
       delete jsonData.params.framebufferHeight;
       delete jsonData.params.stereoscopicMode;
       delete jsonData.params.eyeSeparation;
+      // Remove export settings (project-wide)
+      delete jsonData.params.videoDuration;
+      delete jsonData.params.videoFPS;
+      delete jsonData.params.videoFormat;
+      delete jsonData.params.depthInvert;
       ZM.stateManager.states.push(jsonData);
     } else {
       console.error('Invalid state format');

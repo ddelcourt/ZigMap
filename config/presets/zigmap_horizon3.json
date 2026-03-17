@@ -361,21 +361,21 @@
         "speedRangeMin": 50,
         "speedRangeMax": 150,
         "fov": 60,
-        "cameraRotationX": -9.448185307179607,
-        "cameraRotationY": 6.313185307179594,
+        "cameraRotationX": 0,
+        "cameraRotationY": 0,
         "cameraDistance": 1720,
-        "cameraOffsetX": 3,
-        "cameraOffsetY": -44,
+        "cameraOffsetX": 0,
+        "cameraOffsetY": 0,
         "videoDuration": 10,
         "videoFPS": 30,
         "videoFormat": "webm",
         "depthInvert": false
       },
       "camera": {
-        "rotationX": -9.448185307179607,
-        "rotationY": 6.313185307179594,
+        "rotationX": 0,
+        "rotationY": 0,
         "distance": 1720,
-        "offsetX": 3,
+        "offsetX": 0,
         "offsetY": -44
       },
       "metadata": {

@@ -92,8 +92,17 @@ export function loadFromLocalStorage(defaultParams) {
 /**
  * Download project (parameters + presets) as JSON file
  * @param {Object} ZM - Main application object (or just params for backward compat)
+ * @param {string} format - Export format: 'project' (v2.0) or 'states' (individual files)
  */
-export function downloadJSON(ZM) {
+export function downloadJSON(ZM, format = 'project') {
+  console.log('[Export] Format selected:', format);
+  
+  // Handle "states" format - export each state as individual file
+  if (format === 'states') {
+    exportAllStatesAsFiles(ZM);
+    return;
+  }
+  
   // Clone params and remove base64 overlay data to keep file small
   const paramsClone = JSON.parse(JSON.stringify(ZM.params));
   if (!paramsClone.overlayPresetFile) {
@@ -104,7 +113,7 @@ export function downloadJSON(ZM) {
     delete paramsClone.overlayImageSrc;
   }
   
-  // Support backward compatibility if just params are passed
+  // Project format: v2.0 structure with states and metadata
   const data = ZM.params ? {
     version: '2.0',
     params: paramsClone,
@@ -124,6 +133,71 @@ export function downloadJSON(ZM) {
   a.download = `zigmap26-project-${timestamp}.json`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Export all states as individual JSON files in a ZIP archive
+ * @param {Object} ZM - Main application object
+ */
+async function exportAllStatesAsFiles(ZM) {
+  console.log('[Export] exportAllStatesAsFiles called');
+  console.log('[Export] StateManager:', ZM.stateManager);
+  console.log('[Export] States count:', ZM.stateManager?.states?.length);
+  
+  if (!ZM.stateManager || !ZM.stateManager.states || ZM.stateManager.states.length === 0) {
+    console.warn('No states to export');
+    if (ZM.showToast) {
+      ZM.showToast('No states to export');
+    }
+    return;
+  }
+  
+  // Check if JSZip is available
+  console.log('[Export] JSZip available?', typeof JSZip !== 'undefined');
+  if (typeof JSZip === 'undefined') {
+    console.error('JSZip library not loaded');
+    if (ZM.showToast) {
+      ZM.showToast('Error: ZIP library not available');
+    }
+    return;
+  }
+  
+  const states = ZM.stateManager.states;
+  console.log('[Export] Creating ZIP with', states.length, 'states');
+  const zip = new JSZip();
+  
+  // Add each state to the ZIP
+  states.forEach(state => {
+    const safeName = state.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const filename = `zigmap26-state-${safeName}.json`;
+    const content = JSON.stringify(state, null, 2);
+    zip.file(filename, content);
+  });
+  
+  // Generate ZIP file
+  console.log('[Export] Generating ZIP blob...');
+  try {
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    console.log('[Export] ZIP blob generated:', zipBlob.size, 'bytes');
+    const url = URL.createObjectURL(zipBlob);
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `zigmap26-states-${timestamp}.zip`;
+    console.log('[Export] Triggering download:', a.download);
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    if (ZM.showToast) {
+      ZM.showToast(`Exported ${states.length} states in ZIP archive`);
+    }
+    console.log('[Export] ZIP export completed successfully');
+  } catch (err) {
+    console.error('Failed to create ZIP:', err);
+    if (ZM.showToast) {
+      ZM.showToast('Error creating ZIP archive');
+    }
+  }
 }
 
 /**

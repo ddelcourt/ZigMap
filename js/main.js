@@ -74,7 +74,7 @@ window.ZigMap26 = {
     }
     return false;
   },
-  downloadJSON: () => downloadJSON(window.ZigMap26),
+  downloadJSON: (format) => downloadJSON(window.ZigMap26, format),
   loadJSON: (file) => loadJSON(file, (loadedData) => {
     // Clear localStorage to avoid loading ancient states
     clearLocalStorage();

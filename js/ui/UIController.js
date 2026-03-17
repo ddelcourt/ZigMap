@@ -539,7 +539,13 @@ function setupFileSaveLoad(ZM) {
   const loadInput = document.getElementById('load-json-input');
   
   if (saveBtn) {
-    saveBtn.addEventListener('click', () => ZM.downloadJSON());
+    saveBtn.addEventListener('click', () => {
+      // Get selected export format from dropdown
+      const formatSelect = document.getElementById('export-format');
+      const format = formatSelect ? formatSelect.value : 'project';
+      console.log('[UI] Export button clicked, format:', format);
+      ZM.downloadJSON(format);
+    });
   }
   
   if (loadBtn && loadInput) {
