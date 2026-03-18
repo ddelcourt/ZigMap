@@ -107,8 +107,10 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
           emitter.p = p;
           
           // Update p5 reference for all existing lines (for consistency)
+          // Also update buildRibbonSides reference for export compatibility
           for (const line of emitter.lines) {
             line.p = p;
+            line.buildRibbonSides = buildRibbonSides;
           }
         } else {
           console.log('     Skipping p5 update for secondary canvas (uses primary refs)');
@@ -307,7 +309,8 @@ export function initializeSketches(ZM) {
   }
   
   // DO NOT clear emitter instance - we want to preserve existing lines
-  // ZM.emitterInstance = null; // ❌ Never clear - preserves animation across mode changes
+  // Exception: Don't clear during stereo mode toggle, but states/presets should clear emitter separately
+  // ZM.emitterInstance = null; // ❌ Never clear here - preserves animation across mode changes
   
   const wrapper = document.getElementById('canvas-wrapper');
   if (!wrapper) {
@@ -327,7 +330,9 @@ export function initializeSketches(ZM) {
     }
     
     // Scale existing emitter and lines proportionally to new dimensions
-    if (ZM.emitterInstance && prevW && prevH) {
+    // Only scale if dimensions actually changed (mode toggle, not reload)
+    const dimensionsChanged = (ZM.W !== prevW || ZM.H !== prevH);
+    if (ZM.emitterInstance && prevW && prevH && dimensionsChanged) {
       const scaleX = ZM.W / prevW;
       const scaleY = ZM.H / prevH;
       console.log('  - Scaling emitter geometry:', scaleX.toFixed(3), 'x', scaleY.toFixed(3));
@@ -342,6 +347,14 @@ export function initializeSketches(ZM) {
       for (const line of ZM.emitterInstance.lines) {
         line.x *= scaleX;
         line.y *= scaleY;
+        line.canvasWidth = ZM.W;
+        line.canvasHeight = ZM.H;
+      }
+    } else if (ZM.emitterInstance) {
+      // Dimensions didn't change, just update canvas dimensions
+      ZM.emitterInstance.canvasWidth = ZM.W;
+      ZM.emitterInstance.canvasHeight = ZM.H;
+      for (const line of ZM.emitterInstance.lines) {
         line.canvasWidth = ZM.W;
         line.canvasHeight = ZM.H;
       }
@@ -393,7 +406,9 @@ export function initializeSketches(ZM) {
     }
     
     // Scale existing emitter and lines proportionally to new dimensions
-    if (ZM.emitterInstance && prevW && prevH) {
+    // Only scale if dimensions actually changed (mode toggle, not reload)
+    const dimensionsChanged = (ZM.W !== prevW || ZM.H !== prevH);
+    if (ZM.emitterInstance && prevW && prevH && dimensionsChanged) {
       const scaleX = ZM.W / prevW;
       const scaleY = ZM.H / prevH;
       console.log('  - Scaling emitter geometry:', scaleX.toFixed(3), 'x', scaleY.toFixed(3));
@@ -408,6 +423,14 @@ export function initializeSketches(ZM) {
       for (const line of ZM.emitterInstance.lines) {
         line.x *= scaleX;
         line.y *= scaleY;
+        line.canvasWidth = ZM.W;
+        line.canvasHeight = ZM.H;
+      }
+    } else if (ZM.emitterInstance) {
+      // Dimensions didn't change, just update canvas dimensions
+      ZM.emitterInstance.canvasWidth = ZM.W;
+      ZM.emitterInstance.canvasHeight = ZM.H;
+      for (const line of ZM.emitterInstance.lines) {
         line.canvasWidth = ZM.W;
         line.canvasHeight = ZM.H;
       }

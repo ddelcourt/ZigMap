@@ -9,6 +9,11 @@
       "filename": "zigmap_horizon3.json",
       "name": "zigmap_horizon3",
       "type": "Preset"
+    },
+    {
+      "filename": "zigmap_horizon4.json",
+      "name": "zigmap_horizon4",
+      "type": "Preset"
     }
   ]
 }

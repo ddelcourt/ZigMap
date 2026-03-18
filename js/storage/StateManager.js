@@ -173,6 +173,18 @@ function restoreState(ZM, state, instant = false) {
   
   console.log('Restored params active palette:', restoredParams.activePaletteIndex);
   
+  // Check if geometry parameters have changed - if so, clear emitter to start fresh
+  const geometryChanged = 
+    oldParams.segmentLength !== restoredParams.segmentLength ||
+    oldParams.lineThickness !== restoredParams.lineThickness ||
+    oldParams.emitRate !== restoredParams.emitRate ||
+    oldParams.speed !== restoredParams.speed;
+  
+  if (geometryChanged && ZM.emitterInstance) {
+    console.log('⚠️ Geometry parameters changed - clearing emitter for fresh start');
+    ZM.emitterInstance = null;
+  }
+  
   // Preserve project-wide settings
   const preservedSettings = {
     stateTransitionDuration: ZM.params.stateTransitionDuration,

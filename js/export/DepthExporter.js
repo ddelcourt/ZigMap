@@ -136,7 +136,10 @@ function scanDepthRange(lines, ZM, defaultCameraZ, totalDistance) {
  * Uses linear gradient along ribbon length for smooth depth transitions
  */
 function rasterizeDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {
-  if (pts.length < 3) return;
+  if (pts.length !== 4 || pts.some(p => !p)) {
+    console.warn('rasterizeDepthPolygon: invalid quad', pts);
+    return;
+  }
 
   // Map a depth value → grey level (0–255)
   function depthToGrey(depth) {
@@ -189,7 +192,14 @@ function rasterizeDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {
  */
 export function exportDepthMap(ZM) {
   if (!ZM.emitterInstance || ZM.emitterInstance.lines.length === 0) {
+    console.log('Depth Export: No lines available');
     if (ZM.showToast) ZM.showToast('No lines to render — let the emitter run for a moment first.');
+    return;
+  }
+  
+  if (!ZM.buildRibbonSides) {
+    console.error('Depth Export: buildRibbonSides function not found on ZM namespace');
+    if (ZM.showToast) ZM.showToast('Export failed: missing buildRibbonSides function');
     return;
   }
   
@@ -252,29 +262,34 @@ function renderDepthMap(ZM) {
       line.lineThickness / 2
     );
     
-    // Project vertices
+    // Project vertices (keep nulls to preserve index correspondence)
     const leftProj = leftSide
-      .map(pt => projectVertex(line, pt.x, pt.y, pt.z, ZM, defaultCameraZ, totalDistance))
-      .filter(Boolean);
+      .map(pt => projectVertex(line, pt.x, pt.y, pt.z, ZM, defaultCameraZ, totalDistance));
     const rightProj = rightSide
-      .map(pt => projectVertex(line, pt.x, pt.y, pt.z, ZM, defaultCameraZ, totalDistance))
-      .filter(Boolean);
+      .map(pt => projectVertex(line, pt.x, pt.y, pt.z, ZM, defaultCameraZ, totalDistance));
     
     if (leftProj.length < 2 || rightProj.length < 2) continue;
     
     // Diagnostic: log first ribbon's depth range
     if (renderedCount === 0) {
-      console.log('  First ribbon sample depths:', leftProj.slice(0, 5).map(p => p.depth.toFixed(2)));
+      const validDepths = leftProj.filter(Boolean).slice(0, 5).map(p => p.depth.toFixed(2));
+      if (validDepths.length > 0) {
+        console.log('  First ribbon sample depths:', validDepths);
+      }
     }
     
     // Render segment-by-segment (quad by quad) instead of whole ribbon
+    // Skip quads with any null vertices (outside frustum)
     for (let i = 0; i < leftProj.length - 1; i++) {
-      const quad = [
-        leftProj[i],
-        leftProj[i + 1],
-        rightProj[i + 1],
-        rightProj[i]
-      ];
+      const p0 = leftProj[i];
+      const p1 = leftProj[i + 1];
+      const p2 = rightProj[i + 1];
+      const p3 = rightProj[i];
+      
+      // Skip quad if any vertex is null (outside frustum)
+      if (!p0 || !p1 || !p2 || !p3) continue;
+      
+      const quad = [p0, p1, p2, p3];
       rasterizeDepthPolygon(ctx, quad, minDepth, maxDepth, invert, alpha);
       segmentCount++;
     }

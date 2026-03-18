@@ -3,7 +3,19 @@
  */
 
 export function exportSVG(ZM) {
-  if (!ZM.p5Instance || !ZM.emitterInstance) return;
+  if (!ZM.p5Instance || !ZM.emitterInstance) {
+    console.error('SVG Export: Missing p5Instance or emitterInstance');
+    if (ZM.showToast) ZM.showToast('Cannot export: renderer not ready');
+    return;
+  }
+  
+  if (!ZM.buildRibbonSides) {
+    console.error('SVG Export: buildRibbonSides function not found on ZM namespace');
+    if (ZM.showToast) ZM.showToast('Export failed: missing buildRibbonSides function');
+    return;
+  }
+  
+  console.log('SVG Export: Starting export with', ZM.emitterInstance.lines.length, 'lines');
   
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -62,10 +74,12 @@ export function exportSVG(ZM) {
   const scaleVal = ZM.params.geometryScale / 100;
   
   // Process each line
+  let exportedCount = 0;
   ZM.emitterInstance.lines.forEach(line => {
-    const localVerts = line._buildVertices();
-    const { leftSide: leftLocal, rightSide: rightLocal } = 
-      ZM.buildRibbonSides(localVerts, line.lineThickness / 2);
+    try {
+      const localVerts = line._buildVertices();
+      const { leftSide: leftLocal, rightSide: rightLocal } = 
+        ZM.buildRibbonSides(localVerts, line.lineThickness / 2);
     
     // Project to screen space
     function toScreen(localPts) {
@@ -94,7 +108,13 @@ export function exportSVG(ZM) {
     polygon.setAttribute('fill', `rgba(${line.currentColor.join(',')},${alpha})`);
     polygon.setAttribute('stroke', 'none');
     svg.appendChild(polygon);
+    exportedCount++;
+    } catch (err) {
+      console.error('SVG Export: Failed to export line:', err);
+    }
   });
+  
+  console.log('SVG Export: Successfully exported', exportedCount, 'ribbons');
   
   // Download
   const blob = new Blob(
