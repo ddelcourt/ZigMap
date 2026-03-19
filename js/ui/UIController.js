@@ -85,7 +85,6 @@ function initializeAllControls(ZM) {
   wireCheckbox(ZM, 'depth-invert', 'depthInvert');
   wireCheckbox(ZM, 'auto-trigger-states', 'autoTriggerStates');
   wireCheckbox(ZM, 'overlay-visible', 'overlayVisible');
-  wireCheckbox(ZM, 'overlay-auto-fit', 'overlayAutoFit');
   
   // Stereoscopic controls
   setupStereoscopicControls(ZM);
@@ -635,7 +634,7 @@ function setupOverlayControls(ZM) {
   const loadInput = document.getElementById('load-overlay-input');
   const clearBtn = document.getElementById('clear-overlay-btn');
   const visibleCheckbox = document.getElementById('overlay-visible');
-  const autoFitCheckbox = document.getElementById('overlay-auto-fit');
+  const autoFitBtn = document.getElementById('overlay-auto-fit');
   const scaleSlider = document.getElementById('overlay-scale');
   const opacitySlider = document.getElementById('overlay-opacity');
   const xSlider = document.getElementById('overlay-x');
@@ -649,29 +648,12 @@ function setupOverlayControls(ZM) {
       overlayImg.style.display = 'block';
       overlayImg.src = ZM.params.overlayImageSrc;
       
-      // Calculate auto-fit scale if enabled
-      if (ZM.params.overlayAutoFit && overlayImg.naturalWidth && overlayImg.naturalHeight) {
-        const canvasContainer = document.getElementById('canvas-container');
-        if (canvasContainer) {
-          const containerWidth = canvasContainer.clientWidth;
-          const containerHeight = canvasContainer.clientHeight;
-          
-          // Use max-width/max-height CSS instead of transform scale for auto-fit
-          // This properly handles device pixel ratio
-          overlayImg.style.maxWidth = `${containerWidth}px`;
-          overlayImg.style.maxHeight = `${containerHeight}px`;
-          overlayImg.style.width = 'auto';
-          overlayImg.style.height = 'auto';
-          overlayImg.style.transform = 'translate(-50%, -50%)';
-        }
-      } else {
-        // Manual scale mode - use transform
-        overlayImg.style.maxWidth = 'none';
-        overlayImg.style.maxHeight = 'none';
-        overlayImg.style.width = '';
-        overlayImg.style.height = '';
-        overlayImg.style.transform = `translate(-50%, -50%) scale(${ZM.params.overlayScale / 100})`;
-      }
+      // Always use transform-based scaling (GPU-accelerated)
+      overlayImg.style.maxWidth = 'none';
+      overlayImg.style.maxHeight = 'none';
+      overlayImg.style.width = '';
+      overlayImg.style.height = '';
+      overlayImg.style.transform = `translate(-50%, -50%) scale(${ZM.params.overlayScale / 100})`;
       
       overlayImg.style.opacity = ZM.params.overlayOpacity / 100;
       overlayImg.style.left = `${ZM.params.overlayX}%`;
@@ -681,20 +663,42 @@ function setupOverlayControls(ZM) {
     }
   }
   
-  // Update scale slider state based on auto-fit
-  function updateScaleSliderState() {
-    if (scaleSlider) {
-      scaleSlider.disabled = ZM.params.overlayAutoFit;
-      scaleSlider.style.opacity = ZM.params.overlayAutoFit ? '0.5' : '1';
+  // Calculate auto-fit scale (one-time calculation)
+  function calculateAutoFitScale() {
+    if (!overlayImg || !overlayImg.naturalWidth || !overlayImg.naturalHeight) {
+      showToast('No overlay image loaded', 'error');
+      return;
     }
+    
+    const canvasContainer = document.getElementById('canvas-container');
+    if (!canvasContainer) return;
+    
+    const containerWidth = canvasContainer.clientWidth;
+    const containerHeight = canvasContainer.clientHeight;
+    
+    // Calculate scale factor to fit overlay within container
+    const scaleX = containerWidth / overlayImg.naturalWidth;
+    const scaleY = containerHeight / overlayImg.naturalHeight;
+    const scale = Math.min(scaleX, scaleY, 1); // Don't upscale beyond 100%
+    
+    // Update the overlayScale parameter (convert to percentage)
+    ZM.params.overlayScale = Math.round(scale * 100);
+    
+    // Update slider to reflect auto-calculated value
+    if (scaleSlider) {
+      scaleSlider.value = ZM.params.overlayScale;
+    }
+    
+    // Apply the new scale
+    updateOverlay();
+    ZM.saveToLocalStorage();
+    
+    showToast(`Auto-fit: ${ZM.params.overlayScale}%`, 'success');
   }
   
-  // Auto-fit checkbox
-  if (autoFitCheckbox) {
-    autoFitCheckbox.addEventListener('change', () => {
-      updateScaleSliderState();
-      updateOverlay();
-    });
+  // Auto-fit button
+  if (autoFitBtn) {
+    autoFitBtn.addEventListener('click', calculateAutoFitScale);
   }
   
   // Preset selector
@@ -780,24 +784,7 @@ function setupOverlayControls(ZM) {
     ySlider.addEventListener('input', updateOverlay);
   }
   
-  // Update when overlay image loads (for auto-fit calculations)
-  if (overlayImg) {
-    overlayImg.addEventListener('load', () => {
-      if (ZM.params.overlayAutoFit) {
-        updateOverlay();
-      }
-    });
-  }
-  
-  // Update on window resize (for auto-fit)
-  window.addEventListener('resize', () => {
-    if (ZM.params.overlayAutoFit && ZM.params.overlayVisible) {
-      updateOverlay();
-    }
-  });
-  
   // Initial state
-  updateScaleSliderState();
   updateOverlay();
   
   // Store update function for external calls
@@ -974,8 +961,7 @@ function syncUIFromParams(ZM) {
     'stereoscopic-mode': 'stereoscopicMode',
     'framebuffer-mode': 'framebufferMode',
     'auto-trigger-states': 'autoTriggerStates',
-    'overlay-visible': 'overlayVisible',
-    'overlay-auto-fit': 'overlayAutoFit'
+    'overlay-visible': 'overlayVisible'
   };
   
   Object.entries(checkboxMap).forEach(([checkboxId, paramKey]) => {
