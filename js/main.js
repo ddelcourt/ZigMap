@@ -269,16 +269,8 @@ async function init() {
   
   // Handle window resize
   window.addEventListener('resize', () => {
-    if (!ZM.params.framebufferMode) {
-      if (ZM.params.stereoscopicMode) {
-        ZM.W = Math.floor(window.innerWidth / 2);
-        ZM.H = window.innerHeight;
-      } else {
-        ZM.W = window.innerWidth;
-        ZM.H = window.innerHeight;
-      }
-      if (ZM.updateCanvasSize) ZM.updateCanvasSize();
-    }
+    // Always update canvas size - updateCanvasSize() handles both framebuffer and non-framebuffer modes
+    if (ZM.updateCanvasSize) ZM.updateCanvasSize();
   });
   
   console.log('ZigMap26 initialized ✓');

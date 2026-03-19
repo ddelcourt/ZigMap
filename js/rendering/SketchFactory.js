@@ -308,6 +308,9 @@ export function initializeSketches(ZM) {
     ZM.p5InstanceRight = null;
   }
   
+  // Reset shared time since new p5 instances will start with millis() = 0
+  sharedLastTime = 0;
+  
   // DO NOT clear emitter instance - we want to preserve existing lines
   // Exception: Don't clear during stereo mode toggle, but states/presets should clear emitter separately
   // ZM.emitterInstance = null; // ❌ Never clear here - preserves animation across mode changes
