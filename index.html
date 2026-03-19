@@ -180,6 +180,16 @@
               <input type="number" id="framebuffer-height" value="1080" min="240" step="1" style="flex:1;min-width:0;background:#1a1a1a;border:1px solid #333;color:#ccc;padding:6px;border-radius:3px;font-size:0.85rem;" placeholder="Height"/>
             </div>
           </div>
+          <div class="control-group">
+            <label><input type="checkbox" id="stereoscopic-mode">Stereoscopic View (VR)</label>
+          </div>
+          <div class="control-group">
+            <label>Eye Separation</label>
+            <div class="slider-row">
+              <input type="range" id="eye-separation" min="0" max="100" value="30"/>
+              <span class="value-display" id="eye-separation-val">30</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -187,7 +197,7 @@
     <!-- View -->
     <div class="section">
       <div class="section-header" data-section="view">
-        <span class="section-title">View</span>
+        <span class="section-title">Camera</span>
         <span class="section-toggle">▼</span>
       </div>
       <div class="section-content">
@@ -209,16 +219,6 @@
             <div class="range-values">
               <span>Near: <span id="near-val">0.01</span></span>
               <span>Far: <span id="far-val">20000</span></span>
-            </div>
-          </div>
-          <div class="control-group">
-            <label><input type="checkbox" id="stereoscopic-mode">Stereoscopic View (VR)</label>
-          </div>
-          <div class="control-group">
-            <label>Eye Separation</label>
-            <div class="slider-row">
-              <input type="range" id="eye-separation" min="0" max="100" value="30"/>
-              <span class="value-display" id="eye-separation-val">30</span>
             </div>
           </div>
         </div>
