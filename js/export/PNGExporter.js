@@ -1,158 +1,58 @@
 /**
  * PNGExporter — Export canvas as PNG image
- * VERSION: 2026-03-16-02:00 LATEST
+ * VERSION: 2026-03-20 — Side-by-Side Stereoscopic Export
  */
 
-console.log('🚨🚨🚨 PNGExporter.js VERSION 2026-03-16-02:00 LOADED 🚨🚨🚨');
-console.log('If you see this message, the NEW code is running!');
+console.log('🚨🚨🚨 PNGExporter.js VERSION 2026-03-20 — SBS Stereo Export 🚨🚨🚨');
 
 /**
- * Create a composite canvas with overlay
+ * Composite a single canvas with its overlay
+ * @param {Canvas} canvas - Source p5 canvas
+ * @param {HTMLImageElement} overlayImg - Overlay image element
+ * @param {Object} ZM - ZigMap instance
+ * @param {number} offsetX - X offset for positioning overlay in final composite
+ * @returns {Canvas} Composite canvas
  */
-function createCompositeCanvas(ZM, sourceCanvas) {
-  // Get the appropriate overlay image based on mode
-  // Stereo mode exports left canvas, so use left overlay
-  const overlayImgId = ZM.params.stereoscopicMode ? 'overlay-image-left' : 'overlay-image';
-  const overlayImg = document.getElementById(overlayImgId);
+function compositeSingleEye(canvas, overlayImg, ZM, offsetX = 0) {
+  const composite = document.createElement('canvas');
+  composite.width = canvas.width;
+  composite.height = canvas.height;
+  const ctx = composite.getContext('2d');
   
-  console.log('🔍 PNG Export - Checking overlay status:');
-  console.log('  Mode:', ZM.params.stereoscopicMode ? 'STEREO (using left overlay)' : 'MONO');
-  console.log('  overlayImg element exists:', !!overlayImg);
-  console.log('  ZM.params.overlayVisible:', ZM.params.overlayVisible);
-  console.log('  ZM.params.overlayImageSrc:', ZM.params.overlayImageSrc ? 'YES (length: ' + ZM.params.overlayImageSrc.length + ')' : 'NO');
-  if (overlayImg) {
-    console.log('  overlayImg.complete:', overlayImg.complete);
-    console.log('  overlayImg.naturalWidth:', overlayImg.naturalWidth);
-    console.log('  overlayImg.src length:', overlayImg.src ? overlayImg.src.length : 'NO SRC');
-  }
+  // Draw canvas
+  ctx.drawImage(canvas, 0, 0);
   
-  const hasOverlay = ZM.params.overlayVisible && ZM.params.overlayImageSrc && overlayImg && overlayImg.complete;
-  console.log('  hasOverlay:', hasOverlay);
+  // Check if overlay should be added
+  const hasOverlay = ZM.params.overlayVisible && ZM.params.overlayImageSrc && overlayImg && overlayImg.complete && overlayImg.naturalWidth > 0;
   
   if (!hasOverlay) {
-    console.log('⚠️  No overlay to composite - exporting canvas only');
-    return sourceCanvas;
+    return composite;
   }
   
-  // Get computed style of overlay to see actual on-screen size
-  // Use getBoundingClientRect() which includes ALL transforms (including scale)
+  // Get overlay on-screen dimensions
   const rect = overlayImg.getBoundingClientRect();
   const onScreenWidth = rect.width;
   const onScreenHeight = rect.height;
   
-  // Log all relevant dimensions
-  console.log('╔═══════════════════════════════════════════════════════════════════╗');
-  console.log('║          PNG EXPORT COMPREHENSIVE DIMENSION ANALYSIS              ║');
-  console.log('╠═══════════════════════════════════════════════════════════════════╣');
-  console.log('│ 1. WINDOW DIMENSIONS');
-  console.log('│    innerWidth:', window.innerWidth);
-  console.log('│    innerHeight:', window.innerHeight);
-  console.log('│    devicePixelRatio:', window.devicePixelRatio);
-  console.log('│');
-  console.log('│ 2. CANVAS DIMENSIONS');
-  console.log('│    sourceCanvas.width (buffer):', sourceCanvas.width);
-  console.log('│    sourceCanvas.height (buffer):', sourceCanvas.height);
-  console.log('│    sourceCanvas.style.width (CSS):', sourceCanvas.style.width);
-  console.log('│    sourceCanvas.style.height (CSS):', sourceCanvas.style.height);
-  console.log('│    ZM.W (logical width):', ZM.W);
-  console.log('│    ZM.H (logical height):', ZM.H);
-  console.log('│');
-  console.log('│ 3. MODE SETTINGS');
-  console.log('│    framebufferMode:', ZM.params.framebufferMode);
-  console.log('│    stereoscopicMode:', ZM.params.stereoscopicMode);
-  if (ZM.params.framebufferMode) {
-    console.log('│    framebufferWidth:', ZM.params.framebufferWidth);
-    console.log('│    framebufferHeight:', ZM.params.framebufferHeight);
-  }
-  console.log('│');
-  console.log('│ 4. OVERLAY IMAGE');
-  console.log('│    naturalWidth:', overlayImg.naturalWidth);
-  console.log('│    naturalHeight:', overlayImg.naturalHeight);
-  console.log('│    overlayScale param:', ZM.params.overlayScale + '%');
-  console.log('│    ON-SCREEN computed width:', onScreenWidth + 'px');
-  console.log('│    ON-SCREEN computed height:', onScreenHeight + 'px');
-  console.log('│    overlayX:', ZM.params.overlayX + '%');
-  console.log('│    overlayY:', ZM.params.overlayY + '%');
-  console.log('╠═══════════════════════════════════════════════════════════════════╣');
-  
-  // Create composite canvas
-  const composite = document.createElement('canvas');
-  composite.width = sourceCanvas.width;
-  composite.height = sourceCanvas.height;
-  const ctx = composite.getContext('2d');
-  
-  console.log('│ 5. EXPORT CANVAS');
-  console.log('│    composite.width:', composite.width);
-  console.log('│    composite.height:', composite.height);
-  console.log('│');
-  
-  // Draw p5 canvas
-  ctx.drawImage(sourceCanvas, 0, 0);
-  
-  // Get the overlay dimensions
-  const overlayNaturalWidth = overlayImg.naturalWidth;
-  const overlayNaturalHeight = overlayImg.naturalHeight;
-  const userScale = ZM.params.overlayScale / 100;
-  const opacity = ZM.params.overlayOpacity / 100;
-  
-  // ALWAYS use the measured on-screen size - it accounts for ALL CSS transforms
-  // including manual scale, auto-fit, and any other styling
-  const displayWidth = onScreenWidth;
-  const displayHeight = onScreenHeight;
-  
-  console.log('│    Using MEASURED on-screen size: ' + displayWidth + ' × ' + displayHeight);
-  console.log('│    (This accounts for all CSS transforms and auto-fit)');
-  console.log('│');
-  
-  console.log('│ 6. CALCULATION STEPS');
-  console.log('│    Step 1: Get overlay on-screen size');
-  console.log('│            Measured: ' + displayWidth.toFixed(1) + ' × ' + displayHeight.toFixed(1) + ' CSS pixels');
-  console.log('│');
-  
-  // Get canvas on-screen CSS size (may be smaller than window due to UI)
-  const canvasRect = sourceCanvas.getBoundingClientRect();
+  // Get canvas on-screen CSS size
+  const canvasRect = canvas.getBoundingClientRect();
   const canvasCSSWidth = canvasRect.width;
   const canvasCSSHeight = canvasRect.height;
   
-  console.log('│    Step 2: Get canvas on-screen CSS size');
-  console.log('│            Canvas CSS: ' + canvasCSSWidth.toFixed(1) + ' × ' + canvasCSSHeight.toFixed(1) + ' px');
-  console.log('│            Canvas buffer: ' + sourceCanvas.width + ' × ' + sourceCanvas.height + ' px');
-  console.log('│');
-  
-  // Calculate buffer-to-CSS ratio for the canvas
-  const scaleX = sourceCanvas.width / canvasCSSWidth;
-  const scaleY = sourceCanvas.height / canvasCSSHeight;
-  
-  console.log('│    Step 3: Calculate canvas buffer-to-CSS ratio');
-  console.log('│            scaleX: ' + sourceCanvas.width + ' / ' + canvasCSSWidth.toFixed(1) + ' = ' + scaleX.toFixed(3) + 'x');
-  console.log('│            scaleY: ' + sourceCanvas.height + ' / ' + canvasCSSHeight.toFixed(1) + ' = ' + scaleY.toFixed(3) + 'x');
-  console.log('│');
+  // Calculate buffer-to-CSS ratio
+  const scaleX = canvas.width / canvasCSSWidth;
+  const scaleY = canvas.height / canvasCSSHeight;
   
   // Apply same ratio to overlay
-  const imgWidth = displayWidth * scaleX;
-  const imgHeight = displayHeight * scaleY;
-  
-  console.log('│    Step 4: Apply same ratio to overlay');
-  console.log('│            imgWidth: ' + displayWidth.toFixed(1) + ' × ' + scaleX.toFixed(3) + ' = ' + imgWidth.toFixed(1) + ' px');
-  console.log('│            imgHeight: ' + displayHeight.toFixed(1) + ' × ' + scaleY.toFixed(3) + ' = ' + imgHeight.toFixed(1) + ' px');
-  console.log('│');
-  console.log('│ 7. FINAL OVERLAY SIZE IN EXPORT');
-  console.log('│    imgWidth:', imgWidth + ' px');
-  console.log('│    imgHeight:', imgHeight + ' px');
-  console.log('│');
-  console.log('│ 8. COMPARISON');
-  console.log('│    ON-SCREEN overlay:', onScreenWidth + ' × ' + onScreenHeight);
-  console.log('│    IN EXPORT overlay:', imgWidth + ' × ' + imgHeight);
-  console.log('│    Export canvas size:', composite.width + ' × ' + composite.height);
-  console.log('│    Ratio (export/screen):', (imgWidth / onScreenWidth).toFixed(2) + 'x');
-  console.log('│    Expected ratio (canvas/window):', (composite.width / window.innerWidth).toFixed(2) + 'x');
-  console.log('╚═══════════════════════════════════════════════════════════════════╝');
+  const imgWidth = onScreenWidth * scaleX;
+  const imgHeight = onScreenHeight * scaleY;
   
   // Position as percentage of canvas
   const x = (ZM.params.overlayX / 100) * composite.width;
   const y = (ZM.params.overlayY / 100) * composite.height;
   
   // Draw overlay with opacity
+  const opacity = ZM.params.overlayOpacity / 100;
   ctx.globalAlpha = opacity;
   ctx.drawImage(
     overlayImg,
@@ -166,29 +66,87 @@ function createCompositeCanvas(ZM, sourceCanvas) {
   return composite;
 }
 
+/**
+ * Create a composite canvas with overlay (supports mono and side-by-side stereo)
+ * @param {Object} ZM - ZigMap instance
+ * @param {Canvas} leftCanvas - Left eye canvas (or mono canvas)
+ * @param {Canvas} rightCanvas - Right eye canvas (optional, for stereo mode)
+ * @returns {Canvas} Final composite canvas
+ */
+function createCompositeCanvas(ZM, leftCanvas, rightCanvas = null) {
+  const isStereo = ZM.params.stereoscopicMode && rightCanvas && ZM.p5InstanceRight;
+  
+  console.log('╔═══════════════════════════════════════════════════════════════════╗');
+  console.log('║                    PNG EXPORT - COMPOSITE CANVAS                   ║');
+  console.log('╠═══════════════════════════════════════════════════════════════════╣');
+  console.log('│ Mode:', isStereo ? 'STEREOSCOPIC (Side-by-Side)' : 'MONO');
+  console.log('│ Left canvas:', leftCanvas.width, 'x', leftCanvas.height);
+  if (isStereo) {
+    console.log('│ Right canvas:', rightCanvas.width, 'x', rightCanvas.height);
+  }
+  console.log('│ Overlay visible:', ZM.params.overlayVisible);
+  console.log('╚═══════════════════════════════════════════════════════════════════╝');
+  
+  if (isStereo) {
+    // Side-by-Side Stereoscopic Export
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = leftCanvas.width + rightCanvas.width;
+    finalCanvas.height = leftCanvas.height;
+    const ctx = finalCanvas.getContext('2d');
+    
+    // Get overlay images
+    const overlayImgLeft = document.getElementById('overlay-image-left');
+    const overlayImgRight = document.getElementById('overlay-image-right');
+    
+    // Composite left eye with its overlay
+    const leftComposite = compositeSingleEye(leftCanvas, overlayImgLeft, ZM);
+    ctx.drawImage(leftComposite, 0, 0);
+    
+    // Composite right eye with its overlay
+    const rightComposite = compositeSingleEye(rightCanvas, overlayImgRight, ZM);
+    ctx.drawImage(rightComposite, leftCanvas.width, 0);
+    
+    console.log('✓ Side-by-Side stereo composite created:', finalCanvas.width, 'x', finalCanvas.height);
+    
+    return finalCanvas;
+  } else {
+    // Mono mode - single canvas with overlay
+    const overlayImgMono = document.getElementById('overlay-image');
+    const composite = compositeSingleEye(leftCanvas, overlayImgMono, ZM);
+    
+    console.log('✓ Mono composite created:', composite.width, 'x', composite.height);
+    
+    return composite;
+  }
+}
+
 export function exportPNG(ZM) {
   console.log('📸 exportPNG() called');
+  console.log('  Stereoscopic mode:', ZM.params.stereoscopicMode);
   console.log('  ZM.p5Instance exists:', !!ZM.p5Instance);
+  console.log('  ZM.p5InstanceRight exists:', !!ZM.p5InstanceRight);
   
   if (!ZM.p5Instance) {
     console.log('⚠️  No p5Instance - aborting export');
     return;
   }
   
-  console.log('  ZM.p5Instance.canvas:', ZM.p5Instance.canvas);
-  console.log('  Calling createCompositeCanvas...');
+  // Create composite with both canvases if in stereo mode
+  const leftCanvas = ZM.p5Instance.canvas;
+  const rightCanvas = ZM.params.stereoscopicMode && ZM.p5InstanceRight ? ZM.p5InstanceRight.canvas : null;
   
-  const composite = createCompositeCanvas(ZM, ZM.p5Instance.canvas);
+  const composite = createCompositeCanvas(ZM, leftCanvas, rightCanvas);
   
-  console.log('  Composite canvas created:', composite.width, 'x', composite.height);
+  console.log('  Final composite created:', composite.width, 'x', composite.height);
   
   composite.toBlob(blob => {
     console.log('  Blob created, size:', blob.size, 'bytes');
     const url = URL.createObjectURL(blob);
     const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const suffix = ZM.params.stereoscopicMode ? '-SBS' : '';
     const a = document.createElement('a');
     a.href = url;
-    a.download = `zigmap26-${ts}.png`;
+    a.download = `zigmap26-${ts}${suffix}.png`;
     a.click();
     console.log('✅ PNG download triggered:', a.download);
     URL.revokeObjectURL(url);

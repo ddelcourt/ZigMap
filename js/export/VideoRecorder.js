@@ -59,6 +59,9 @@ export function startVideoRecording(ZM) {
   
   // Start capture
   ZM.p5Instance.noLoop();
+  if (ZM.params.stereoscopicMode && ZM.p5InstanceRight) {
+    ZM.p5InstanceRight.noLoop();
+  }
   capturer.start();
   renderVideoFrame(ZM);
 }
@@ -69,10 +72,17 @@ function renderVideoFrame(ZM) {
     return;
   }
   
+  // Redraw canvases
   ZM.p5Instance.redraw();
+  if (ZM.params.stereoscopicMode && ZM.p5InstanceRight) {
+    ZM.p5InstanceRight.redraw();
+  }
   
-  // Create composite with overlay
-  compositeCanvas = createCompositeCanvas(ZM, ZM.p5Instance.canvas);
+  // Create composite with overlay (supports side-by-side stereo)
+  const leftCanvas = ZM.p5Instance.canvas;
+  const rightCanvas = ZM.params.stereoscopicMode && ZM.p5InstanceRight ? ZM.p5InstanceRight.canvas : null;
+  compositeCanvas = createCompositeCanvas(ZM, leftCanvas, rightCanvas);
+  
   capturer.capture(compositeCanvas);
   
   recordingFrameCount++;
@@ -112,6 +122,10 @@ export function stopVideoRecording(ZM) {
   // Resume playback
   ZM.p5Instance.frameRate(60);
   ZM.p5Instance.loop();
+  if (ZM.params.stereoscopicMode && ZM.p5InstanceRight) {
+    ZM.p5InstanceRight.frameRate(60);
+    ZM.p5InstanceRight.loop();
+  }
 }
 
 // Export with correct name
