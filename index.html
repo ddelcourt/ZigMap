@@ -552,7 +552,10 @@
 
   <div id="canvas-container">
     <div id="canvas-wrapper"></div>
-    <img id="overlay-image" style="position:absolute;pointer-events:none;display:none;z-index:1000;transform-origin:center center;" />
+    <!-- Overlay images: mono mode uses overlay-image, stereo mode uses overlay-image-left/right -->
+    <img id="overlay-image" class="overlay-image overlay-mono" style="position:absolute;pointer-events:none;display:none;z-index:1000;transform-origin:center center;" />
+    <img id="overlay-image-left" class="overlay-image overlay-stereo" style="position:absolute;pointer-events:none;display:none;z-index:1000;transform-origin:center center;" />
+    <img id="overlay-image-right" class="overlay-image overlay-stereo" style="position:absolute;pointer-events:none;display:none;z-index:1000;transform-origin:center center;" />
   </div>
 
   <!-- Main Application Module -->

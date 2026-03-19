@@ -246,6 +246,11 @@ async function init() {
   // Initialize sketches
   ZM.initializeSketches();
   
+  // Update overlay positioning after sketches are initialized (important for stereo mode)
+  if (ZM.updateOverlay) {
+    ZM.updateOverlay();
+  }
+  
   // Load initial state if we loaded the preset
   if (!hadSavedSettings && ZM._initialStateId && ZM.stateManager.load) {
     // Update state panel UI first

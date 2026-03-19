@@ -315,6 +315,14 @@ function setupStereoscopicControls(ZM) {
     if (ZM.params.framebufferMode) {
       setTimeout(() => ZM.updateCanvasSize(), 100);
     }
+    
+    // Update overlay visibility for correct mode (with small delay to ensure DOM is ready)
+    setTimeout(() => {
+      if (ZM.updateOverlay) {
+        ZM.updateOverlay();
+      }
+    }, 50);
+    
     ZM.saveToLocalStorage();
   });
 }
@@ -628,7 +636,9 @@ async function loadOverlayPresets(ZM) {
  * Setup overlay image controls
  */
 function setupOverlayControls(ZM) {
-  const overlayImg = document.getElementById('overlay-image');
+  const overlayImgMono = document.getElementById('overlay-image');
+  const overlayImgLeft = document.getElementById('overlay-image-left');
+  const overlayImgRight = document.getElementById('overlay-image-right');
   const presetSelect = document.getElementById('overlay-preset');
   const loadBtn = document.getElementById('load-overlay-btn');
   const loadInput = document.getElementById('load-overlay-input');
@@ -642,39 +652,89 @@ function setupOverlayControls(ZM) {
   
   // Update overlay image display
   function updateOverlay() {
-    if (!overlayImg) return;
+    const isStereo = ZM.params.stereoscopicMode;
+    const overlays = isStereo ? [overlayImgLeft, overlayImgRight] : [overlayImgMono];
+    const hideOverlays = isStereo ? [overlayImgMono] : [overlayImgLeft, overlayImgRight];
+    
+    // Hide overlays not in use for current mode
+    hideOverlays.forEach(img => {
+      if (img) img.style.display = 'none';
+    });
+    
+    // Reparent overlays based on mode
+    if (isStereo) {
+      // Move left overlay into left eye container
+      const leftEye = document.getElementById('left-eye-container');
+      const rightEye = document.getElementById('right-eye-container');
+      
+      if (leftEye && overlayImgLeft && overlayImgLeft.parentElement !== leftEye) {
+        leftEye.appendChild(overlayImgLeft);
+      }
+      if (rightEye && overlayImgRight && overlayImgRight.parentElement !== rightEye) {
+        rightEye.appendChild(overlayImgRight);
+      }
+    } else {
+      // Move mono overlay back to canvas-container
+      const canvasContainer = document.getElementById('canvas-container');
+      if (canvasContainer && overlayImgMono && overlayImgMono.parentElement !== canvasContainer) {
+        canvasContainer.appendChild(overlayImgMono);
+      }
+    }
     
     if (ZM.params.overlayVisible && ZM.params.overlayImageSrc) {
-      overlayImg.style.display = 'block';
-      overlayImg.src = ZM.params.overlayImageSrc;
-      
-      // Always use transform-based scaling (GPU-accelerated)
-      overlayImg.style.maxWidth = 'none';
-      overlayImg.style.maxHeight = 'none';
-      overlayImg.style.width = '';
-      overlayImg.style.height = '';
-      overlayImg.style.transform = `translate(-50%, -50%) scale(${ZM.params.overlayScale / 100})`;
-      
-      overlayImg.style.opacity = ZM.params.overlayOpacity / 100;
-      overlayImg.style.left = `${ZM.params.overlayX}%`;
-      overlayImg.style.top = `${ZM.params.overlayY}%`;
+      overlays.forEach(overlayImg => {
+        if (!overlayImg) return;
+        
+        overlayImg.style.display = 'block';
+        overlayImg.src = ZM.params.overlayImageSrc;
+        
+        // Always use transform-based scaling (GPU-accelerated)
+        overlayImg.style.maxWidth = 'none';
+        overlayImg.style.maxHeight = 'none';
+        overlayImg.style.width = '';
+        overlayImg.style.height = '';
+        overlayImg.style.transform = `translate(-50%, -50%) scale(${ZM.params.overlayScale / 100})`;
+        
+        overlayImg.style.opacity = ZM.params.overlayOpacity / 100;
+        overlayImg.style.left = `${ZM.params.overlayX}%`;
+        overlayImg.style.top = `${ZM.params.overlayY}%`;
+      });
     } else {
-      overlayImg.style.display = 'none';
+      overlays.forEach(overlayImg => {
+        if (overlayImg) overlayImg.style.display = 'none';
+      });
     }
   }
   
   // Calculate auto-fit scale (one-time calculation)
   function calculateAutoFitScale() {
+    // Get the reference overlay based on current mode
+    const overlayImg = ZM.params.stereoscopicMode ? overlayImgLeft : overlayImgMono;
+    
     if (!overlayImg || !overlayImg.naturalWidth || !overlayImg.naturalHeight) {
       showToast('No overlay image loaded', 'error');
       return;
     }
     
-    const canvasContainer = document.getElementById('canvas-container');
-    if (!canvasContainer) return;
+    let containerWidth, containerHeight;
     
-    const containerWidth = canvasContainer.clientWidth;
-    const containerHeight = canvasContainer.clientHeight;
+    if (ZM.params.stereoscopicMode) {
+      // In stereo mode, fit to individual eye container (half width)
+      const stereoEye = document.querySelector('.stereo-eye');
+      if (stereoEye) {
+        containerWidth = stereoEye.clientWidth;
+        containerHeight = stereoEye.clientHeight;
+      } else {
+        showToast('Stereo containers not found', 'error');
+        return;
+      }
+    } else {
+      // In mono mode, fit to full canvas container
+      const canvasContainer = document.getElementById('canvas-container');
+      if (!canvasContainer) return;
+      containerWidth = canvasContainer.clientWidth;
+      containerHeight = canvasContainer.clientHeight;
+    }
     
     // Calculate scale factor to fit overlay within container
     const scaleX = containerWidth / overlayImg.naturalWidth;

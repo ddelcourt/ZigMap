@@ -10,9 +10,13 @@ console.log('If you see this message, the NEW code is running!');
  * Create a composite canvas with overlay
  */
 function createCompositeCanvas(ZM, sourceCanvas) {
-  const overlayImg = document.getElementById('overlay-image');
+  // Get the appropriate overlay image based on mode
+  // Stereo mode exports left canvas, so use left overlay
+  const overlayImgId = ZM.params.stereoscopicMode ? 'overlay-image-left' : 'overlay-image';
+  const overlayImg = document.getElementById(overlayImgId);
   
   console.log('🔍 PNG Export - Checking overlay status:');
+  console.log('  Mode:', ZM.params.stereoscopicMode ? 'STEREO (using left overlay)' : 'MONO');
   console.log('  overlayImg element exists:', !!overlayImg);
   console.log('  ZM.params.overlayVisible:', ZM.params.overlayVisible);
   console.log('  ZM.params.overlayImageSrc:', ZM.params.overlayImageSrc ? 'YES (length: ' + ZM.params.overlayImageSrc.length + ')' : 'NO');
