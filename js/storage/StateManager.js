@@ -173,17 +173,10 @@ function restoreState(ZM, state, instant = false) {
   
   console.log('Restored params active palette:', restoredParams.activePaletteIndex);
   
-  // Check if geometry parameters have changed - if so, clear emitter to start fresh
-  const geometryChanged = 
-    oldParams.segmentLength !== restoredParams.segmentLength ||
-    oldParams.lineThickness !== restoredParams.lineThickness ||
-    oldParams.emitRate !== restoredParams.emitRate ||
-    oldParams.speed !== restoredParams.speed;
-  
-  if (geometryChanged && ZM.emitterInstance) {
-    console.log('⚠️ Geometry parameters changed - clearing emitter for fresh start');
-    ZM.emitterInstance = null;
-  }
+  // Note: We intentionally DO NOT clear the emitter when geometry changes
+  // This allows smooth transitions where old lines fade out naturally
+  // while new lines are created with the updated geometry parameters
+  // This creates a beautiful blending effect during state transitions
   
   // Preserve project-wide settings
   const preservedSettings = {

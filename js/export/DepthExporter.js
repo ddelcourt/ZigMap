@@ -36,8 +36,12 @@ function projectPoint(x, y, z, ZM, defaultCameraZ, totalDistance) {
   
   // 6. Perspective projection
   const s = defaultCameraZ / -pz;
-  const sx = px * s + ZM.W / 2;
-  const sy = py * s + ZM.H / 2;
+  const projX = px * s;
+  const projY = py * s;
+  
+  // Apply camera offsets (pan) - these shift the projected view
+  const sx = projX + ZM.W / 2 + ZM.camera.offsetX;
+  const sy = projY + ZM.H / 2 + ZM.camera.offsetY;
   
   return { sx: sx, sy: sy, depth: -pz };
 }
@@ -72,10 +76,10 @@ function scanDepthRange(lines, ZM, defaultCameraZ, totalDistance) {
     
     // Project vertices
     const leftProj = leftSide
-      .map(pt => projectVertex(line, pt.x, pt.y, pt.z, ZM, defaultCameraZ, totalDistance))
+      .map(pt => projectVertex(line, pt.x, pt.y, line.zOffset, ZM, defaultCameraZ, totalDistance))
       .filter(Boolean);
     const rightProj = rightSide
-      .map(pt => projectVertex(line, pt.x, pt.y, pt.z, ZM, defaultCameraZ, totalDistance))
+      .map(pt => projectVertex(line, pt.x, pt.y, line.zOffset, ZM, defaultCameraZ, totalDistance))
       .filter(Boolean);
     
     if (leftProj.length < 2 || rightProj.length < 2) continue;
@@ -191,9 +195,16 @@ function rasterizeDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {
  * Main export function
  */
 export function exportDepthMap(ZM) {
-  if (!ZM.emitterInstance || ZM.emitterInstance.lines.length === 0) {
-    console.log('Depth Export: No lines available');
-    if (ZM.showToast) ZM.showToast('No lines to render — let the emitter run for a moment first.');
+  // Allow exports as long as we have valid geometry, even during sketch reinitialization
+  if (!ZM.emitterInstance || !ZM.emitterInstance.lines || ZM.emitterInstance.lines.length === 0) {
+    console.log('Depth Export: No geometry available');
+    if (ZM.showToast) ZM.showToast('No geometry to export. Wait for lines to appear...', 'info');
+    return;
+  }
+  
+  if (!ZM.camera) {
+    console.log('Depth Export: Camera not initialized');
+    if (ZM.showToast) ZM.showToast('Camera not ready', 'error');
     return;
   }
   
@@ -264,9 +275,9 @@ function renderDepthMap(ZM) {
     
     // Project vertices (keep nulls to preserve index correspondence)
     const leftProj = leftSide
-      .map(pt => projectVertex(line, pt.x, pt.y, pt.z, ZM, defaultCameraZ, totalDistance));
+      .map(pt => projectVertex(line, pt.x, pt.y, line.zOffset, ZM, defaultCameraZ, totalDistance));
     const rightProj = rightSide
-      .map(pt => projectVertex(line, pt.x, pt.y, pt.z, ZM, defaultCameraZ, totalDistance));
+      .map(pt => projectVertex(line, pt.x, pt.y, line.zOffset, ZM, defaultCameraZ, totalDistance));
     
     if (leftProj.length < 2 || rightProj.length < 2) continue;
     

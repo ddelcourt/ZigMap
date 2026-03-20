@@ -93,6 +93,7 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
           buildRibbonSidesFn: buildRibbonSides
         });
         ZM.emitterInstance = emitter;
+        console.log('  ✓ Emitter created and ready');
       } else {
         // Reuse existing emitter (dimensions already updated in initializeSketches)
         console.log('  ♻️ REUSING existing emitter with', ZM.emitterInstance.lines.length, 'lines');
@@ -116,6 +117,9 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
           console.log('     Skipping p5 update for secondary canvas (uses primary refs)');
         }
       }
+      
+      // Mark sketch as ready
+      ZM.sketchReady = true;
     };
     
     p.draw = () => {
@@ -307,6 +311,9 @@ export function initializeSketches(ZM) {
     ZM.p5InstanceRight.remove();
     ZM.p5InstanceRight = null;
   }
+  
+  // Reset sketch ready flag (will be set to true when setup completes)
+  ZM.sketchReady = false;
   
   // Reset shared time since new p5 instances will start with millis() = 0
   sharedLastTime = 0;

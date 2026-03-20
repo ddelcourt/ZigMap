@@ -54,6 +54,8 @@ window.ZigMap26 = {
   p5Instance: null,
   p5InstanceRight: null,
   emitterInstance: null,
+  sketchReady: false,
+  regeneratingGeometry: false,
   
   // Utilities
   getSpawnDistance,
