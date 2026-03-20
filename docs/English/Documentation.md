@@ -150,8 +150,10 @@ index.html                          (Main HTML entry point)
 │   ├── appInfo.json               (App metadata)
 │   ├── keyboardShortcuts.json     (Keyboard mappings)
 │   ├── uiPresets.json             (UI configuration)
+│   ├── overlayPresets.js          (Overlay file list)
 │   └── presets/
-│       └── zigmap26-init.json     (First-time user preset)
+│       ├── manifest.json          (Preset registry)
+│       └── zigmap_init.json       (First-time user preset)
 ├── css/
 │   ├── main.css                   (Base styles)
 │   ├── controls.css               (Control panel styling)
@@ -293,7 +295,7 @@ const params = {
   // Camera
   fov: 60,                   // Field of view (degrees)
   near: 0.01,                // Near clipping plane
-  far: 20000,                // Far clipping plane
+  far: 2500,                // Far clipping plane
   cameraRotationX: -0.3,     // X-axis rotation (radians)
   cameraRotationY: 0,        // Y-axis rotation (radians)
   cameraDistance: 600,       // Distance from origin
@@ -831,7 +833,7 @@ Automatically loads a curated starter project for first-time users.
 ```javascript
 async function loadInitialPreset(ZM) {
   try {
-    const response = await fetch('config/presets/zigmap26-init.json');
+    const response = await fetch('config/presets/zigmap_init.json');
     if (!response.ok) {
       console.warn('Initial preset not found');
       return false;
@@ -2602,8 +2604,6 @@ ZigMap26/
 │   ├── Projection-Matrix-Guide.md      # Math guide (EN)
 │   ├── Projection-Matrix-Guide-fr.md   # Math guide (FR)
 │   └── markdown-viewer.html      # Documentation viewer
-└── backup/                       # Original files
-    └── ZigzagEmitter_12_backup_20260309.html
 ```
 
 ## Architecture Principles
@@ -2770,11 +2770,11 @@ See [docs/Projection-Matrix-Guide.md](docs/Projection-Matrix-Guide.md) for detai
 
 ## Migration from Original
 
-The original `ZigzagEmitter_12.html` (2,334 lines) has been split into:
+The original monolithic `ZigzagEmitter_12.html` (2,334 lines) has been refactored into a modular architecture:
 - 1 HTML file (330 lines)
 - 3 CSS files (total ~400 lines)
 - 15 JavaScript modules (total ~1,500 lines)
-- 3 JSON config files (total ~200 lines)
+- Multiple JSON config files (total ~200 lines)
 
 ### Breaking Changes
 - None for users (localStorage keys preserved)

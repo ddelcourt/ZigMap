@@ -89,7 +89,7 @@
             <!-- Global Speed Control -->
             <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #333;">
               <div class="control-group">
-                <label>Global Speed <span style="color:#444">(affects all lines)</span></label>
+                <label>Global Speed</label>
                 <div class="slider-row">
                   <input type="range" id="ambient-speed-master" min="5" max="100" value="100"/>
                   <span class="value-display"><span id="ambient-speed-master-val">100</span>%</span>
@@ -214,11 +214,11 @@
             <div class="range-slider-container">
               <div class="slider-track-line"></div>
               <input type="range" id="near" min="0.01" max="500"   value="0.01"/>
-              <input type="range" id="far"  min="500"  max="20000" value="20000"/>
+              <input type="range" id="far"  min="500"  max="2000" value="2500"/>
             </div>
             <div class="range-values">
               <span>Near: <span id="near-val">0.01</span></span>
-              <span>Far: <span id="far-val">20000</span></span>
+              <span>Far: <span id="far-val">2500</span></span>
             </div>
           </div>
         </div>
@@ -536,10 +536,10 @@
             <button class="lang-filter-btn active" data-lang-filter="en">English</button>
             <button class="lang-filter-btn" data-lang-filter="fr">Français</button>
           </div>
-          <button id="doc-manual-en" class="about-btn" data-lang="en">User Manual</button>
-          <button id="doc-manual-fr" class="about-btn hidden" data-lang="fr">Manuel Utilisateur</button>
           <button id="doc-readme-en" class="about-btn" data-lang="en">Read me</button>
           <button id="doc-readme-fr" class="about-btn hidden" data-lang="fr">Lisez-moi</button>
+          <button id="doc-manual-en" class="about-btn" data-lang="en">User Manual</button>
+          <button id="doc-manual-fr" class="about-btn hidden" data-lang="fr">Manuel Utilisateur</button>
           <button id="doc-tech-en" class="about-btn" data-lang="en">Documentation</button>
           <button id="doc-tech-fr" class="about-btn hidden" data-lang="fr">Documentation</button>
           <button id="doc-projection-en" class="about-btn" data-lang="en">Projection Matrix </button>

@@ -161,7 +161,7 @@
     "speedRangeMax": 150,
     "fov": 99.01,
     "near": 0.01,
-    "far": 20000,
+    "far": 2500,
     "cameraRotationX": -2.5299999999999807,
     "cameraRotationY": -0.05999999999999812,
     "cameraDistance": 600,

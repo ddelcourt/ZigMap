@@ -6,13 +6,8 @@
       "type": "Init"
     },
     {
-      "filename": "zigmap_horizon3.json",
-      "name": "zigmap_horizon3",
-      "type": "Preset"
-    },
-    {
-      "filename": "zigmap_horizon4.json",
-      "name": "zigmap_horizon4",
+      "filename": "zigmap_horizon5.json",
+      "name": "zigmap_horizon5",
       "type": "Preset"
     }
   ]

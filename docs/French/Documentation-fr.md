@@ -257,7 +257,7 @@ const params = {
   // Caméra
   fov: 60,                   // Champ de vision (degrés)
   near: 0.01,                // Plan de découpe proche
-  far: 20000,                // Plan de découpe lointain
+  far: 2500,                // Plan de découpe lointain
   cameraRotationX: -0.3,     // Rotation axe X (radians)
   cameraRotationY: 0,        // Rotation axe Y (radians)
   cameraDistance: 600,       // Distance depuis l'origine
@@ -2283,8 +2283,6 @@ ZigMap26/
 │   │   ├── Documentation-fr.md   # Docs techniques (FR)
 │   │   └── Projection-Matrix-Guide-fr.md  # Guide mathématique (FR)
 │   └── markdown-viewer.html      # Visionneuse de documentation
-└── backup/                       # Fichiers originaux
-    └── ZigzagEmitter_12_backup_20260309.html
 ```
 
 ## Principes d'Architecture
@@ -2451,11 +2449,11 @@ Voir [docs/French/Projection-Matrix-Guide-fr.md](Projection-Matrix-Guide-fr.md) 
 
 ## Migration depuis l'Original
 
-Le `ZigzagEmitter_12.html` original (2 334 lignes) a été divisé en :
+Le `ZigzagEmitter_12.html` monolithique original (2 334 lignes) a été refactorisé en une architecture modulaire :
 - 1 fichier HTML (330 lignes)
 - 3 fichiers CSS (total ~400 lignes)
 - 15 modules JavaScript (total ~1 500 lignes)
-- 3 fichiers de configuration JSON (total ~200 lignes)
+- Plusieurs fichiers de configuration JSON (total ~200 lignes)
 
 ### Changements Incompatibles
 - Aucun pour les utilisateurs (clés localStorage préservées)

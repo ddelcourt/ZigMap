@@ -8,6 +8,24 @@ import { DEFAULT_PARAMS } from '../config/defaults.js';
 import { OVERLAY_FILES } from '../../config/overlayPresets.js';
 
 /**
+ * Format JSON with compact color palette entries
+ * Each color object written on a single line like defaults.js
+ */
+function formatJSONWithCompactPalettes(data) {
+  // First, stringify with standard formatting
+  let json = JSON.stringify(data, null, 2);
+  
+  // Regex pattern to match color palette entries and compact them
+  // Matches: { "rgb": [r, g, b], "role": "..." } spread across multiple lines
+  const colorPattern = /\{\s+"rgb":\s+\[\s+(\d+),\s+(\d+),\s+(\d+)\s+\],\s+"role":\s+"(\w+)"\s+\}/g;
+  
+  // Replace with compact single-line format
+  json = json.replace(colorPattern, '{ "rgb": [$1, $2, $3], "role": "$4" }');
+  
+  return json;
+}
+
+/**
  * Clear all localStorage data
  */
 export function clearLocalStorage() {
@@ -45,7 +63,7 @@ export function loadFromLocalStorage(defaultParams) {
     
     // Ensure critical values are valid
     if (loaded.near === undefined || loaded.near < 0.01) loaded.near = 0.01;
-    if (loaded.far === undefined) loaded.far = 20000;
+    if (loaded.far === undefined) loaded.far = 2500;
     if (loaded.cameraDistance < 50) loaded.cameraDistance = 600;
     if (loaded.cameraOffsetX === undefined) loaded.cameraOffsetX = 0;
     if (loaded.cameraOffsetY === undefined) loaded.cameraOffsetY = 0;
@@ -123,7 +141,10 @@ export function downloadJSON(ZM, format = 'project') {
     saveDate: new Date().toISOString()
   } : ZM; // Fallback to old format if ZM is actually params
   
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
+  // Format JSON with compact color palettes (one color per line)
+  const formattedJSON = formatJSONWithCompactPalettes(data);
+  
+  const blob = new Blob([formattedJSON], {
     type: 'application/json'
   });
   const url = URL.createObjectURL(blob);
@@ -170,7 +191,7 @@ async function exportAllStatesAsFiles(ZM) {
   states.forEach(state => {
     const safeName = state.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     const filename = `zigmap26-state-${safeName}.json`;
-    const content = JSON.stringify(state, null, 2);
+    const content = formatJSONWithCompactPalettes(state);
     zip.file(filename, content);
   });
   
@@ -233,7 +254,7 @@ export function loadJSON(file, callback) {
       
       // Validate critical values
       if (params.near === undefined || params.near < 0.01) params.near = 0.01;
-      if (params.far === undefined) params.far = 20000;
+      if (params.far === undefined) params.far = 2500;
       
       // Ensure rendering settings exist (for backward compatibility)
       if (params.framebufferMode === undefined) params.framebufferMode = false;

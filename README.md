@@ -330,7 +330,7 @@ Frame-by-frame capture for smooth, deterministic rendering. Start/stop from Expo
 2. Select saved JSON file
 3. Project restores immediately
 
-Parameters are automatically saved to localStorage on every change. At first launch, starter project with example states loads from `config/zigmap26-init.json`.
+Parameters are automatically saved to localStorage on every change. At first launch, starter project with example states loads from `config/presets/zigmap_init.json`.
 
 ---
 
@@ -386,7 +386,13 @@ Parameters are automatically saved to localStorage on every change. At first lau
 │   ├── export/            PNG, SVG, depth map, video exporters
 │   └── config/            Constants and defaults
 ├── config/                Configuration files
-│   └── zigmap26-init.json Default starter project
+│   ├── appInfo.json       App metadata
+│   ├── keyboardShortcuts.json  Keyboard mappings
+│   ├── uiPresets.json     UI configuration
+│   ├── overlayPresets.js  Overlay file list
+│   └── presets/           Preset configurations
+│       ├── manifest.json  Preset registry
+│       └── zigmap_init.json  Default starter project
 ├── assets/overlays/       Base64-encoded overlay presets
 └── utilities/             Overlay converter tool
 ```
