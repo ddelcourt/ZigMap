@@ -295,7 +295,7 @@ const params = {
   // Camera
   fov: 60,                   // Field of view (degrees)
   near: 0.01,                // Near clipping plane
-  far: 2500,                // Far clipping plane
+  far: 5000,                // Far clipping plane
   cameraRotationX: -0.3,     // X-axis rotation (radians)
   cameraRotationY: 0,        // Y-axis rotation (radians)
   cameraDistance: 600,       // Distance from origin

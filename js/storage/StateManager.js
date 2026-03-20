@@ -39,7 +39,8 @@ export function initializeStateManager(ZM) {
     // Auto-trigger
     loadRandomState: () => loadRandomState(ZM),
     updateAutoTriggerStatus: () => updateAutoTriggerStatus(ZM),
-    navigateHistory: (direction) => navigateHistory(ZM, direction)
+    navigateHistory: (direction) => navigateHistory(ZM, direction),
+    navigateStates: (direction) => navigateStates(ZM, direction)
   };
   
   // Initialize auto-trigger timer
@@ -950,6 +951,46 @@ function navigateHistory(ZM, direction) {
 }
 
 /**
+ * Navigate through states sequentially (for player mode)
+ * @param {Object} ZM - Main application object
+ * @param {number} direction - Direction to navigate (-1 for previous, 1 for next)
+ * @returns {boolean} Success
+ */
+function navigateStates(ZM, direction) {
+  const states = ZM.stateManager.states;
+  
+  // Need at least 2 states to navigate
+  if (states.length < 2) {
+    console.log('[Navigate] Need at least 2 states to navigate');
+    return false;
+  }
+  
+  // Find current state index
+  const currentIndex = states.findIndex(s => s.id === ZM.stateManager.activeStateId);
+  if (currentIndex === -1) {
+    console.warn('[Navigate] Current state not found in states array');
+    return false;
+  }
+  
+  // Calculate new index with wrapping
+  let newIndex = currentIndex + direction;
+  if (newIndex < 0) {
+    newIndex = states.length - 1; // Wrap to end
+  } else if (newIndex >= states.length) {
+    newIndex = 0; // Wrap to beginning
+  }
+  
+  const nextState = states[newIndex];
+  
+  // Load the state
+  const success = loadState(ZM, nextState.id);
+  
+  console.log('[Navigate] Navigated to', direction < 0 ? 'previous' : 'next', 'state:', nextState.name, `(${newIndex + 1}/${states.length})`);
+  
+  return success;
+}
+
+/**
  * Shuffle an array using Fisher-Yates algorithm (true random shuffle)
  * @param {Array} array - Array to shuffle (modifies in place)
  * @returns {Array} Shuffled array
@@ -1136,6 +1177,9 @@ function loadRandomState(ZM) {
  * @param {Object} ZM - Main application object
  */
 function updateAutoTriggerStatus(ZM) {
+  // Skip UI updates in player mode (no DOM elements to update)
+  if (ZM.isPlayerMode) return;
+  
   const statusDiv = document.getElementById('auto-trigger-status');
   const currentStateNameDisplay = document.getElementById('current-state-name');
   const countdownDisplay = document.getElementById('countdown-display');

@@ -19,6 +19,9 @@ import { initializeStateManager } from './storage/StateManager.js';
 // Import rendering
 import { attachToZM } from './rendering/SketchFactory.js';
 
+// Import input handlers
+import { setupMouseHandlers } from './input/MouseHandler.js';
+
 // Import keyboard handler (for play/pause controls)
 // Note: Using custom keyboard handler for player-specific overlay controls
 
@@ -28,7 +31,11 @@ import { attachToZM } from './rendering/SketchFactory.js';
 
 window.ZigMap26 = {
   // Parameters
-  params: { ...DEFAULT_PARAMS },
+  params: { 
+    ...DEFAULT_PARAMS,
+    // Player always uses window resolution, never framebuffer mode
+    framebufferMode: false
+  },
   
   // Constants
   SEGMENTS,
@@ -249,6 +256,9 @@ function loadPreset(jsonData) {
     // Update params
     Object.assign(ZM.params, jsonData.params);
     
+    // Force fullscreen mode in player (disable framebuffer mode)
+    ZM.params.framebufferMode = false;
+    
     // Initialize visualization if not already initialized
     if (!ZM.p5Instance) {
       initializeVisualization(jsonData);
@@ -296,26 +306,15 @@ function initializeVisualization(jsonData) {
     ZM.stateManager.states = jsonData.states;
     ZM.stateManager.activeStateId = jsonData.activeStateId;
     
-    // Load the first state WITHOUT transitions (instant jump)
+    // Load the first state WITHOUT transitions (instant jump) using state manager
     if (jsonData.states.length > 0) {
       const firstState = jsonData.states[0];
       
-      // Directly set camera from first state (no transition on initial load)
-      if (firstState.camera) {
-        ZM.camera.rotationX = firstState.camera.rotationX;
-        ZM.camera.rotationY = firstState.camera.rotationY;
-        ZM.camera.distance = firstState.camera.distance;
-        ZM.camera.offsetX = firstState.camera.offsetX || 0;
-        ZM.camera.offsetY = firstState.camera.offsetY || 0;
-      }
+      // Use state manager to properly load the first state (with instant=true)
+      // This ensures the state is added to history and transitions work correctly
+      ZM.stateManager.load(firstState.id, true);
       
-      // Directly set params from first state
-      Object.assign(ZM.params, firstState.params);
-      
-      // Mark this state as active in the manager
-      ZM.stateManager.activeStateId = firstState.id;
-      
-      console.log('📷 Camera set from first state:');
+      console.log('📷 Camera loaded from first state:', firstState.name);
       console.log('  - distance:', ZM.camera.distance);
       console.log('  - rotationX:', ZM.camera.rotationX);
       console.log('  - rotationY:', ZM.camera.rotationY);
@@ -330,6 +329,9 @@ function initializeVisualization(jsonData) {
   
   // Attach rendering (creates p5.js sketch)
   attachToZM(ZM);
+  
+  // Setup mouse handlers for orbit control
+  setupMouseHandlers(ZM);
   
   // Setup keyboard handlers for play/pause controls
   setupKeyboardHandlers(ZM);
@@ -423,6 +425,11 @@ function updateVisualization(jsonData) {
  * Setup keyboard handlers for player controls
  */
 function setupKeyboardHandlers(ZM) {
+  console.log('⌨️  Setting up keyboard handlers');
+  console.log('  - StateManager available:', !!ZM.stateManager);
+  console.log('  - navigateStates available:', !!(ZM.stateManager && ZM.stateManager.navigateStates));
+  console.log('  - States count:', ZM.stateManager ? ZM.stateManager.states.length : 0);
+  
   // Setup overlay image element
   const overlayImg = document.getElementById('overlay-image');
   
@@ -453,26 +460,24 @@ function setupKeyboardHandlers(ZM) {
       }
     }
     
-    // Arrow keys: Next/Previous state (navigate history)
-    if (e.code === 'ArrowLeft' && ZM.stateManager && ZM.stateHistory) {
+    // Arrow keys: Next/Previous state (cycle through all states)
+    if (e.code === 'ArrowLeft') {
       e.preventDefault();
-      if (ZM.stateHistory.currentIndex > 0) {
-        ZM.stateHistory.isNavigating = true;
-        ZM.stateHistory.currentIndex--;
-        const stateId = ZM.stateHistory.stack[ZM.stateHistory.currentIndex];
-        ZM.stateManager.load(stateId);
-        ZM.stateHistory.isNavigating = false;
+      if (ZM.stateManager && ZM.stateManager.navigateStates) {
+        console.log('⬅️  Previous state');
+        ZM.stateManager.navigateStates(-1);
+      } else {
+        console.warn('State manager not available for navigation');
       }
     }
     
-    if (e.code === 'ArrowRight' && ZM.stateManager && ZM.stateHistory) {
+    if (e.code === 'ArrowRight') {
       e.preventDefault();
-      if (ZM.stateHistory.currentIndex < ZM.stateHistory.stack.length - 1) {
-        ZM.stateHistory.isNavigating = true;
-        ZM.stateHistory.currentIndex++;
-        const stateId = ZM.stateHistory.stack[ZM.stateHistory.currentIndex];
-        ZM.stateManager.load(stateId);
-        ZM.stateHistory.isNavigating = false;
+      if (ZM.stateManager && ZM.stateManager.navigateStates) {
+        console.log('➡️  Next state');
+        ZM.stateManager.navigateStates(1);
+      } else {
+        console.warn('State manager not available for navigation');
       }
     }
     

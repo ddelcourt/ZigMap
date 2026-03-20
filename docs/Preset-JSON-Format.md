@@ -106,7 +106,7 @@ Preset files are stored in `config/presets/` and registered in `config/presets/m
 {
   "fov": 99.01,                 // Field of view in degrees (1-179)
   "near": 0.01,                 // Near clipping plane
-  "far": 2500,                 // Far clipping plane
+  "far": 5000,                 // Far clipping plane
   "cameraRotationX": -2.53,     // Vertical rotation in radians
   "cameraRotationY": -0.06,     // Horizontal rotation in radians
   "cameraDistance": 600,        // Zoom distance (50-5000)
@@ -237,7 +237,7 @@ Each state contains:
 ### Parameter Ranges
 
 - Keep `near` above 0.01 to prevent rendering issues
-- Keep `far` below 2500 for performance
+- Keep `far` below 5000 for performance
 - Use `colorSlotZOffset` between 10-100 to prevent z-fighting
 
 ### Color Palettes

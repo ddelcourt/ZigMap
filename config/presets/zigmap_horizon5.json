@@ -2,22 +2,22 @@
   "version": "2.0",
   "params": {
     "segmentLength": 120,
-    "lineThickness": 9.5,
-    "emitterRotation": 109,
-    "geometryScale": 185,
+    "lineThickness": 11.7,
+    "emitterRotation": 211,
+    "geometryScale": 158,
     "fadeDuration": 1,
     "palettes": [
       [
-        { "rgb": [0, 249, 0], "role": "line" },
-        { "rgb": [0, 225, 196], "role": "line" },
-        { "rgb": [255, 0, 190], "role": "line" },
-        { "rgb": [0, 25, 43], "role": "background" }
+        { "rgb": [255, 255, 255], "role": "line" },
+        { "rgb": [0, 0, 0], "role": "background" },
+        { "rgb": [180, 180, 180], "role": "line" },
+        { "rgb": [60, 60, 60], "role": "none" }
       ],
       [
         { "rgb": [255, 140, 60], "role": "line" },
-        { "rgb": [20, 10, 5], "role": "background" },
+        { "rgb": [0, 0, 0], "role": "background" },
         { "rgb": [255, 90, 120], "role": "line" },
-        { "rgb": [200, 180, 50], "role": "line" }
+        { "rgb": [212, 251, 120], "role": "line" }
       ],
       [
         { "rgb": [120, 200, 255], "role": "line" },
@@ -32,29 +32,29 @@
         { "rgb": [255, 220, 60], "role": "line" }
       ]
     ],
-    "activePaletteIndex": 0,
+    "activePaletteIndex": 1,
     "colorTransitionDuration": 7,
     "stateTransitionDuration": 76,
-    "colorSlotZOffset": 70,
+    "colorSlotZOffset": 160,
     "autoTriggerStates": true,
-    "autoTriggerFrequency": 88,
+    "autoTriggerFrequency": 101,
     "emitRate": 5.3,
-    "speed": 243,
+    "speed": 80,
     "ambientSpeedMaster": 100,
-    "randomThickness": true,
+    "randomThickness": false,
     "randomSpeed": false,
     "thicknessRangeMin": 10,
-    "thicknessRangeMax": 400,
+    "thicknessRangeMax": 200,
     "speedRangeMin": 50,
     "speedRangeMax": 150,
-    "fov": 60,
+    "fov": 112.01,
     "near": 0.01,
-    "far": 2500,
-    "cameraRotationX": -2.5750000000000286,
-    "cameraRotationY": 0.0799999999999874,
-    "cameraDistance": 298,
-    "cameraOffsetX": -115,
-    "cameraOffsetY": -226,
+    "far": 5000,
+    "cameraRotationX": 4.541860919218432,
+    "cameraRotationY": -0.20285043116144358,
+    "cameraDistance": 178,
+    "cameraOffsetX": 45.469606749258595,
+    "cameraOffsetY": -131.4719075211523,
     "stereoscopicMode": false,
     "eyeSeparation": 30,
     "framebufferMode": true,
@@ -1294,7 +1294,7 @@
       }
     }
   ],
-  "activeStateId": "state_1773349180305_srvvfv7fc",
+  "activeStateId": "state_1773334696171_9ek15jejs",
   "overlayPresetFiles": [
     "Mapping2026_Horizontal-White_O_Shadow.json",
     "Mapping2026_Horizontal-White_O.json",
@@ -1303,5 +1303,5 @@
     "Mapping2026_Vertical-White_Shadow.json",
     "Mapping2026_Vertical-White.json"
   ],
-  "saveDate": "2026-03-20T00:42:45.279Z"
+  "saveDate": "2026-03-20T01:21:58.363Z"
 }

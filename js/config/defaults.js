@@ -63,7 +63,7 @@ export const DEFAULT_PARAMS = {
   // Camera
   fov: 60,
   near: 0.01,
-  far: 2500,
+  far: 5000,
   cameraRotationX: -0.3,
   cameraRotationY: 0,
   cameraDistance: 600,

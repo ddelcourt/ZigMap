@@ -63,7 +63,7 @@ export function loadFromLocalStorage(defaultParams) {
     
     // Ensure critical values are valid
     if (loaded.near === undefined || loaded.near < 0.01) loaded.near = 0.01;
-    if (loaded.far === undefined) loaded.far = 2500;
+    if (loaded.far === undefined) loaded.far = 5000;
     if (loaded.cameraDistance < 50) loaded.cameraDistance = 600;
     if (loaded.cameraOffsetX === undefined) loaded.cameraOffsetX = 0;
     if (loaded.cameraOffsetY === undefined) loaded.cameraOffsetY = 0;
@@ -254,7 +254,7 @@ export function loadJSON(file, callback) {
       
       // Validate critical values
       if (params.near === undefined || params.near < 0.01) params.near = 0.01;
-      if (params.far === undefined) params.far = 2500;
+      if (params.far === undefined) params.far = 5000;
       
       // Ensure rendering settings exist (for backward compatibility)
       if (params.framebufferMode === undefined) params.framebufferMode = false;

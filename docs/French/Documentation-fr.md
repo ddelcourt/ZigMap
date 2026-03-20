@@ -257,7 +257,7 @@ const params = {
   // Caméra
   fov: 60,                   // Champ de vision (degrés)
   near: 0.01,                // Plan de découpe proche
-  far: 2500,                // Plan de découpe lointain
+  far: 5000,                // Plan de découpe lointain
   cameraRotationX: -0.3,     // Rotation axe X (radians)
   cameraRotationY: 0,        // Rotation axe Y (radians)
   cameraDistance: 600,       // Distance depuis l'origine

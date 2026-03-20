@@ -3,7 +3,7 @@
  * VERSION: 2026-03-20 — Side-by-Side Stereoscopic Export
  */
 
-console.log('🚨🚨🚨 PNGExporter.js VERSION 2026-03-20 — SBS Stereo Export 🚨🚨🚨');
+console.log('PNGExporter.js — SBS Stereo Export');
 
 /**
  * Composite a single canvas with its overlay
