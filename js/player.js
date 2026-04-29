@@ -609,6 +609,12 @@ function setupKeyboardHandlers(ZM) {
         ZM.exportSVG();
       }
     }
+
+    // I: Toggle keyboard shortcuts info toast
+    if (e.key === 'i' || e.key === 'I') {
+      e.preventDefault();
+      toggleShortcutsToast();
+    }
   });
 }
 
@@ -712,11 +718,16 @@ function setupResizeHandler(ZM) {
  * Show the startup keyboard shortcuts toast for 7 seconds.
  * The toast can be dismissed early with the OK button.
  */
-function showShortcutsToast() {
+/**
+ * Show the startup keyboard shortcuts toast.
+ * @param {boolean} [withCountdown=true] - If true, auto-dismisses after 25s. If false, stays until dismissed.
+ */
+function showShortcutsToast(withCountdown = true) {
   const toast = document.getElementById('shortcuts-toast');
   if (!toast) return;
 
   const okBtn = document.getElementById('shortcuts-toast-ok');
+  const timerBar = toast.querySelector('.shortcuts-toast-timer-bar');
   let timer = null;
 
   const dismiss = () => {
@@ -724,9 +735,42 @@ function showShortcutsToast() {
     toast.classList.add('hidden');
   };
 
-  if (okBtn) okBtn.addEventListener('click', dismiss);
+  // Remove previous OK listener by replacing the button with a clone
+  if (okBtn) {
+    const fresh = okBtn.cloneNode(true);
+    okBtn.parentNode.replaceChild(fresh, okBtn);
+    fresh.addEventListener('click', dismiss);
+  }
 
-  timer = setTimeout(dismiss, 25000);
+  // Reset and show
+  toast.classList.remove('hidden');
+
+  if (withCountdown) {
+    // Re-trigger the CSS animation by removing and re-adding the bar
+    if (timerBar) {
+      timerBar.style.display = 'block';
+      timerBar.style.animation = 'none';
+      timerBar.offsetWidth; // reflow
+      timerBar.style.animation = '';
+    }
+    timer = setTimeout(dismiss, 25000);
+  } else {
+    // No countdown — hide the timer bar
+    if (timerBar) timerBar.style.display = 'none';
+  }
+}
+
+/**
+ * Toggle the shortcuts toast (no countdown).
+ */
+function toggleShortcutsToast() {
+  const toast = document.getElementById('shortcuts-toast');
+  if (!toast) return;
+  if (toast.classList.contains('hidden')) {
+    showShortcutsToast(false);
+  } else {
+    toast.classList.add('hidden');
+  }
 }
 
 /**
