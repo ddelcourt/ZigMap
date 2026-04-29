@@ -3,8 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZigMap26 — Zigzag Space Emitter</title>
-  
+  <title>Mapping26</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Mapping26">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+
+  <!-- Open Graph / Social Preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://labs.delcourt.ch/mapping26/">
+  <meta property="og:title" content="Mapping26">
+  <meta property="og:description" content="Generative zigzag space visualizer">
+  <meta property="og:image" content="https://labs.delcourt.ch/mapping26/assets/appPreview/social-preview.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mapping26">
+  <meta name="twitter:description" content="Generative zigzag space visualizer">
+  <meta name="twitter:image" content="https://labs.delcourt.ch/mapping26/assets/appPreview/social-preview.jpg">
+
   <!-- External CSS -->
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/canvas.css">
@@ -560,6 +579,17 @@
 
   <!-- Main Application Module -->
   <script type="module" src="js/main.js"></script>
+
+  <!-- PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.warn('Service worker registration failed:', err);
+        });
+      });
+    }
+  </script>
 
 </body>
 </html>
