@@ -333,8 +333,11 @@ export function initializeSketches(ZM) {
     const prevW = ZM.W;
     const prevH = ZM.H;
     
-    // Update dimensions for stereo mode (unless in framebuffer mode)
-    if (!ZM.params.framebufferMode) {
+    // Update dimensions for stereo mode
+    if (ZM.params.framebufferMode) {
+      ZM.W = ZM.params.framebufferWidth;
+      ZM.H = ZM.params.framebufferHeight;
+    } else {
       ZM.W = Math.floor(window.innerWidth / 2);
       ZM.H = window.innerHeight;
     }
@@ -409,8 +412,11 @@ export function initializeSketches(ZM) {
     const prevW = ZM.W;
     const prevH = ZM.H;
     
-    // Update dimensions for mono mode (unless in framebuffer mode)
-    if (!ZM.params.framebufferMode) {
+    // Update dimensions for mono mode
+    if (ZM.params.framebufferMode) {
+      ZM.W = ZM.params.framebufferWidth;
+      ZM.H = ZM.params.framebufferHeight;
+    } else {
       ZM.W = window.innerWidth;
       ZM.H = window.innerHeight;
     }

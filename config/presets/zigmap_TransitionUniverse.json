@@ -2,16 +2,16 @@
   "version": "2.0",
   "params": {
     "segmentLength": 120,
-    "lineThickness": 21.7,
-    "emitterRotation": 319,
-    "geometryScale": 176,
+    "lineThickness": 10.2,
+    "emitterRotation": 180,
+    "geometryScale": 355,
     "fadeDuration": 1,
     "palettes": [
       [
-        { "rgb": [0, 249, 0], "role": "line" },
-        { "rgb": [212, 251, 120], "role": "line" },
-        { "rgb": [41, 75, 0], "role": "line" },
-        { "rgb": [0, 0, 0], "role": "background" }
+        { "rgb": [255, 255, 255], "role": "line" },
+        { "rgb": [0, 0, 0], "role": "background" },
+        { "rgb": [180, 180, 180], "role": "none" },
+        { "rgb": [60, 60, 60], "role": "none" }
       ],
       [
         { "rgb": [255, 140, 60], "role": "line" },
@@ -33,42 +33,42 @@
       ]
     ],
     "activePaletteIndex": 0,
-    "colorTransitionDuration": 5,
-    "stateTransitionDuration": 30,
-    "colorSlotZOffset": 100,
+    "colorTransitionDuration": 8,
+    "stateTransitionDuration": 37,
+    "colorSlotZOffset": 10,
     "autoTriggerStates": true,
-    "autoTriggerFrequency": 30,
-    "emitRate": 6.3,
-    "speed": 243,
-    "ambientSpeedMaster": 80,
+    "autoTriggerFrequency": 42,
+    "emitRate": 3.9,
+    "speed": 129,
+    "ambientSpeedMaster": 75,
     "randomThickness": false,
     "randomSpeed": false,
     "thicknessRangeMin": 10,
     "thicknessRangeMax": 200,
     "speedRangeMin": 50,
     "speedRangeMax": 150,
-    "fov": 88.01,
+    "fov": 60,
     "near": 0.01,
     "far": 5000,
-    "cameraRotationX": -1.8951384110644802,
-    "cameraRotationY": 50.26958318431098,
-    "cameraDistance": 1339.3423765134357,
-    "cameraOffsetX": -592.4286755071411,
-    "cameraOffsetY": 492.2417806911073,
+    "cameraRotationX": -1.9201384110644748,
+    "cameraRotationY": 50.264583184310986,
+    "cameraDistance": 859.3423765134357,
+    "cameraOffsetX": -16.428675507141065,
+    "cameraOffsetY": -185.7582193088927,
     "stereoscopicMode": false,
     "eyeSeparation": 30,
-    "framebufferMode": false,
-    "framebufferPreset": "1920x1080",
+    "framebufferMode": true,
+    "framebufferPreset": "custom",
     "framebufferWidth": 1920,
-    "framebufferHeight": 1080,
+    "framebufferHeight": 640,
     "videoDuration": 10,
     "videoFPS": 30,
     "videoFormat": "webm",
     "depthInvert": false,
     "overlayPresetFile": "Mapping2026_Horizontal-White_O_Shadow.json",
-    "overlayVisible": false,
+    "overlayVisible": true,
     "overlayAutoFit": false,
-    "overlayScale": 100,
+    "overlayScale": 104,
     "overlayOpacity": 100,
     "overlayX": 50,
     "overlayY": 50,
@@ -92,7 +92,7 @@
     {
       "id": "state_1773334605756_4m4hmidf7",
       "name": "InitiCity",
-      "timestamp": 1773954099207,
+      "timestamp": 1777417595621,
       "params": {
         "segmentLength": 120,
         "lineThickness": 10.2,
@@ -155,11 +155,11 @@
         "overlayShadowBlur": 100
       },
       "camera": {
-        "rotationX": -3.1650000000000205,
-        "rotationY": 37.729111843077526,
-        "distance": 504,
-        "offsetX": 3,
-        "offsetY": -44
+        "rotationX": -1.9201384110644748,
+        "rotationY": 50.264583184310986,
+        "distance": 859.3423765134357,
+        "offsetX": -16.428675507141065,
+        "offsetY": -185.7582193088927
       },
       "metadata": {
         "version": "1.0"
@@ -237,7 +237,7 @@
     {
       "id": "state_1773334788644_bjor32bf1",
       "name": "Segatronic",
-      "timestamp": 1773363566945,
+      "timestamp": 1777416847499,
       "params": {
         "segmentLength": 120,
         "lineThickness": 10,
@@ -274,7 +274,6 @@
         "colorSlotZOffset": 120,
         "emitRate": 3.9,
         "speed": 80,
-        "ambientSpeedMaster": 100,
         "randomThickness": true,
         "randomSpeed": true,
         "thicknessRangeMin": 10,
@@ -282,22 +281,30 @@
         "speedRangeMin": 50,
         "speedRangeMax": 150,
         "fov": 60,
-        "cameraRotationX": -8.417667196750712,
-        "cameraRotationY": 6.303158565996167,
-        "cameraDistance": 1560,
-        "cameraOffsetX": 35,
-        "cameraOffsetY": -526,
-        "videoDuration": 10,
-        "videoFPS": 30,
-        "videoFormat": "webm",
-        "depthInvert": false
+        "overlayPresetFile": "Mapping2026_Horizontal-White_O_Shadow.json",
+        "overlayAutoFit": false,
+        "overlayTransitionDuration": 2,
+        "overlayTintEnabled": true,
+        "overlayTintColor": [
+          254,
+          255,
+          255
+        ],
+        "overlayShadowEnabled": true,
+        "overlayShadowColor": [
+          0,
+          0,
+          0
+        ],
+        "overlayShadowOpacity": 100,
+        "overlayShadowBlur": 100
       },
       "camera": {
-        "rotationX": -8.417667196750712,
-        "rotationY": 6.303158565996167,
-        "distance": 1560,
-        "offsetX": 35,
-        "offsetY": -526
+        "rotationX": 4.14870341760846,
+        "rotationY": 44.00227040907369,
+        "distance": 1112,
+        "offsetX": -342,
+        "offsetY": -292
       },
       "metadata": {
         "version": "1.0"
@@ -375,7 +382,7 @@
     {
       "id": "state_1773340319052_1jppz7sbg",
       "name": "Sari",
-      "timestamp": 1773363506044,
+      "timestamp": 1777416887066,
       "params": {
         "segmentLength": 120,
         "lineThickness": 10,
@@ -412,7 +419,6 @@
         "colorSlotZOffset": 10,
         "emitRate": 1.9,
         "speed": 80,
-        "ambientSpeedMaster": 100,
         "randomThickness": true,
         "randomSpeed": true,
         "thicknessRangeMin": 10,
@@ -420,22 +426,30 @@
         "speedRangeMin": 50,
         "speedRangeMax": 200,
         "fov": 60,
-        "cameraRotationX": -3.1249999999999956,
-        "cameraRotationY": 3.159999999999996,
-        "cameraDistance": 184,
-        "cameraOffsetX": 1,
-        "cameraOffsetY": -84,
-        "videoDuration": 10,
-        "videoFPS": 30,
-        "videoFormat": "webm",
-        "depthInvert": false
+        "overlayPresetFile": "Mapping2026_Horizontal-White_O_Shadow.json",
+        "overlayAutoFit": false,
+        "overlayTransitionDuration": 2,
+        "overlayTintEnabled": true,
+        "overlayTintColor": [
+          254,
+          255,
+          255
+        ],
+        "overlayShadowEnabled": true,
+        "overlayShadowColor": [
+          0,
+          0,
+          0
+        ],
+        "overlayShadowOpacity": 100,
+        "overlayShadowBlur": 100
       },
       "camera": {
-        "rotationX": -3.1249999999999956,
-        "rotationY": 3.159999999999996,
-        "distance": 184,
-        "offsetX": 1,
-        "offsetY": -84
+        "rotationX": 3.078437893125181,
+        "rotationY": 47.13988266896179,
+        "distance": 120,
+        "offsetX": -43.34418176307135,
+        "offsetY": -138.2833949168632
       },
       "metadata": {
         "version": "1.0"
@@ -444,7 +458,7 @@
     {
       "id": "state_1773349180305_srvvfv7fc",
       "name": "Dehlicious",
-      "timestamp": 1773363459548,
+      "timestamp": 1777416899108,
       "params": {
         "segmentLength": 120,
         "lineThickness": 9.5,
@@ -481,7 +495,6 @@
         "colorSlotZOffset": 70,
         "emitRate": 5.3,
         "speed": 243,
-        "ambientSpeedMaster": 50,
         "randomThickness": true,
         "randomSpeed": false,
         "thicknessRangeMin": 10,
@@ -489,22 +502,30 @@
         "speedRangeMin": 50,
         "speedRangeMax": 150,
         "fov": 60,
-        "cameraRotationX": -2.5750000000000286,
-        "cameraRotationY": 0.0799999999999874,
-        "cameraDistance": 298,
-        "cameraOffsetX": -115,
-        "cameraOffsetY": -226,
-        "videoDuration": 10,
-        "videoFPS": 30,
-        "videoFormat": "webm",
-        "depthInvert": false
+        "overlayPresetFile": "Mapping2026_Horizontal-White_O_Shadow.json",
+        "overlayAutoFit": false,
+        "overlayTransitionDuration": 2,
+        "overlayTintEnabled": true,
+        "overlayTintColor": [
+          254,
+          255,
+          255
+        ],
+        "overlayShadowEnabled": true,
+        "overlayShadowColor": [
+          0,
+          0,
+          0
+        ],
+        "overlayShadowOpacity": 100,
+        "overlayShadowBlur": 100
       },
       "camera": {
-        "rotationX": -2.5750000000000286,
-        "rotationY": 0.0799999999999874,
-        "distance": 298,
-        "offsetX": -115,
-        "offsetY": -226
+        "rotationX": 0.5952163536643607,
+        "rotationY": 44.10729402294063,
+        "distance": 351.48371452931553,
+        "offsetX": 16.992146961491997,
+        "offsetY": -710.941762422392
       },
       "metadata": {
         "version": "1.0"
@@ -513,7 +534,7 @@
     {
       "id": "state_1773349459849_fylhqlyku",
       "name": "Everbeen",
-      "timestamp": 1777409444577,
+      "timestamp": 1777417241503,
       "params": {
         "segmentLength": 120,
         "lineThickness": 21.7,
@@ -576,11 +597,11 @@
         "overlayShadowBlur": 100
       },
       "camera": {
-        "rotationX": -1.8951384110644802,
-        "rotationY": 50.26958318431098,
-        "distance": 1339.3423765134357,
-        "offsetX": -592.4286755071411,
-        "offsetY": 492.2417806911073
+        "rotationX": -1.9201384110644748,
+        "rotationY": 50.264583184310986,
+        "distance": 859.3423765134357,
+        "offsetX": -16.428675507141065,
+        "offsetY": -185.7582193088927
       },
       "metadata": {
         "version": "1.0"
@@ -796,7 +817,7 @@
     {
       "id": "state_1773446511184_v897qm358",
       "name": "Flying",
-      "timestamp": 1773446572455,
+      "timestamp": 1777416800261,
       "params": {
         "segmentLength": 120,
         "lineThickness": 6.5,
@@ -833,7 +854,6 @@
         "colorSlotZOffset": 10,
         "emitRate": 5.3,
         "speed": 80,
-        "ambientSpeedMaster": 100,
         "randomThickness": false,
         "randomSpeed": false,
         "thicknessRangeMin": 10,
@@ -841,15 +861,8 @@
         "speedRangeMin": 50,
         "speedRangeMax": 150,
         "fov": 60,
-        "cameraRotationX": -2.130409772290955,
-        "cameraRotationY": 31.421145955072802,
-        "cameraDistance": 50,
-        "cameraOffsetX": -10.41793739712763,
-        "cameraOffsetY": -176.95409751920363,
-        "videoDuration": 10,
-        "videoFPS": 30,
-        "videoFormat": "webm",
-        "depthInvert": false,
+        "overlayPresetFile": "Mapping2026_Horizontal-White_O_Shadow.json",
+        "overlayAutoFit": false,
         "overlayTransitionDuration": 2,
         "overlayTintEnabled": true,
         "overlayTintColor": [
@@ -867,11 +880,11 @@
         "overlayShadowBlur": 100
       },
       "camera": {
-        "rotationX": -2.130409772290955,
-        "rotationY": 31.421145955072802,
+        "rotationX": 4.152775534888631,
+        "rotationY": 37.70433126225239,
         "distance": 50,
-        "offsetX": -10.41793739712763,
-        "offsetY": -176.95409751920363
+        "offsetX": -29.41793739712763,
+        "offsetY": 22.04590248079637
       },
       "metadata": {
         "version": "1.0"
@@ -880,7 +893,7 @@
     {
       "id": "state_1773462533449_64tntu4kw",
       "name": "Cathedral",
-      "timestamp": 1773462725093,
+      "timestamp": 1777416951387,
       "params": {
         "segmentLength": 120,
         "lineThickness": 6.5,
@@ -917,7 +930,6 @@
         "colorSlotZOffset": 10,
         "emitRate": 5.3,
         "speed": 101,
-        "ambientSpeedMaster": 50,
         "randomThickness": false,
         "randomSpeed": false,
         "thicknessRangeMin": 10,
@@ -925,15 +937,8 @@
         "speedRangeMin": 50,
         "speedRangeMax": 150,
         "fov": 179.01,
-        "cameraRotationX": 10.168285204483736,
-        "cameraRotationY": 3.0022576735658237,
-        "cameraDistance": 850,
-        "cameraOffsetX": -181.16787829078748,
-        "cameraOffsetY": -1627.4689014328887,
-        "videoDuration": 10,
-        "videoFPS": 30,
-        "videoFormat": "webm",
-        "depthInvert": false,
+        "overlayPresetFile": "Mapping2026_Horizontal-White_O_Shadow.json",
+        "overlayAutoFit": false,
         "overlayTransitionDuration": 2,
         "overlayTintEnabled": true,
         "overlayTintColor": [
@@ -951,11 +956,11 @@
         "overlayShadowBlur": 100
       },
       "camera": {
-        "rotationX": 10.168285204483736,
-        "rotationY": 3.0022576735658237,
+        "rotationX": -2.163085409875434,
+        "rotationY": 47.25455482382293,
         "distance": 850,
-        "offsetX": -181.16787829078748,
-        "offsetY": -1627.4689014328887
+        "offsetX": -129.16787829078748,
+        "offsetY": -759.4689014328887
       },
       "metadata": {
         "version": "1.0"
@@ -964,7 +969,7 @@
     {
       "id": "state_1773473770324_2xdg71xms",
       "name": "LakeSide",
-      "timestamp": 1773474430043,
+      "timestamp": 1777416823094,
       "params": {
         "segmentLength": 120,
         "lineThickness": 11.7,
@@ -1001,7 +1006,6 @@
         "colorSlotZOffset": 160,
         "emitRate": 5.3,
         "speed": 80,
-        "ambientSpeedMaster": 96,
         "randomThickness": true,
         "randomSpeed": true,
         "thicknessRangeMin": 10,
@@ -1009,15 +1013,7 @@
         "speedRangeMin": 50,
         "speedRangeMax": 150,
         "fov": 149.01,
-        "cameraRotationX": -4.424999999999971,
-        "cameraRotationY": 24.877741228718378,
-        "cameraDistance": 1054.449987472146,
-        "cameraOffsetX": 90,
-        "cameraOffsetY": -87,
-        "videoDuration": 10,
-        "videoFPS": 30,
-        "videoFormat": "webm",
-        "depthInvert": false,
+        "overlayPresetFile": "Mapping2026_Horizontal-White_O_Shadow.json",
         "overlayAutoFit": false,
         "overlayTransitionDuration": 2,
         "overlayTintEnabled": true,
@@ -1036,11 +1032,11 @@
         "overlayShadowBlur": 100
       },
       "camera": {
-        "rotationX": -4.424999999999971,
-        "rotationY": 24.877741228718378,
+        "rotationX": 1.888185307179615,
+        "rotationY": 43.872297150257104,
         "distance": 1054.449987472146,
-        "offsetX": 90,
-        "offsetY": -87
+        "offsetX": -104,
+        "offsetY": 45
       },
       "metadata": {
         "version": "1.0"
@@ -1219,7 +1215,7 @@
     {
       "id": "state_1773492230672_0bu6n29i7",
       "name": "PeachyGrape",
-      "timestamp": 1773493596669,
+      "timestamp": 1777416977440,
       "params": {
         "segmentLength": 120,
         "lineThickness": 25.1,
@@ -1263,15 +1259,7 @@
         "speedRangeMin": 50,
         "speedRangeMax": 150,
         "fov": 88.01,
-        "cameraRotationX": 6.878185307179347,
-        "cameraRotationY": 37.82411184307726,
-        "cameraDistance": 671.5096719261009,
-        "cameraOffsetX": -2,
-        "cameraOffsetY": -1064,
-        "videoDuration": 10,
-        "videoFPS": 30,
-        "videoFormat": "webm",
-        "depthInvert": false,
+        "overlayPresetFile": "Mapping2026_Horizontal-White_O_Shadow.json",
         "overlayAutoFit": false,
         "overlayTransitionDuration": 2,
         "overlayTintEnabled": true,
@@ -1290,8 +1278,8 @@
         "overlayShadowBlur": 100
       },
       "camera": {
-        "rotationX": 6.878185307179347,
-        "rotationY": 37.82411184307726,
+        "rotationX": 0.5949999999997606,
+        "rotationY": 50.390482457436434,
         "distance": 671.5096719261009,
         "offsetX": -2,
         "offsetY": -1064
@@ -1301,7 +1289,7 @@
       }
     }
   ],
-  "activeStateId": "state_1773349459849_fylhqlyku",
+  "activeStateId": "state_1773334605756_4m4hmidf7",
   "overlayPresetFiles": [
     "Mapping2026_Horizontal-White_O_Shadow.json",
     "Mapping2026_Horizontal-White_O.json",
@@ -1310,5 +1298,5 @@
     "Mapping2026_Vertical-White_Shadow.json",
     "Mapping2026_Vertical-White.json"
   ],
-  "saveDate": "2026-04-28T20:50:44.578Z"
+  "saveDate": "2026-04-28T23:06:35.627Z"
 }

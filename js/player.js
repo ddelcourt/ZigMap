@@ -266,9 +266,25 @@ function loadPreset(jsonData) {
         Object.assign(ZM.params, jsonData.params);
       }
       
+      // Snapshot project-wide settings before merging first state params
+      // (state params from older saves may include these and would override them)
+      const projectWide = {
+        near: ZM.params.near,
+        far: ZM.params.far,
+        framebufferMode: ZM.params.framebufferMode,
+        framebufferPreset: ZM.params.framebufferPreset,
+        framebufferWidth: ZM.params.framebufferWidth,
+        framebufferHeight: ZM.params.framebufferHeight,
+        stereoscopicMode: ZM.params.stereoscopicMode,
+        eyeSeparation: ZM.params.eyeSeparation,
+      };
+
       // Then load the first state's params (overrides state-specific settings)
       const firstState = jsonData.states[0];
       Object.assign(ZM.params, firstState.params);
+
+      // Restore project-wide settings so state params cannot clobber them
+      Object.assign(ZM.params, projectWide);
       
       // Apply camera from first state if present
       if (firstState.camera) {
@@ -693,11 +709,35 @@ function setupResizeHandler(ZM) {
 }
 
 /**
+ * Show the startup keyboard shortcuts toast for 7 seconds.
+ * The toast can be dismissed early with the OK button.
+ */
+function showShortcutsToast() {
+  const toast = document.getElementById('shortcuts-toast');
+  if (!toast) return;
+
+  const okBtn = document.getElementById('shortcuts-toast-ok');
+  let timer = null;
+
+  const dismiss = () => {
+    if (timer) clearTimeout(timer);
+    toast.classList.add('hidden');
+  };
+
+  if (okBtn) okBtn.addEventListener('click', dismiss);
+
+  timer = setTimeout(dismiss, 25000);
+}
+
+/**
  * Initialize the player when DOM is ready
  */
 function initPlayer() {
   console.log('🎨 Initializing ZigMap26 Player...');
   
+  // Show keyboard shortcuts toast on startup
+  showShortcutsToast();
+
   // Initialize dropzone
   initializeDropzone();
   
