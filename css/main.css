@@ -197,7 +197,7 @@ body.hide-cursor * {
 
 .mini-toast {
   background: rgba(40, 40, 45, 0.95);
-  border: 1px solid rgba(100, 150, 255, 0.5);
+  border: 1px solid rgba(64, 64, 64, 0.5);
   border-radius: 6px;
   padding: 12px 16px;
   color: #e0e0e0;
