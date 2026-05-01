@@ -480,36 +480,65 @@ export function updateCanvasSize(ZM) {
   if (!ZM.p5Instance) return;
   
   const wrapper = document.getElementById('canvas-wrapper');
-  const W = ZM.params.framebufferWidth;
-  const H = ZM.params.framebufferHeight;
   
   if (ZM.params.framebufferMode) {
+    const W = ZM.params.framebufferWidth;
+    const H = ZM.params.framebufferHeight;
     ZM.W = W;
     ZM.H = H;
+    
     wrapper.classList.add('framebuffer-mode');
     
-    // Set pixel density to 1 for exact framebuffer dimensions
+    // Pixel density 1 for exact framebuffer resolution
     ZM.p5Instance.pixelDensity(1);
     if (ZM.p5InstanceRight) ZM.p5InstanceRight.pixelDensity(1);
     
-    // Calculate scale to fit canvas in viewport
-    const scaleX = window.innerWidth / (ZM.params.stereoscopicMode ? W * 2 : W);
-    const scaleY = window.innerHeight / H;
-    const scale = Math.min(scaleX, scaleY, 1);
-    
+    // Resize p5 canvases to exact framebuffer pixel dimensions
     ZM.p5Instance.resizeCanvas(W, H);
     if (ZM.p5InstanceRight) ZM.p5InstanceRight.resizeCanvas(W, H);
-
-    // Clear any previously applied transform — CSS width/height: 100% fills the wrapper
-    ZM.p5Instance.canvas.style.transform = 'none';
-    if (ZM.p5InstanceRight) ZM.p5InstanceRight.canvas.style.transform = 'none';
-
-    // Size the wrapper to the scaled visual dimensions; CSS makes the canvas fill it
-    const wrapperW = ZM.params.stereoscopicMode ? W * scale * 2 : W * scale;
-    wrapper.style.width = `${wrapperW}px`;
-    wrapper.style.height = `${H * scale}px`;
+    
+    if (ZM.params.stereoscopicMode) {
+      // Stereo + framebuffer:
+      // Wrapper fills full viewport so the split stays exactly at screen center.
+      // Each eye's available display area is half the viewport width × full height.
+      // Scale the framebuffer canvas to fit within that area, preserving aspect ratio.
+      const eyeW = Math.floor(window.innerWidth / 2);
+      const eyeH = window.innerHeight;
+      const scale = Math.min(eyeW / W, eyeH / H, 1);
+      const displayW = Math.round(W * scale);
+      const displayH = Math.round(H * scale);
+      
+      wrapper.style.width = '100%';
+      wrapper.style.height = '100%';
+      
+      // Override p5's own inline style.width/height with the computed display size.
+      // Inline styles take priority over both CSS rules and p5's resizeCanvas values.
+      ZM.p5Instance.canvas.style.width = `${displayW}px`;
+      ZM.p5Instance.canvas.style.height = `${displayH}px`;
+      ZM.p5Instance.canvas.style.transform = 'none';
+      
+      if (ZM.p5InstanceRight) {
+        ZM.p5InstanceRight.canvas.style.width = `${displayW}px`;
+        ZM.p5InstanceRight.canvas.style.height = `${displayH}px`;
+        ZM.p5InstanceRight.canvas.style.transform = 'none';
+      }
+    } else {
+      // Mono + framebuffer: scale the wrapper (and canvas) to fit the viewport
+      const scaleX = window.innerWidth / W;
+      const scaleY = window.innerHeight / H;
+      const scale = Math.min(scaleX, scaleY, 1);
+      const displayW = Math.round(W * scale);
+      const displayH = Math.round(H * scale);
+      
+      wrapper.style.width = `${displayW}px`;
+      wrapper.style.height = `${displayH}px`;
+      
+      ZM.p5Instance.canvas.style.width = `${displayW}px`;
+      ZM.p5Instance.canvas.style.height = `${displayH}px`;
+      ZM.p5Instance.canvas.style.transform = 'none';
+    }
   } else {
-    // Set pixel density to native display density for smooth retina rendering
+    // Non-framebuffer: native resolution, canvas sized to match the viewport
     ZM.p5Instance.pixelDensity(ZM.p5Instance.displayDensity());
     if (ZM.p5InstanceRight) ZM.p5InstanceRight.pixelDensity(ZM.p5InstanceRight.displayDensity());
     
@@ -528,8 +557,16 @@ export function updateCanvasSize(ZM) {
     ZM.p5Instance.resizeCanvas(ZM.W, ZM.H);
     if (ZM.p5InstanceRight) ZM.p5InstanceRight.resizeCanvas(ZM.W, ZM.H);
     
+    // Clear any explicit inline sizing set during framebuffer mode.
+    // p5's resizeCanvas() will have set its own style.width/height, which is correct here.
+    ZM.p5Instance.canvas.style.width = '';
+    ZM.p5Instance.canvas.style.height = '';
     ZM.p5Instance.canvas.style.transform = 'none';
-    if (ZM.p5InstanceRight) ZM.p5InstanceRight.canvas.style.transform = 'none';
+    if (ZM.p5InstanceRight) {
+      ZM.p5InstanceRight.canvas.style.width = '';
+      ZM.p5InstanceRight.canvas.style.height = '';
+      ZM.p5InstanceRight.canvas.style.transform = 'none';
+    }
   }
 }
 
