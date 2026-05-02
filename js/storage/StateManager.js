@@ -248,6 +248,8 @@ function restoreState(ZM, state, instant = false) {
       ZM.camera.distance = state.camera.distance;
       ZM.camera.offsetX = state.camera.offsetX || 0;
       ZM.camera.offsetY = state.camera.offsetY || 0;
+      ZM.camera.transition.isActive = false;
+      ZM.camera.transition.progress = 1.0;
     } else {
       // Normal mode: use transitions
       ZM.camera.transitionTo(
@@ -544,7 +546,7 @@ function saveState(ZM, name) {
  * @param {String} id - State ID
  * @returns {Boolean} Success status
  */
-function loadState(ZM, id, instant = false) {
+function loadState(ZM, id, instant = false, toastPrefix = 'State: ') {
   const state = getStateById(ZM, id);
   if (!state) {
     console.warn('State not found:', id);
@@ -555,8 +557,22 @@ function loadState(ZM, id, instant = false) {
   ZM.stateManager.activeStateId = id;
   saveActiveStateId(id);
 
-  if (ZM.showToast) ZM.showToast(`State: ${state.name}`);
-  
+  if (ZM.showToast) {
+    if (ZM.buildPaletteSwatchNode) {
+      const wrapper = document.createElement('span');
+      wrapper.style.cssText = 'display:flex;flex-direction:column;gap:4px;flex:1;';
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = toastPrefix + state.name;
+      wrapper.appendChild(nameSpan);
+      const swatchNode = ZM.buildPaletteSwatchNode(ZM.params.activePaletteIndex);
+      swatchNode.style.marginLeft = 'auto';
+      wrapper.appendChild(swatchNode);
+      ZM.showToast('', '', 4400, wrapper);
+    } else {
+      ZM.showToast(toastPrefix + state.name);
+    }
+  }
+
   // Add to history (unless we're navigating through history)
   if (!ZM.stateHistory.isNavigating) {
     // Remove any forward history if we're not at the end
@@ -978,7 +994,24 @@ function navigateHistory(ZM, direction) {
   restoreState(ZM, state);
   ZM.stateManager.activeStateId = stateId;
   saveActiveStateId(stateId);
-  
+
+  if (ZM.showToast) {
+    const prefix = direction < 0 ? '⏮ ' : '⏭ ';
+    if (ZM.buildPaletteSwatchNode) {
+      const wrapper = document.createElement('span');
+      wrapper.style.cssText = 'display:flex;flex-direction:column;gap:4px;flex:1;';
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = prefix + state.name;
+      wrapper.appendChild(nameSpan);
+      const swatchNode = ZM.buildPaletteSwatchNode(ZM.params.activePaletteIndex);
+      swatchNode.style.marginLeft = 'auto';
+      wrapper.appendChild(swatchNode);
+      ZM.showToast('', '', 4400, wrapper);
+    } else {
+      ZM.showToast(prefix + state.name);
+    }
+  }
+
   // Update UI
   if (ZM.updateStatePanel) {
     ZM.updateStatePanel();
@@ -1089,7 +1122,6 @@ function initializeAutoTriggerControls(ZM) {
   if (previousBtn) {
     previousBtn.addEventListener('click', () => {
       navigateHistory(ZM, -1);
-      if (ZM.showToast) ZM.showToast('Previous State');
     });
   }
   
@@ -1115,7 +1147,6 @@ function initializeAutoTriggerControls(ZM) {
       ZM.stateManager.loadRandomState();
       console.log('[Auto-Trigger] Skipped to next state');
       updateAutoTriggerStatus(ZM);
-      if (ZM.showToast) ZM.showToast('Skip to Next State');
     });
   }
   
@@ -1213,7 +1244,7 @@ function loadRandomState(ZM) {
     ${ZM.shufflePool.length === 0 ? '(Cycle complete - will shuffle on next trigger)' : ''}`);
   
   // Load the next state (this updates activeStateId for next call)
-  const success = loadState(ZM, nextState.id);
+  const success = loadState(ZM, nextState.id, false, '⏭ ');
   
   // If pool is now empty, it will auto-refill on next call
   // This ensures all states are visited before any repeat

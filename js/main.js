@@ -91,6 +91,17 @@ window.ZigMap26 = {
       window.ZigMap26.autoTriggerTimer.pausedAt = 0;
       window.ZigMap26.autoTriggerTimer.paused = false;
     }
+
+    // Reset state history so previous/next navigation starts fresh
+    if (window.ZigMap26.stateHistory) {
+      window.ZigMap26.stateHistory.stack = [];
+      window.ZigMap26.stateHistory.currentIndex = -1;
+    }
+
+    // Cancel any active camera transition
+    if (window.ZigMap26.camera && window.ZigMap26.camera.transition) {
+      window.ZigMap26.camera.transition.isActive = false;
+    }
     
     // Restore states if present (v2 format)
     if (loadedData.states && Array.isArray(loadedData.states)) {

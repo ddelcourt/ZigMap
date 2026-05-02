@@ -45,8 +45,10 @@ export function setupKeyboardHandlers(ZM) {
             
             // Execute action
             executeAction(shortcut.action, ZM);
-            // Show mini feedback toast (skip info-panel toggle — it's self-evident)
-            if (shortcut.action !== 'toggleShortcutsToast' && ZM.showToast) {
+            // Show mini feedback toast (skip info-panel toggle — it's self-evident;
+            // skip state nav actions — they show their own toast with state name + swatches)
+            const noToastActions = ['toggleShortcutsToast', 'autoTriggerSkip', 'autoTriggerPrevious'];
+            if (!noToastActions.includes(shortcut.action) && ZM.showToast) {
               const suffix = getToggleSuffix(shortcut.action, ZM);
               const type = suffix.includes('ON') || suffix.includes('PLAYING') ? 'success' : 'info';
               const node = buildPaletteSwatches(shortcut.action, ZM);

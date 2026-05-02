@@ -63,6 +63,7 @@ export function initializeUI(ZM) {
   ZM.updatePaletteUI = () => updatePaletteUI(ZM);
   ZM.updateStatePanel = () => updateStatePanel(ZM);
   ZM.showToast = (message, type) => showToast(message, type);
+  ZM.buildPaletteSwatchNode = (paletteIndex) => buildPaletteSwatchNode(ZM, paletteIndex);
   ZM.cancelStateAutoUpdate = cancelStateAutoUpdate; // Expose to other modules
 }
 
