@@ -277,10 +277,10 @@ const params = {
   // Color Palettes
   palettes: [                // 4 palettes × 4 colors each
     [
-      { color: [255, 255, 255], role: 'line' },
-      { color: [200, 200, 255], role: 'line' },
-      { color: [255, 200, 200], role: 'line' },
-      { color: [200, 255, 200], role: 'none' }
+      { rgb: [255, 255, 255], role: 'line' },
+      { rgb: [200, 200, 255], role: 'line' },
+      { rgb: [255, 200, 200], role: 'line' },
+      { rgb: [200, 255, 200], role: 'none' }
     ],
     // ... palettes 2-4
   ],
@@ -347,25 +347,29 @@ const camera = {
 ### Constants
 
 ```javascript
-const SEGMENTS = 16;                // Zigzag vertices per line
-const STORAGE_KEY = 'zigzagEmitterSettings';  // LocalStorage key
+export const SEGMENTS = 16;                // Zigzag vertices per line
+export const STORAGE_KEY = 'zigmap26Settings';  // LocalStorage key
 ```
 
-### Global State Variables
+### Global Application State (`window.ZigMap26`)
+
+All shared state lives in the `window.ZigMap26` namespace, populated in `js/main.js`:
 
 ```javascript
-let W, H;                    // Canvas logical dimensions
-let noiseOffset;             // Perlin noise time offset
-let p5Instance;              // Primary p5 sketch instance
-let p5InstanceRight;         // Secondary (stereo right) instance
-let emitterInstance;         // Shared Emitter object
-let capturer;                // CCapture instance
-let isRecording;             // Recording active flag
-let recordingFrameCount;     // Current frame in recording
-let recordingTotalFrames;    // Target frame count
-let sharedLastTime;          // Synchronized timestamp for stereo
-let activeCanvasId;          // Which canvas has camera control
-let isUpdatingCanvasSize;    // Prevent recursive resize
+window.ZigMap26 = {
+  params: { ...DEFAULT_PARAMS },   // All adjustable parameters
+  SEGMENTS,                         // Zigzag vertices per line
+  STORAGE_KEY,                      // LocalStorage key
+  noiseOffset: 0,                   // Perlin noise time offset
+  W: window.innerWidth,             // Canvas logical width
+  H: window.innerHeight,            // Canvas logical height
+  camera: null,                     // Camera instance
+  p5Instance: null,                 // Primary p5 sketch instance
+  p5InstanceRight: null,            // Secondary (stereo right) instance
+  emitterInstance: null,            // Shared Emitter object
+  sketchReady: false,               // Whether sketch is initialized
+  stateManager: null,               // StateManager instance
+};
 ```
 
 ---
@@ -379,9 +383,8 @@ Represents a single animated zigzag ribbon.
 #### Constructor
 
 ```javascript
-constructor({ p, x, y, segmentLength, lineThickness, lineColor, vy })
-```
-colorData, vy })
+constructor({ p, x, y, segmentLength, lineThickness, lineColor, colorSlotIndex, vy,
+              canvasWidth, canvasHeight, params, getSpawnDistanceFn, buildRibbonSidesFn })
 ```
 
 **Parameters:**
@@ -390,8 +393,14 @@ colorData, vy })
 - `y` (Number): Initial Y position (canvas space)
 - `segmentLength` (Number): Height of each segment
 - `lineThickness` (Number): Ribbon width
-- `colorData` (Object): Color data with `{color: [r,g,b], slotIndex: 0-3}`
+- `lineColor` (Array): RGB color array `[r, g, b]`
+- `colorSlotIndex` (Number): Palette slot index (0–3) for Z-offset calculation
 - `vy` (Number): Velocity in Y direction (px/s, negative = upward)
+- `canvasWidth` (Number): Current canvas width in pixels
+- `canvasHeight` (Number): Current canvas height in pixels
+- `params` (Object): Reference to the global `params` object
+- `getSpawnDistanceFn` (Function): Utility function to compute spawn bounds
+- `buildRibbonSidesFn` (Function): Utility function to build ribbon geometry
 
 **Properties:**
 - `segments` (Number): Always 16
@@ -440,10 +449,10 @@ Calculates combined opacity from fade-in and fade-out.
 **Returns:** `Number` - Alpha value in range [0, 1]
 
 **Algorithm:**
-1. **Fade-in**: `min(age / FADE_IN_DURATION, 1)`
+1. **Fade-in**: `min(age / params.fadeDuration, 1)`
 2. **Fade-out**: 
-   - Calculate distance to nearest spawn boundary
-   - `min(distToBoundary / FADE_OUT_DISTANCE, 1)`
+   - Calculate time remaining until line reaches the spawn boundary
+   - `min(timeToBoundary / params.fadeDuration, 1)` where `timeToBoundary = distToBoundary / |vy|`
 3. Return minimum of fade-in and fade-out
 
 ##### `draw(p)`
@@ -474,13 +483,20 @@ Manages spawning and updating all zigzag lines.
 #### Constructor
 
 ```javascript
-constructor({ p, x, y })
+constructor({ p, x, y, params, noiseOffsetGetter,
+              canvasWidth, canvasHeight, getSpawnDistanceFn, buildRibbonSidesFn })
 ```
 
 **Parameters:**
 - `p` (p5): p5.js instance reference
 - `x` (Number): Spawn position X (canvas space)
 - `y` (Number): Spawn position Y (canvas space)
+- `params` (Object): Reference to the global `params` object
+- `noiseOffsetGetter` (Function): Returns current Perlin noise time offset
+- `canvasWidth` (Number): Current canvas width in pixels
+- `canvasHeight` (Number): Current canvas height in pixels
+- `getSpawnDistanceFn` (Function): Utility function to compute spawn bounds
+- `buildRibbonSidesFn` (Function): Utility function to build ribbon geometry
 
 **Properties:**
 - `lines` (Array): Collection of `ZigzagLine` instances
@@ -602,16 +618,16 @@ Converts a polyline into offset paths for ribbon rendering.
 
 ### Sketch Lifecycle
 
-#### `createSketch(parentId, cameraOffset, isPrimary)`
+#### `createSketch(ZM, eyeOffset, canvasId)` (`js/rendering/SketchFactory.js`)
 
-Factory function that returns a p5.js sketch.
+Factory function that returns a p5.js sketch function.
 
 **Parameters:**
-- `parentId` (String): DOM element ID to attach canvas
-- `cameraOffset` (Number): X-axis camera offset for stereo (0 for mono)
-- `isPrimary` (Boolean): Whether this is the main sketch (controls emitter updates)
+- `ZM` (Object): The global `window.ZigMap26` application state object
+- `eyeOffset` (Number): X-axis camera offset for stereo (0 for mono, ±eyeSeparation for stereo)
+- `canvasId` (String): DOM element ID to attach canvas (`'mono-canvas'`, `'left-canvas'`, `'right-canvas'`)
 
-**Returns:** `Function` - p5.js sketch function
+**Returns:** `Function` — p5.js sketch function (pass to `new p5(...)`)
 
 **Structure:**
 
@@ -922,10 +938,10 @@ async function init() {
     "activePaletteIndex": 0,
     "stateTransitionDuration": 5.0,
     "colorTransitionDuration": 3.0,
-    "autoTriggerEnabled": false,
+    "autoTriggerStates": false,
     "autoTriggerFrequency": 30,
     "fov": 70,
-    "stereoscopicEnabled": false,
+    "stereoscopicMode": false,
     "cameraRotationX": -0.3,
     "cameraRotationY": 0,
     "cameraDistance": 600,
@@ -988,7 +1004,7 @@ States capture complete snapshots of parameters and camera position for instant 
     // Project-wide (excluded from state capture):
     // - overlayImageSrc, overlayVisible, overlayScale, overlayOpacity, overlayX, overlayY
     // - stateTransitionDuration, colorTransitionDuration
-    // - autoTriggerEnabled, autoTriggerFrequency
+    // - autoTriggerStates, autoTriggerFrequency
   }
 }
 ```
@@ -1015,7 +1031,7 @@ Automatically switches between states using a shuffle pool algorithm to eliminat
 
 **Parameters:**
 ```javascript
-autoTriggerEnabled: false,      // ☑️ Enable/disable
+autoTriggerStates: false,      // ☑️ Enable/disable
 autoTriggerFrequency: 30,       // Seconds between switches (5-120)
 ```
 
@@ -1148,16 +1164,18 @@ export function syncUIFromParams(ZM) {
 
 ---
 
-#### `wire(sliderId, displayId, paramKey, decimals = 0, suffix = '')`
+#### `wireSlider(ZM, sliderId, displayId, paramKey, decimals = 0, label = '')`
+(`js/ui/UIController.js`)
 
 Binds a slider to a parameter with automatic persistence.
 
 **Parameters:**
+- `ZM` (Object): Global application state object
 - `sliderId` (String): HTML ID of range input
 - `displayId` (String): HTML ID of value display span
 - `paramKey` (String): Property name in `params` object
 - `decimals` (Number): Decimal places for display
-- `suffix` (String): Text to append to display value
+- `label` (String): Human-readable label for logging
 
 **Setup:**
 1. Get DOM elements
@@ -1170,7 +1188,7 @@ Binds a slider to a parameter with automatic persistence.
 
 **Example:**
 ```javascript
-wire('thickness', 'thickness-val', 'lineThickness', 1);
+wireSlider(ZM, 'thickness', 'thickness-val', 'lineThickness', 1, 'Thickness');
 // Wires thickness slider, displays with 1 decimal place
 ```
 
@@ -1337,7 +1355,7 @@ document.querySelectorAll('.section-header').forEach(header => {
 
 **Architecture:**
 - **4 palettes** × **4 color slots** each
-- Each color slot has: `color` (RGB array) and `role` ('line', 'background', or 'none')
+- Each color slot has: `rgb` (RGB array) and `role` ('line', 'background', or 'none')
 - Lines randomly pick from colors with role='line' at spawn time
 - Background uses first color with role='background', or black if none
 
@@ -2339,7 +2357,7 @@ const params = {
 
 **3. Wire control:**
 ```javascript
-wire('new-param', 'new-param-val', 'newParameter');
+wireSlider(ZM, 'new-param', 'new-param-val', 'newParameter');
 ```
 
 **4. Use in code:**
@@ -2368,10 +2386,10 @@ Edit `js/config/defaults.js`:
 palettes: [
   // Add 5th palette
   [
-    { color: [255, 128, 0], role: 'line' },
-    { color: [0, 255, 128], role: 'line' },
-    { color: [128, 0, 255], role: 'background' },
-    { color: [255, 255, 0], role: 'none' }
+    { rgb: [255, 128, 0], role: 'line' },
+    { rgb: [0, 255, 128], role: 'line' },
+    { rgb: [128, 0, 255], role: 'background' },
+    { rgb: [255, 255, 0], role: 'none' }
   ]
 ],
 ```
@@ -2522,7 +2540,7 @@ mouseWheel: camera.distance = 720
 1. **Console:** `console.log()` statements for state
 2. **Network:** Check library loads (p5.js, CCapture.js)
 3. **Performance:** Profile frame timing
-4. **Application → Local Storage:** View `zigzagEmitterSettings`
+4. **Application → Local Storage:** View `zigmap26Settings`
 5. **Elements:** Inspect canvas dimensions and classes
 
 ---

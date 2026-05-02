@@ -21,13 +21,16 @@ export function setupKeyboardHandlers(ZM) {
       }
       
       window.addEventListener('keydown', (e) => {
-        // Skip if typing in input field, textarea, or contenteditable element
-        const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+        // Skip if typing in a text-like input field, textarea, or contenteditable element
+        // (range and checkbox inputs should NOT block global shortcuts)
+        const TEXT_INPUT_TYPES = ['text', 'number', 'email', 'password', 'search', 'tel', 'url'];
+        const isTextInput = e.target.tagName === 'TEXTAREA' ||
+                            (e.target.tagName === 'INPUT' && TEXT_INPUT_TYPES.includes(e.target.type));
         const isContentEditable = e.target.isContentEditable || 
                                    e.target.contentEditable === 'true' ||
                                    e.target.getAttribute('contenteditable') === 'true';
         
-        if (isInput || isContentEditable) {
+        if (isTextInput || isContentEditable) {
           return;
         }
         
