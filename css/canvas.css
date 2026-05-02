@@ -55,7 +55,7 @@
   width: 50%;
   overflow: visible;
   min-width: 0;
-  outline: 1.5px solid rgb(0, 255, 0);
+  /* outline: 1.5px solid rgb(0, 255, 0); */
   outline-offset: 0;
   position: relative;
   transition: width 0.3s ease-out, height 0.3s ease-out;
@@ -93,6 +93,7 @@
   cursor: grab;
   width: 100%;
   height: 100%;
+  border: 1px solid greenyellow;
 }
 
 /* Canvas sizing is handled dynamically via JS */
