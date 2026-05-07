@@ -27,7 +27,7 @@
   <!-- External CSS -->
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/canvas.css">
-  <link rel="stylesheet" href="css/controls.css">
+  <link rel="stylesheet" href="css/controls.css?v=1.1">
   <link rel="stylesheet" href="css/states.css">
   
   <!-- External Libraries (offline-ready) -->
@@ -312,6 +312,16 @@
               <button class="palette-btn" data-palette="2">3</button>
               <button class="palette-btn" data-palette="3">4</button>
             </div>
+            
+            <!-- Copy/Paste Palette Buttons -->
+            <div class="palette-actions">
+              <button id="copy-palette-btn" class="palette-action-btn" title="Copy current palette">
+                <span>📋</span> Copy
+              </button>
+              <button id="paste-palette-btn" class="palette-action-btn" title="Paste to current palette" disabled>
+                <span>📄</span> Paste
+              </button>
+            </div>
           </div>
           
           <!-- Color Slots -->
@@ -592,8 +602,8 @@
         <div class="shortcuts-toast-item"><kbd>←</kbd><kbd>→</kbd><span>Navigate states</span></div>
         <div class="shortcuts-toast-item"><kbd>P</kbd><span>Export PNG</span></div>
         <div class="shortcuts-toast-item"><kbd>S</kbd><span>Export SVG</span></div>
-        <div class="shortcuts-toast-item"><kbd>D</kbd><span>Export depth map</span></div>
-        <div class="shortcuts-toast-item"><kbd>⌘/Ctrl</kbd><kbd>S</kbd><span>Save settings JSON</span></div>
+        <!-- <div class="shortcuts-toast-item"><kbd>D</kbd><span>Export depth map</span></div> -->
+        <div class="shortcuts-toast-item"><kbd>⌘/Ctrl</kbd><kbd>S</kbd><span>Save Project JSON</span></div>
         <div class="shortcuts-toast-item"><kbd>R</kbd><span>Reset camera</span></div>
         <div class="shortcuts-toast-item"><kbd>0</kbd><span>Reset zoom</span></div>
         <div class="shortcuts-toast-item"><kbd>T</kbd><span>Toggle random thickness</span></div>

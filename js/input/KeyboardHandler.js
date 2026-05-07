@@ -98,7 +98,7 @@ function executeAction(action, ZM) {
     
     // Camera Controls
     resetCamera: () => {
-      ZM.camera.rotationX = -0.3;
+      ZM.camera.rotationX = 0;
       ZM.camera.rotationY = 0;
       ZM.camera.distance = 600;
       ZM.camera.offsetX = 0;

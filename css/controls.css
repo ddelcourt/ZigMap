@@ -499,6 +499,56 @@ input[type="range"]:disabled::-moz-range-thumb:hover {
   color: #0087ff;
 }
 
+/* ── Palette Copy/Paste Actions ── */
+.palette-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.palette-action-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #333;
+  color: #aaa;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.palette-action-btn span {
+  font-size: 0.9rem;
+}
+
+.palette-action-btn:hover:not(:disabled) {
+  background: rgba(40, 40, 40, 0.9);
+  border-color: #555;
+  color: #fff;
+}
+
+.palette-action-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.palette-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.palette-action-btn:disabled:hover {
+  background: rgba(30, 30, 30, 0.8);
+  border-color: #333;
+  color: #aaa;
+}
+
+
 /* ── Palette Editor ── */
 .palette-editor {
   display: flex;

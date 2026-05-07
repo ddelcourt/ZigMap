@@ -8,6 +8,9 @@ import { OVERLAY_FILES, OVERLAY_FOLDER } from '../../config/overlayPresets.js';
 // Debounce timer for auto-updating active state
 let stateAutoUpdateTimer = null;
 
+// Clipboard for palette copy/paste
+let copiedPalette = null;
+
 /**
  * Cancel any pending state auto-update
  */
@@ -669,6 +672,83 @@ function setupPaletteUI(ZM) {
       // Auto-update active state (debounced)
       scheduleStateAutoUpdate(ZM);
     });
+  });
+  
+  // Copy/Paste palette buttons
+  setupPaletteCopyPaste(ZM);
+}
+
+/**
+ * Setup palette copy/paste functionality
+ */
+function setupPaletteCopyPaste(ZM) {
+  const copyBtn = document.getElementById('copy-palette-btn');
+  const pasteBtn = document.getElementById('paste-palette-btn');
+  
+  if (!copyBtn || !pasteBtn) {
+    console.warn('Copy/Paste palette buttons not found');
+    return;
+  }
+  
+  // Copy button
+  copyBtn.addEventListener('click', () => {
+    const activePaletteIndex = ZM.params.activePaletteIndex;
+    const activePalette = ZM.params.palettes[activePaletteIndex];
+    
+    // Deep copy the palette
+    copiedPalette = JSON.parse(JSON.stringify(activePalette));
+    
+    // Enable paste button
+    pasteBtn.disabled = false;
+    
+    // Show toast with swatch
+    if (ZM.showToast) {
+      ZM.showToast(
+        `Copied Palette ${activePaletteIndex + 1}`, 
+        '', 
+        3000, 
+        buildPaletteSwatchNode(ZM, activePaletteIndex)
+      );
+    }
+    
+    console.log(`📋 Copied palette ${activePaletteIndex + 1}:`, copiedPalette);
+  });
+  
+  // Paste button
+  pasteBtn.addEventListener('click', () => {
+    if (!copiedPalette) {
+      console.warn('No palette copied');
+      return;
+    }
+    
+    const activePaletteIndex = ZM.params.activePaletteIndex;
+    
+    // Deep copy to current palette
+    ZM.params.palettes[activePaletteIndex] = JSON.parse(JSON.stringify(copiedPalette));
+    
+    // Update UI
+    updatePaletteUI(ZM);
+    
+    // Trigger color transitions
+    triggerPaletteChange(ZM);
+    
+    // Save to localStorage
+    ZM.saveToLocalStorage();
+    
+    // Show toast with swatch
+    if (ZM.showToast) {
+      ZM.showToast(
+        `Pasted to Palette ${activePaletteIndex + 1}`, 
+        '', 
+        3000, 
+        buildPaletteSwatchNode(ZM, activePaletteIndex)
+      );
+    }
+    
+    console.log(`📄 Pasted palette to slot ${activePaletteIndex + 1}`);
+    
+    // Auto-update active state (debounced)
+    scheduleStateAutoUpdate(ZM);
   });
 }
 

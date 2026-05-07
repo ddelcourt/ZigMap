@@ -45,8 +45,8 @@
     },
     {
       "key": "0",
-      "action": "resetZoom",
-      "description": "Reset Zoom",
+      "action": "resetCamera",
+      "description": "Reset Zoom & Orbit",
       "preventDefault": true
     },
     {
