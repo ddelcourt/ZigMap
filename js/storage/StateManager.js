@@ -228,6 +228,19 @@ function restoreState(ZM, state, instant = false) {
   // Restore preserved project-wide settings
   Object.assign(ZM.params, preservedSettings);
   
+  // Clear emitter in these cases:
+  // 1. Instant mode (loading project file / initial preset - want fresh start)
+  // 2. Emission is disabled (emitRate=0 or ambientSpeedMaster=0) - old lines would persist forever
+  if (ZM.emitterInstance && ZM.emitterInstance.lines && ZM.emitterInstance.lines.length > 0) {
+    const willEmit = ZM.params.emitRate > 0 && ZM.params.ambientSpeedMaster > 0;
+    if (instant || !willEmit) {
+      const reason = instant ? 'instant load' : 'emission disabled (emitRate=' + ZM.params.emitRate + ', ambientSpeedMaster=' + ZM.params.ambientSpeedMaster + ')';
+      console.log('🧹 Clearing ' + ZM.emitterInstance.lines.length + ' existing lines (' + reason + ')');
+      ZM.emitterInstance.lines = [];
+      ZM.emitterInstance.accumulator = 0;
+    }
+  }
+  
   console.log('ZM.params after assign, active palette:', ZM.params.activePaletteIndex);
   console.log('ZM.params.palettes:', ZM.params.palettes?.length);
   

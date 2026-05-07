@@ -193,6 +193,17 @@ function executeAction(action, ZM) {
       ZM.saveToLocalStorage();
     },
     
+    // Palette Copy/Paste
+    copyPalette: () => {
+      const copyBtn = document.getElementById('copy-palette-btn');
+      if (copyBtn) copyBtn.click();
+    },
+    
+    pastePalette: () => {
+      const pasteBtn = document.getElementById('paste-palette-btn');
+      if (pasteBtn && !pasteBtn.disabled) pasteBtn.click();
+    },
+    
     // Auto-Trigger Controls
     autoTriggerPlayPause: () => {
       if (!ZM.autoTriggerTimer || ZM.stateManager.states.length < 2) return;

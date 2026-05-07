@@ -253,8 +253,32 @@ async function init() {
       console.log('🔄 Syncing params with active state:', ZM.stateManager.activeStateId);
       const activeState = ZM.stateManager.getStateById(ZM.stateManager.activeStateId);
       if (activeState) {
+        // Preserve camera params (they're not stored in state.params, but in state.camera)
+        const preservedCameraParams = {
+          cameraRotationX: ZM.params.cameraRotationX,
+          cameraRotationY: ZM.params.cameraRotationY,
+          cameraDistance: ZM.params.cameraDistance,
+          cameraOffsetX: ZM.params.cameraOffsetX,
+          cameraOffsetY: ZM.params.cameraOffsetY
+        };
+        
         // Restore state params to ensure palettes are in sync
         Object.assign(ZM.params, JSON.parse(JSON.stringify(activeState.params)));
+        
+        // Restore preserved camera params (use state's camera if available, otherwise localStorage)
+        if (activeState.camera) {
+          ZM.params.cameraRotationX = activeState.camera.rotationX;
+          ZM.params.cameraRotationY = activeState.camera.rotationY;
+          ZM.params.cameraDistance = activeState.camera.distance;
+          ZM.params.cameraOffsetX = activeState.camera.offsetX || 0;
+          ZM.params.cameraOffsetY = activeState.camera.offsetY || 0;
+          // Sync camera object to match state
+          ZM.camera.syncFromParams(ZM.params);
+        } else {
+          // Fallback to localStorage camera params if state doesn't have camera data
+          Object.assign(ZM.params, preservedCameraParams);
+        }
+        
         // Save back to localStorage to update stale data
         ZM.saveToLocalStorage();
       }

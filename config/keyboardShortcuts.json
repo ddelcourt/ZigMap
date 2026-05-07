@@ -86,6 +86,20 @@
       "preventDefault": true
     },
     {
+      "key": "c",
+      "action": "copyPalette",
+      "description": "Copy Palette",
+      "preventDefault": true,
+      "ctrl": true
+    },
+    {
+      "key": "v",
+      "action": "pastePalette",
+      "description": "Paste Palette",
+      "preventDefault": true,
+      "ctrl": true
+    },
+    {
       "key": "y",
       "action": "toggleStereoMode",
       "description": "Stereoscopic view",

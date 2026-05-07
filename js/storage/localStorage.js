@@ -65,6 +65,8 @@ export function loadFromLocalStorage(defaultParams) {
     if (loaded.near === undefined || loaded.near < 0.01) loaded.near = 0.01;
     if (loaded.far === undefined) loaded.far = 5000;
     if (loaded.cameraDistance < 50) loaded.cameraDistance = 600;
+    if (loaded.cameraRotationX === undefined) loaded.cameraRotationX = defaultParams.cameraRotationX;
+    if (loaded.cameraRotationY === undefined) loaded.cameraRotationY = defaultParams.cameraRotationY;
     if (loaded.cameraOffsetX === undefined) loaded.cameraOffsetX = 0;
     if (loaded.cameraOffsetY === undefined) loaded.cameraOffsetY = 0;
     if (loaded.depthInvert === undefined) loaded.depthInvert = false;
