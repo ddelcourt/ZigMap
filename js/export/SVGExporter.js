@@ -9,6 +9,12 @@ export function exportSVG(ZM) {
   console.log('╔═══════════════════════════════════════════════════════════════════╗');
   console.log('║                         SVG EXPORT START                           ║');
   console.log('╠═══════════════════════════════════════════════════════════════════╣');
+  console.log('│ Canvas dimensions (ZM.W × ZM.H):', ZM.W, '×', ZM.H);
+  console.log('│ Framebuffer mode:', ZM.params.framebufferMode);
+  console.log('│ Stereoscopic mode:', ZM.params.stereoscopicMode);
+  if (ZM.params.framebufferMode) {
+    console.log('│ Framebuffer size:', ZM.params.framebufferWidth, '×', ZM.params.framebufferHeight);
+  }
   console.log('│ ZM.sketchReady:', !!ZM.sketchReady);
   console.log('│ ZM.p5Instance:', !!ZM.p5Instance);
   console.log('│ ZM.emitterInstance:', !!ZM.emitterInstance);

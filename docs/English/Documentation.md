@@ -1909,9 +1909,12 @@ function exportDepthMap() {
   const lines = emitterInstance.lines.filter(l => l._alpha() > 0);
   
   // 2. Pre-compute projection constants (matches SVG export)
+  // Camera position model: pan/zoom as position offsets
   const fovRad = params.fov * Math.PI / 180;
   const defaultCameraZ = (H / 2) / Math.tan(fovRad / 2);
-  const totalDistance = defaultCameraZ + camera.distance;
+  const cameraX = -camera.offsetX;
+  const cameraY = -camera.offsetY;
+  const cameraZ = defaultCameraZ + camera.distance;
   
   // 3. Auto-range depth from actual geometry
   const { minDepth, maxDepth } = scanDepthRange(lines);
@@ -2781,10 +2784,16 @@ class Camera {
 The projection system uses identical mathematics for all exports (SVG, PNG, depth) to ensure pixel-perfect alignment:
 
 1. **Rotation Order**: Z → Y → X (matches p5.js WEBGL)
-2. **Camera Model**: `total_distance = default_camera_z + user_distance`
-3. **Perspective**: `screen_x = world_x * (camera_z / -view_z) + width/2`
+2. **Camera Position Model**: Pan and zoom treated as camera position offsets
+   - `camera_x = -pan_offset_x`
+   - `camera_y = -pan_offset_y`
+   - `camera_z = default_camera_z + zoom_distance`
+3. **View Transform**: `view_pos = world_pos_rotated - camera_pos`
+4. **Perspective**: `screen_x = view_x * (camera_z / -view_z) + width/2`
 
-See [docs/Projection-Matrix-Guide.md](docs/Projection-Matrix-Guide.md) for detailed mathematics.
+This model is clearer than applying translations in the middle of the transformation pipeline. When the user pans right, the camera effectively moves left (hence the negative sign).
+
+See [docs/English/Projection-Matrix-Guide.md](docs/English/Projection-Matrix-Guide.md) for detailed mathematics.
 
 ## Migration from Original
 

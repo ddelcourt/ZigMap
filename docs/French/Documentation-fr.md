@@ -2496,8 +2496,14 @@ class Camera {
 Le système de projection utilise des mathématiques identiques pour tous les exports (SVG, PNG, profondeur) afin d'assurer un alignement pixel-parfait :
 
 1. **Ordre de Rotation** : Z → Y → X (correspond à p5.js WEBGL)
-2. **Modèle de Caméra** : `distance_totale = default_camera_z + user_distance`
-3. **Perspective** : `screen_x = world_x * (camera_z / -view_z) + width/2`
+2. **Modèle de Position de la Caméra** : Le panoramique et le zoom sont traités comme des décalages de position de caméra
+   - `caméra_x = -décalage_pan_x`
+   - `caméra_y = -décalage_pan_y`
+   - `caméra_z = caméra_z_par_défaut + distance_zoom`
+3. **Transformation de Vue** : `pos_vue = pos_monde_tournée - pos_caméra`
+4. **Perspective** : `écran_x = vue_x * (caméra_z / -vue_z) + largeur/2`
+
+Ce modèle est plus clair qu'appliquer des translations au milieu du pipeline de transformation. Lorsque l'utilisateur effectue un panoramique vers la droite, la caméra se déplace effectivement vers la gauche (d'où le signe négatif).
 
 Voir [docs/French/Projection-Matrix-Guide-fr.md](Projection-Matrix-Guide-fr.md) pour les mathématiques détaillées.
 

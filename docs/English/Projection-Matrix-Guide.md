@@ -58,15 +58,25 @@ Three sequential rotations, in this precise order:
 
 Rotation order is critical: `rotateX(rotateY(point))` produces different results from `rotateY(rotateX(point))`.
 
-### Step 3: camera translation
+### Step 3: camera position and view transform
 
-Simulating camera distance from the scene:
+Camera pan and zoom are treated as offsets to the camera's effective position:
 
 ```
-viewZ = Z_rotated - totalCameraDistance
+cameraX = -panOffsetX
+cameraY = -panOffsetY
+cameraZ = defaultCameraZ + zoomDistance
 ```
 
-`totalCameraDistance` = default p5 camera position + user zoom distance.
+Transforming world coordinates to camera/view space:
+
+```
+viewX = worldX_rotated - cameraX
+viewY = worldY_rotated - cameraY
+viewZ = worldZ_rotated - cameraZ
+```
+
+This mental model is clearer than applying translations in the middle of the transformation pipeline. When the user pans right, the camera effectively moves left (hence the negative sign).
 
 ### Step 4: frustum clipping
 
@@ -123,32 +133,35 @@ const rotZ = (x, y, z, angle) => ({
 // Camera setup
 const fovRad = params.fov * Math.PI / 180;
 const defaultCameraZ = (H / 2) / Math.tan(fovRad / 2);
-const totalDistance = defaultCameraZ + camera.distance;
+
+// Camera effective position (pan and zoom as position offsets)
+const cameraX = -camera.offsetX;
+const cameraY = -camera.offsetY;
+const cameraZ = defaultCameraZ + camera.distance;
 
 // Projection function
 function projectPoint(x, y, z) {
-  // Step 1: Rotate around Z
+  // Step 1: Apply rotations in order Z → Y → X
   let pt = rotZ(x, y, z, params.emitterRotation * Math.PI / 180);
-  
-  // Step 2: Rotate around Y
   pt = rotY(pt.x, pt.y, pt.z, camera.rotationY);
-  
-  // Step 3: Rotate around X
   pt = rotX(pt.x, pt.y, pt.z, camera.rotationX);
   
-  // Step 4: Translate to view space
-  pt.z -= totalDistance;
+  // Step 2: Transform to camera/view space
+  // Subtract camera position from world position
+  const viewX = pt.x - cameraX;
+  const viewY = pt.y - cameraY;
+  const viewZ = pt.z - cameraZ;
   
-  // Step 5: Frustum culling
-  if (pt.z >= -params.near || pt.z <= -params.far) {
+  // Step 3: Frustum culling
+  if (viewZ >= -params.near || viewZ <= -params.far) {
     return null;
   }
   
-  // Step 6: Perspective projection
-  const scale = defaultCameraZ / -pt.z;
+  // Step 4: Perspective projection
+  const scale = defaultCameraZ / -viewZ;
   return {
-    x: pt.x * scale + W / 2,
-    y: pt.y * scale + H / 2
+    x: viewX * scale + W / 2,
+    y: viewY * scale + H / 2
   };
 }
 ```
@@ -167,13 +180,15 @@ The order Z → Y → X matches p5.js WEBGL's transformation stack. Changing thi
 **Negative Z convention**
 OpenGL (and p5.js) uses a right-handed coordinate system where +X = right, +Y = up, -Z = forward (into screen). Hence `-viewZ` in divisions.
 
-**Camera distance calculation**
+**Camera position model**
 ```javascript
 defaultCameraZ = (height / 2) / tan(fov / 2)
-totalDistance = defaultCameraZ + userZoomDistance
+cameraX = -panOffsetX  // When user pans right, camera moves left
+cameraY = -panOffsetY  // When user pans down, camera moves up
+cameraZ = defaultCameraZ + zoomDistance
 ```
 
-This formula ensures field of view behaves identically to p5's WEBGL renderer.
+This formula ensures field of view behaves identically to p5's WEBGL renderer. Treating pan and zoom as camera position offsets (rather than world transformations) simplifies the math and makes the mental model clearer.
 
 ---
 

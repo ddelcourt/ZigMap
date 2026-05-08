@@ -71,15 +71,25 @@ Trois rotations séquentielles, dans cet ordre précis :
 
 L'ordre de rotation est déterminant : `rotateX(rotateY(point))` produit des résultats différents de `rotateY(rotateX(point))`.
 
-### Étape 3 : translation de la caméra
+### Étape 3 : position de la caméra et transformation de vue
 
-Simulation de la distance caméra par rapport à la scène :
+Le panoramique et le zoom de la caméra sont traités comme des décalages à la position effective de la caméra :
 
 ```
-vueZ = Z_tourné - distanceTotaleCaméra
+caméraX = -décalagePanX
+caméraY = -décalagePanY
+caméraZ = caméraZParDéfaut + distanceZoom
 ```
 
-`distanceTotaleCaméra` = position par défaut de la caméra p5 + distance de zoom utilisateur.
+Transformation des coordonnées monde vers l'espace caméra/vue :
+
+```
+vueX = mondeX_tourné - caméraX
+vueY = mondeY_tourné - caméraY
+vueZ = mondeZ_tourné - caméraZ
+```
+
+Ce modèle mental est plus clair qu'appliquer des translations au milieu du pipeline de transformation. Lorsque l'utilisateur effectue un panoramique vers la droite, la caméra se déplace effectivement vers la gauche (d'où le signe négatif).
 
 ### Étape 4 : découpe du frustum
 
@@ -159,32 +169,35 @@ const rotZ = (x, y, z, angle) => ({
 // Configuration de la caméra (pré-calculée une fois par export)
 const fovRad = params.fov * Math.PI / 180;
 const caméraZParDéfaut = (H / 2) / Math.tan(fovRad / 2);
-const distanceTotale = caméraZParDéfaut + camera.distance;
+
+// Position effective de la caméra (panoramique et zoom comme décalages de position)
+const caméraX = -camera.offsetX;
+const caméraY = -camera.offsetY;
+const caméraZ = caméraZParDéfaut + camera.distance;
 
 // Fonction de projection principale
 function projectPoint(x, y, z) {
-  // Étape 1 : rotation Z (rotation de l'émetteur)
+  // Étape 1 : appliquer les rotations dans l'ordre Z → Y → X
   let pt = rotZ(x, y, z, params.emitterRotation * Math.PI / 180);
-
-  // Étape 2 : rotation Y (orbite horizontale)
   pt = rotY(pt.x, pt.y, pt.z, camera.rotationY);
-
-  // Étape 3 : rotation X (orbite verticale)
   pt = rotX(pt.x, pt.y, pt.z, camera.rotationX);
 
-  // Étape 4 : translation vers l'espace de vue
-  pt.z -= distanceTotale;
+  // Étape 2 : transformer vers l'espace caméra/vue
+  // Soustraire la position de la caméra de la position monde
+  const vueX = pt.x - caméraX;
+  const vueY = pt.y - caméraY;
+  const vueZ = pt.z - caméraZ;
 
-  // Étape 5 : découpe du frustum
-  if (pt.z >= -params.near || pt.z <= -params.far) {
+  // Étape 3 : découpe du frustum
+  if (vueZ >= -params.near || vueZ <= -params.far) {
     return null;
   }
 
-  // Étape 6 : projection en perspective
-  const échelle = caméraZParDéfaut / -pt.z;
+  // Étape 4 : projection en perspective
+  const échelle = caméraZParDéfaut / -vueZ;
   return {
-    x: pt.x * échelle + W / 2,
-    y: pt.y * échelle + H / 2
+    x: vueX * échelle + W / 2,
+    y: vueY * échelle + H / 2
   };
 }
 
@@ -222,14 +235,15 @@ L'ordre **Z → Y → X** correspond à la pile de transformation de p5.js WEBGL
 **Convention Z négatif**
 OpenGL (et p5.js) utilise un système de coordonnées à droite : +X = droite, +Y = haut, **−Z = avant** (vers l'écran). D'où l'utilisation de `−vueZ` dans les divisions et la condition `z <= −loin`.
 
-**Calcul de la distance caméra**
+**Modèle de position de la caméra**
 ```javascript
-// Position par défaut de la caméra p5.js WEBGL
 caméraZParDéfaut = (hauteur / 2) / Math.tan(fovRad / 2)
-
-// Le zoom utilisateur s'ajoute à cette valeur
-distanceTotale = caméraZParDéfaut + distanceZoomUtilisateur
+caméraX = -décalagePanX  // Quand l'utilisateur effectue un panoramique à droite, la caméra se déplace à gauche
+caméraY = -décalagePanY  // Quand l'utilisateur effectue un panoramique vers le bas, la caméra se déplace vers le haut
+caméraZ = caméraZParDéfaut + distanceZoom
 ```
+
+Cette formule garantit que le champ de vision se comporte de manière identique au moteur de rendu WEBGL de p5. Traiter le panoramique et le zoom comme des décalages de position de caméra (plutôt que des transformations mondiales) simplifie les calculs et rend le modèle mental plus clair.
 
 ---
 
