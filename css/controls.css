@@ -34,6 +34,38 @@
   pointer-events: none;
 }
 
+/* Right Controls Panel */
+.controls-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 300px;
+  min-width: 300px;
+  background: rgba(10, 10, 10, 0.25);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  height: 100vh;
+  overflow-y: auto;
+  border-left: 1px solid rgba(34, 34, 34, 0.3);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 10;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.controls-right::-webkit-scrollbar {
+  display: none;
+}
+
+.controls-right.hidden {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 .control-group {
   display: flex;
   flex-direction: column;

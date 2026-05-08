@@ -251,6 +251,95 @@
       </div>
     </div>
 
+    <!-- Overlay -->
+    <div class="section">
+      <div class="section-header" data-section="overlay">
+        <span class="section-title">Overlay</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <div class="control-group">
+            <label><input type="checkbox" id="overlay-visible"> Show Overlay</label>
+          </div>
+          
+          <!-- Overlay Preset Selector -->
+          <div class="control-group" style="margin-top:12px;">
+            <label>Preset</label>
+            <select id="overlay-preset" style="width:100%;padding:8px;background:#1a1a1a;border:1px solid#333;color:#aaa;font-size:0.75rem;border-radius:4px;cursor:pointer;">
+              <option value="">-- Select Preset --</option>
+            </select>
+          </div>
+          
+          <div style="margin-top:12px;">
+            <button id="load-overlay-btn" style="width:100%;padding:10px;background:#1a1a3a;border:1px solid #2d2d5f;color:#aaaaff;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Load Custom Image</button>
+            <input type="file" id="load-overlay-input" accept=".png,.jpg,.jpeg,.svg" style="display:none;">
+          </div>
+          <div style="margin-top:12px;">
+            <button id="overlay-auto-fit" style="width:100%;padding:10px;background:#1a3a1a;border:1px solid #2d5f2d;color:#aaffaa;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Auto-Fit to Canvas</button>
+          </div>
+          <div class="control-group">
+            <label>Scale <span style="color:#444">(%)</span></label>
+            <div class="slider-row">
+              <input type="range" id="overlay-scale" min="10" max="200" step="1" value="100"/>
+              <span class="value-display" id="overlay-scale-val">100</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Opacity <span style="color:#444">(%)</span></label>
+            <div class="slider-row">
+              <input type="range" id="overlay-opacity" min="0" max="100" step="1" value="100"/>
+              <span class="value-display" id="overlay-opacity-val">100</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Position X <span style="color:#444">(%)</span></label>
+            <div class="slider-row">
+              <input type="range" id="overlay-x" min="0" max="100" step="1" value="50"/>
+              <span class="value-display" id="overlay-x-val">50</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Position Y <span style="color:#444">(%)</span></label>
+            <div class="slider-row">
+              <input type="range" id="overlay-y" min="0" max="100" step="1" value="50"/>
+              <span class="value-display" id="overlay-y-val">50</span>
+            </div>
+          </div>
+          <button id="clear-overlay-btn" style="width:100%;padding:8px;margin-top:8px;background:#3a1a1a;border:1px solid #5f2d2d;color:#ffaaaa;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Clear Image</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="section">
+      <div class="section-header" data-section="about">
+        <span class="section-title">About / Help</span>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <div class="lang-filter">
+            <button class="lang-filter-btn active" data-lang-filter="en">English</button>
+            <button class="lang-filter-btn" data-lang-filter="fr">Français</button>
+          </div>
+          <button id="doc-shortcuts-btn" class="about-btn">Shortcut Keys</button>
+          <button id="doc-readme-en" class="about-btn" data-lang="en">Read me</button>
+          <button id="doc-readme-fr" class="about-btn hidden" data-lang="fr">Lisez-moi</button>
+          <button id="doc-manual-en" class="about-btn" data-lang="en">User Manual</button>
+          <button id="doc-manual-fr" class="about-btn hidden" data-lang="fr">Manuel Utilisateur</button>
+          <button id="doc-tech-en" class="about-btn" data-lang="en">Documentation</button>
+          <button id="doc-tech-fr" class="about-btn hidden" data-lang="fr">Documentation</button>
+          <button id="doc-projection-en" class="about-btn" data-lang="en">Projection Matrix </button>
+          <button id="doc-projection-fr" class="about-btn hidden" data-lang="fr">Matrices de projection</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.controls -->
+
+  <div class="controls-right">
+
     <!-- Geometry -->
     <div class="section">
       <div class="section-header" data-section="geometry">
@@ -360,7 +449,7 @@
       </div>
     </div>
 
-    <!-- View -->
+    <!-- Camera -->
     <div class="section">
       <div class="section-header" data-section="view">
         <span class="section-title">Camera</span>
@@ -483,92 +572,7 @@
       </div>
     </div>
 
-    <!-- Overlay -->
-    <div class="section">
-      <div class="section-header" data-section="overlay">
-        <span class="section-title">Overlay</span>
-        <span class="section-toggle">▼</span>
-      </div>
-      <div class="section-content">
-        <div class="section-body">
-          <div class="control-group">
-            <label><input type="checkbox" id="overlay-visible"> Show Overlay</label>
-          </div>
-          
-          <!-- Overlay Preset Selector -->
-          <div class="control-group" style="margin-top:12px;">
-            <label>Preset</label>
-            <select id="overlay-preset" style="width:100%;padding:8px;background:#1a1a1a;border:1px solid#333;color:#aaa;font-size:0.75rem;border-radius:4px;cursor:pointer;">
-              <option value="">-- Select Preset --</option>
-            </select>
-          </div>
-          
-          <div style="margin-top:12px;">
-            <button id="load-overlay-btn" style="width:100%;padding:10px;background:#1a1a3a;border:1px solid #2d2d5f;color:#aaaaff;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Load Custom Image</button>
-            <input type="file" id="load-overlay-input" accept=".png,.jpg,.jpeg,.svg" style="display:none;">
-          </div>
-          <div style="margin-top:12px;">
-            <button id="overlay-auto-fit" style="width:100%;padding:10px;background:#1a3a1a;border:1px solid #2d5f2d;color:#aaffaa;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Auto-Fit to Canvas</button>
-          </div>
-          <div class="control-group">
-            <label>Scale <span style="color:#444">(%)</span></label>
-            <div class="slider-row">
-              <input type="range" id="overlay-scale" min="10" max="200" step="1" value="100"/>
-              <span class="value-display" id="overlay-scale-val">100</span>
-            </div>
-          </div>
-          <div class="control-group">
-            <label>Opacity <span style="color:#444">(%)</span></label>
-            <div class="slider-row">
-              <input type="range" id="overlay-opacity" min="0" max="100" step="1" value="100"/>
-              <span class="value-display" id="overlay-opacity-val">100</span>
-            </div>
-          </div>
-          <div class="control-group">
-            <label>Position X <span style="color:#444">(%)</span></label>
-            <div class="slider-row">
-              <input type="range" id="overlay-x" min="0" max="100" step="1" value="50"/>
-              <span class="value-display" id="overlay-x-val">50</span>
-            </div>
-          </div>
-          <div class="control-group">
-            <label>Position Y <span style="color:#444">(%)</span></label>
-            <div class="slider-row">
-              <input type="range" id="overlay-y" min="0" max="100" step="1" value="50"/>
-              <span class="value-display" id="overlay-y-val">50</span>
-            </div>
-          </div>
-          <button id="clear-overlay-btn" style="width:100%;padding:8px;margin-top:8px;background:#3a1a1a;border:1px solid #5f2d2d;color:#ffaaaa;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Clear Image</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- About -->
-    <div class="section">
-      <div class="section-header" data-section="about">
-        <span class="section-title">About / Help</span>
-        <span class="section-toggle">▼</span>
-      </div>
-      <div class="section-content">
-        <div class="section-body">
-          <div class="lang-filter">
-            <button class="lang-filter-btn active" data-lang-filter="en">English</button>
-            <button class="lang-filter-btn" data-lang-filter="fr">Français</button>
-          </div>
-          <button id="doc-shortcuts-btn" class="about-btn">Shortcut Keys</button>
-          <button id="doc-readme-en" class="about-btn" data-lang="en">Read me</button>
-          <button id="doc-readme-fr" class="about-btn hidden" data-lang="fr">Lisez-moi</button>
-          <button id="doc-manual-en" class="about-btn" data-lang="en">User Manual</button>
-          <button id="doc-manual-fr" class="about-btn hidden" data-lang="fr">Manuel Utilisateur</button>
-          <button id="doc-tech-en" class="about-btn" data-lang="en">Documentation</button>
-          <button id="doc-tech-fr" class="about-btn hidden" data-lang="fr">Documentation</button>
-          <button id="doc-projection-en" class="about-btn" data-lang="en">Projection Matrix </button>
-          <button id="doc-projection-fr" class="about-btn hidden" data-lang="fr">Matrices de projection</button>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /.controls -->
+  </div><!-- /.controls-right -->
 
   <div id="canvas-container">
     <div id="canvas-wrapper"></div>
