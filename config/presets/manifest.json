@@ -1,8 +1,18 @@
 {
   "presets": [
     {
+      "filename": "zigmap_init.json",
+      "name": "zigmap_init",
+      "type": "Init"
+    },
+    {
       "filename": "DowntownAmbient.json",
       "name": "DowntownAmbient",
+      "type": "Preset"
+    },
+    {
+      "filename": "GrooveAmbient.json",
+      "name": "GrooveAmbient",
       "type": "Preset"
     },
     {
