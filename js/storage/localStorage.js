@@ -92,6 +92,8 @@ export function loadFromLocalStorage(defaultParams) {
     
     // Ensure overlay settings exist (for backward compatibility)
     if (loaded.overlayImageSrc === undefined) loaded.overlayImageSrc = null;
+    if (loaded.overlayCustomFilename === undefined) loaded.overlayCustomFilename = null;
+    if (loaded.overlayCustomImageSrc === undefined) loaded.overlayCustomImageSrc = null;
     if (loaded.overlayVisible === undefined) loaded.overlayVisible = false;
     if (loaded.overlayScale === undefined) loaded.overlayScale = 100;
     if (loaded.overlayOpacity === undefined) loaded.overlayOpacity = 100;

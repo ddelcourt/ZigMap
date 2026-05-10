@@ -68,6 +68,8 @@ export function initializeUI(ZM) {
   ZM.showToast = (message, type) => showToast(message, type);
   ZM.buildPaletteSwatchNode = (paletteIndex) => buildPaletteSwatchNode(ZM, paletteIndex);
   ZM.cancelStateAutoUpdate = cancelStateAutoUpdate; // Expose to other modules
+  ZM.rebuildOverlayDropdown = () => rebuildOverlayDropdown(ZM);
+  ZM.updateOverlayDropdownSelection = () => updateOverlayDropdownSelection(ZM);
 }
 
 /**
@@ -128,7 +130,6 @@ function initializeAllControls(ZM) {
   wireCheckbox(ZM, 'random-speed', 'randomSpeed', 'Random Speed');
   wireCheckbox(ZM, 'depth-invert', 'depthInvert', 'Depth Map Invert');
   wireCheckbox(ZM, 'auto-trigger-states', 'autoTriggerStates', 'Auto-Trigger States');
-  wireCheckbox(ZM, 'overlay-visible', 'overlayVisible', 'Show Overlay');
   
   // Stereoscopic controls
   setupStereoscopicControls(ZM);
@@ -209,7 +210,14 @@ function wireCheckbox(ZM, checkboxId, paramKey, label) {
   const checkbox = document.getElementById(checkboxId);
   if (!checkbox) return;
   
+  // Force-sync checkbox state from params (overrides browser form restoration)
   checkbox.checked = ZM.params[paramKey];
+  
+  // Also sync after a brief delay to ensure browser autofill is overridden
+  setTimeout(() => {
+    checkbox.checked = ZM.params[paramKey];
+  }, 0);
+  
   checkbox.addEventListener('change', (e) => {
     ZM.params[paramKey] = e.target.checked;
     ZM.saveToLocalStorage();
@@ -910,29 +918,82 @@ async function loadOverlayPresets(ZM) {
       }
     }
     
-    // Populate dropdown
-    presetSelect.innerHTML = '<option value="">-- Select Preset --</option>';
+    // Store overlays in ZM for later use
+    ZM.overlayPresets = overlays;
     
-    overlays.forEach((overlay, index) => {
+    // Build the dropdown
+    rebuildOverlayDropdown(ZM);
+    
+    console.log(`✓ Loaded ${overlays.length} overlay presets`);
+  } catch (err) {
+    console.error('Failed to load overlay presets:', err);
+  }
+}
+
+/**
+ * Rebuild overlay dropdown with current state
+ * Called when: initial load, custom image uploaded, or state changes
+ */
+function rebuildOverlayDropdown(ZM) {
+  const presetSelect = document.getElementById('overlay-preset');
+  if (!presetSelect) return;
+  
+  // Start with "None" option
+  presetSelect.innerHTML = '<option value="none">None</option>';
+  
+  // Add preset overlays
+  if (ZM.overlayPresets) {
+    ZM.overlayPresets.forEach((overlay, index) => {
       const option = document.createElement('option');
       option.value = index;
       option.textContent = overlay.name;
       option.dataset.overlayData = JSON.stringify(overlay.data);
       presetSelect.appendChild(option);
     });
-    
-    // Add "Custom Image" option
+  }
+  
+  // Add custom image option if one exists (persists even when preset is selected)
+  if (ZM.params.overlayCustomFilename && ZM.params.overlayCustomImageSrc) {
     const customOption = document.createElement('option');
     customOption.value = 'custom';
-    customOption.textContent = '-- Custom Image --';
+    customOption.textContent = `Custom: ${ZM.params.overlayCustomFilename}`;
     presetSelect.appendChild(customOption);
-    
-    // Store overlays in ZM for later use
-    ZM.overlayPresets = overlays;
-    
-    console.log(`✓ Loaded ${overlays.length} overlay presets`);
-  } catch (err) {
-    console.error('Failed to load overlay presets:', err);
+  }
+  
+  // Add "Upload Image" option at the end
+  const uploadOption = document.createElement('option');
+  uploadOption.value = 'upload';
+  uploadOption.textContent = '-- Upload Image --';
+  presetSelect.appendChild(uploadOption);
+  
+  // Set current selection
+  updateOverlayDropdownSelection(ZM);
+}
+
+/**
+ * Update dropdown selection to match current state
+ */
+function updateOverlayDropdownSelection(ZM) {
+  const presetSelect = document.getElementById('overlay-preset');
+  if (!presetSelect) return;
+  
+  if (!ZM.params.overlayVisible || !ZM.params.overlayImageSrc) {
+    // No overlay - select "None"
+    presetSelect.value = 'none';
+  } else if (ZM.params.overlayPresetFile && ZM.overlayPresets) {
+    // Find the preset index by file name
+    const presetIndex = ZM.overlayPresets.findIndex(p => p.file === ZM.params.overlayPresetFile);
+    if (presetIndex >= 0) {
+      presetSelect.value = presetIndex;
+    } else {
+      presetSelect.value = '';
+    }
+  } else if (ZM.params.overlayCustomFilename) {
+    // Custom image
+    presetSelect.value = 'custom';
+  } else {
+    // Unknown state
+    presetSelect.value = '';
   }
 }
 
@@ -944,10 +1005,7 @@ function setupOverlayControls(ZM) {
   const overlayImgLeft = document.getElementById('overlay-image-left');
   const overlayImgRight = document.getElementById('overlay-image-right');
   const presetSelect = document.getElementById('overlay-preset');
-  const loadBtn = document.getElementById('load-overlay-btn');
   const loadInput = document.getElementById('load-overlay-input');
-  const clearBtn = document.getElementById('clear-overlay-btn');
-  const visibleCheckbox = document.getElementById('overlay-visible');
   const autoFitBtn = document.getElementById('overlay-auto-fit');
   const scaleSlider = document.getElementById('overlay-scale');
   const opacitySlider = document.getElementById('overlay-opacity');
@@ -978,10 +1036,11 @@ function setupOverlayControls(ZM) {
         rightEye.appendChild(overlayImgRight);
       }
     } else {
-      // Move mono overlay back to canvas-container
-      const canvasContainer = document.getElementById('canvas-container');
-      if (canvasContainer && overlayImgMono && overlayImgMono.parentElement !== canvasContainer) {
-        canvasContainer.appendChild(overlayImgMono);
+      // Move mono overlay to canvas-wrapper (not canvas-container)
+      // This makes the overlay positioned relative to the actual canvas, not the window
+      const canvasWrapper = document.getElementById('canvas-wrapper');
+      if (canvasWrapper && overlayImgMono && overlayImgMono.parentElement !== canvasWrapper) {
+        canvasWrapper.appendChild(overlayImgMono);
       }
     }
     
@@ -1020,44 +1079,86 @@ function setupOverlayControls(ZM) {
       return;
     }
     
-    let containerWidth, containerHeight;
-    
+    // Get the actual displayed canvas size (including CSS scaling)
+    let canvas;
     if (ZM.params.stereoscopicMode) {
-      // In stereo mode, fit to individual eye container (half width)
-      const stereoEye = document.querySelector('.stereo-eye');
-      if (stereoEye) {
-        containerWidth = stereoEye.clientWidth;
-        containerHeight = stereoEye.clientHeight;
-      } else {
-        showToast('Stereo containers not found', 'error');
-        return;
-      }
+      // In stereo mode, get the left canvas
+      canvas = ZM.p5Instance?.canvas;
     } else {
-      // In mono mode, fit to full canvas container
-      const canvasContainer = document.getElementById('canvas-container');
-      if (!canvasContainer) return;
-      containerWidth = canvasContainer.clientWidth;
-      containerHeight = canvasContainer.clientHeight;
+      // In mono mode, get the main canvas
+      canvas = ZM.p5Instance?.canvas;
     }
     
-    // Calculate scale factor to fit overlay within container
-    const scaleX = containerWidth / overlayImg.naturalWidth;
-    const scaleY = containerHeight / overlayImg.naturalHeight;
-    const scale = Math.min(scaleX, scaleY, 1); // Don't upscale beyond 100%
-    
-    // Update the overlayScale parameter (convert to percentage)
-    ZM.params.overlayScale = Math.round(scale * 100);
-    
-    // Update slider to reflect auto-calculated value
-    if (scaleSlider) {
-      scaleSlider.value = ZM.params.overlayScale;
+    if (!canvas) {
+      showToast('Canvas not found', 'error');
+      return;
     }
     
-    // Apply the new scale
-    updateOverlay();
-    ZM.saveToLocalStorage();
-    
-    showToast(`Auto-fit: ${ZM.params.overlayScale}%`, 'success');
+    // Use requestAnimationFrame to ensure canvas has been fully resized
+    // This gives the browser time to complete layout/paint after framebuffer changes
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Force a reflow to ensure we get fresh dimensions
+        void canvas.offsetHeight;
+        
+        // Get the visual dimensions of the canvas as displayed in the browser
+        // This accounts for CSS scaling and gives us the actual visible size
+        const canvasRect = canvas.getBoundingClientRect();
+        const canvasWidth = canvasRect.width;
+        const canvasHeight = canvasRect.height;
+        
+        if (!canvasWidth || !canvasHeight) {
+          showToast('Canvas dimensions not available', 'error');
+          return;
+        }
+        
+        // Calculate scale factor to fit overlay within actual displayed canvas
+        const scaleX = canvasWidth / overlayImg.naturalWidth;
+        const scaleY = canvasHeight / overlayImg.naturalHeight;
+        const scale = Math.min(scaleX, scaleY, 1); // Don't upscale beyond 100%
+        
+        // Update the overlayScale parameter (convert to percentage)
+        ZM.params.overlayScale = Math.round(scale * 100);
+        
+        // Reset position to center
+        ZM.params.overlayX = 50;
+        ZM.params.overlayY = 50;
+        
+        // Update scale slider and display
+        if (scaleSlider) {
+          scaleSlider.value = ZM.params.overlayScale;
+        }
+        const scaleDisplay = document.getElementById('overlay-scale-val');
+        if (scaleDisplay) {
+          scaleDisplay.textContent = ZM.params.overlayScale;
+        }
+        
+        // Update X position slider and display
+        if (xSlider) {
+          xSlider.value = ZM.params.overlayX;
+        }
+        const xDisplay = document.getElementById('overlay-x-val');
+        if (xDisplay) {
+          xDisplay.textContent = ZM.params.overlayX;
+        }
+        
+        // Update Y position slider and display
+        if (ySlider) {
+          ySlider.value = ZM.params.overlayY;
+        }
+        const yDisplay = document.getElementById('overlay-y-val');
+        if (yDisplay) {
+          yDisplay.textContent = ZM.params.overlayY;
+        }
+        
+        // Apply the new scale and position
+        updateOverlay();
+        ZM.saveToLocalStorage();
+        
+        console.log(`📐 Auto-fit overlay: ${ZM.params.overlayScale}% at center (canvas display: ${Math.round(canvasWidth)}×${Math.round(canvasHeight)}px)`);
+        showToast(`Auto-fit: ${ZM.params.overlayScale}%`, 'success');
+      });
+    });
   }
   
   // Auto-fit button
@@ -1070,11 +1171,32 @@ function setupOverlayControls(ZM) {
     presetSelect.addEventListener('change', (e) => {
       const value = e.target.value;
       
-      if (value === 'custom') {
-        // Trigger custom file input
-        if (loadInput) loadInput.click();
-        // Reset dropdown
-        setTimeout(() => presetSelect.value = '', 100);
+      if (value === 'none') {
+        // Hide overlay but keep custom image data in memory
+        ZM.params.overlayVisible = false;
+        ZM.params.overlayPresetFile = null; // Clear current preset selection
+        if (loadInput) loadInput.value = '';
+        rebuildOverlayDropdown(ZM);
+        updateOverlay();
+        ZM.saveToLocalStorage();
+        showToast('Overlay hidden', 'info');
+      } else if (value === 'upload') {
+        // Trigger file upload
+        if (loadInput) {
+          loadInput.click();
+        }
+        // Keep previous selection until file is chosen
+        updateOverlayDropdownSelection(ZM);
+      } else if (value === 'custom') {
+        // Load custom image from storage
+        if (ZM.params.overlayCustomImageSrc && ZM.params.overlayCustomFilename) {
+          ZM.params.overlayImageSrc = ZM.params.overlayCustomImageSrc;
+          ZM.params.overlayPresetFile = null;
+          ZM.params.overlayVisible = true;
+          updateOverlay();
+          ZM.saveToLocalStorage();
+          showToast(`Showing: ${ZM.params.overlayCustomFilename}`, 'success');
+        }
       } else if (value && ZM.overlayPresets) {
         // Load preset overlay
         const index = parseInt(value);
@@ -1082,9 +1204,10 @@ function setupOverlayControls(ZM) {
         
         if (overlay && overlay.data && overlay.data.base64) {
           ZM.params.overlayImageSrc = overlay.data.base64;
-          ZM.params.overlayPresetFile = overlay.file; // Track which preset file is used
+          ZM.params.overlayPresetFile = overlay.file;
           ZM.params.overlayVisible = true;
-          if (visibleCheckbox) visibleCheckbox.checked = true;
+          // Don't clear custom image data - keep it available in dropdown
+          rebuildOverlayDropdown(ZM);
           updateOverlay();
           ZM.saveToLocalStorage();
           showToast(`Loaded: ${overlay.name}`, 'success');
@@ -1093,48 +1216,52 @@ function setupOverlayControls(ZM) {
     });
   }
   
-  // Load button (for custom images)
-  if (loadBtn && loadInput) {
-    loadBtn.addEventListener('click', () => loadInput.click());
-    
+  // File input handler (for custom images)
+  if (loadInput) {
     loadInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
-      if (!file) return;
+      if (!file) {
+        // User cancelled - restore previous selection
+        updateOverlayDropdownSelection(ZM);
+        return;
+      }
       
       const reader = new FileReader();
       reader.onload = (event) => {
-        ZM.params.overlayImageSrc = event.target.result;
-        ZM.params.overlayPresetFile = null; // Clear preset file (custom upload)
+        const base64Data = event.target.result;
+        ZM.params.overlayImageSrc = base64Data;
+        ZM.params.overlayCustomImageSrc = base64Data; // Store separately for persistence
+        ZM.params.overlayPresetFile = null; // Clear preset file
+        ZM.params.overlayCustomFilename = file.name; // Store filename
         ZM.params.overlayVisible = true;
-        if (visibleCheckbox) visibleCheckbox.checked = true;
-        if (presetSelect) presetSelect.value = ''; // Reset preset selector
+        rebuildOverlayDropdown(ZM); // Rebuild to show new/updated custom image
         updateOverlay();
-        ZM.saveToLocalStorage();
-        showToast('Custom overlay image loaded', 'success');
+        
+        // Wait for the overlay image element to load the new image before auto-fitting
+        const overlayImg = ZM.params.stereoscopicMode ? overlayImgLeft : overlayImgMono;
+        if (overlayImg) {
+          // Set up a one-time load handler
+          const handleImageLoad = () => {
+            // Auto-fit the overlay to canvas (includes centering)
+            calculateAutoFitScale();
+            overlayImg.removeEventListener('load', handleImageLoad);
+          };
+          
+          // Check if image is already loaded (cached)
+          if (overlayImg.complete && overlayImg.naturalWidth > 0) {
+            handleImageLoad();
+          } else {
+            overlayImg.addEventListener('load', handleImageLoad);
+          }
+        }
+        
+        showToast(`Loaded: ${file.name}`, 'success');
       };
       reader.readAsDataURL(file);
     });
   }
   
-  // Clear button
-  if (clearBtn) {
-    clearBtn.addEventListener('click', () => {
-      ZM.params.overlayImageSrc = null;
-      ZM.params.overlayPresetFile = null;
-      ZM.params.overlayVisible = false;
-      if (visibleCheckbox) visibleCheckbox.checked = false;
-      if (loadInput) loadInput.value = '';
-      if (presetSelect) presetSelect.value = '';
-      updateOverlay();
-      ZM.saveToLocalStorage();
-      showToast('Overlay image cleared', 'info');
-    });
-  }
-  
   // Update when any parameter changes
-  if (visibleCheckbox) {
-    visibleCheckbox.addEventListener('change', updateOverlay);
-  }
   if (scaleSlider) {
     scaleSlider.addEventListener('input', updateOverlay);
   }
@@ -1321,8 +1448,7 @@ function syncUIFromParams(ZM) {
     'depth-invert': 'depthInvert',
     'stereoscopic-mode': 'stereoscopicMode',
     'framebuffer-mode': 'framebufferMode',
-    'auto-trigger-states': 'autoTriggerStates',
-    'overlay-visible': 'overlayVisible'
+    'auto-trigger-states': 'autoTriggerStates'
   };
   
   Object.entries(checkboxMap).forEach(([checkboxId, paramKey]) => {
@@ -1348,6 +1474,11 @@ function syncUIFromParams(ZM) {
     if (borderColorVal) borderColorVal.textContent = ZM.params.canvasBorderColor;
   }
   applyCanvasBorder(borderVisible, ZM.params.canvasBorderColor || '#adff2f');
+  
+  // Update overlay preset dropdown
+  if (ZM.overlayPresets) {
+    ZM.rebuildOverlayDropdown();
+  }
   
   // Update overlay image
   if (ZM.updateOverlay) {

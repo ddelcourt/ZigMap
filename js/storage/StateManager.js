@@ -428,8 +428,7 @@ function syncUIWithoutRestart(ZM) {
     'depth-invert': 'depthInvert',
     'stereoscopic-mode': 'stereoscopicMode',
     'framebuffer-mode': 'framebufferMode',
-    'auto-trigger-states': 'autoTriggerStates',
-    'overlay-visible': 'overlayVisible'
+    'auto-trigger-states': 'autoTriggerStates'
   };
   
   Object.entries(checkboxMap).forEach(([checkboxId, paramKey]) => {
@@ -468,6 +467,13 @@ function syncUIWithoutRestart(ZM) {
   // Update palette UI
   if (ZM.updatePaletteUI) {
     ZM.updatePaletteUI();
+  }
+  
+  // Update overlay preset dropdown
+  if (ZM.overlayPresets && ZM.rebuildOverlayDropdown) {
+    ZM.rebuildOverlayDropdown();
+  } else if (ZM.updateOverlayDropdownSelection) {
+    ZM.updateOverlayDropdownSelection();
   }
   
   // Update overlay image

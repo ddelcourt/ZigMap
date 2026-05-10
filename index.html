@@ -95,7 +95,7 @@
           <!-- Auto-Trigger Controls -->
           <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #333;">
             <div class="control-group">
-              <label><input type="checkbox" id="auto-trigger-states"> Auto-Trigger Frq (s)</label>
+              <label><input type="checkbox" id="auto-trigger-states" autocomplete="off"> Auto-Trigger Frq (s)</label>
             </div>
             <div class="control-group">
               <!-- <label> Frq<span style="color:#444">(s)</span></label> -->
@@ -118,7 +118,7 @@
       <div class="section-content">
         <div class="section-body">
           <div class="control-group">
-            <label><input type="checkbox" id="framebuffer-mode">Framebuffer Resolution</label>
+            <label><input type="checkbox" id="framebuffer-mode" autocomplete="off">Framebuffer Resolution</label>
           </div>
           <div class="control-group">
             <label>Preset</label>
@@ -135,7 +135,7 @@
             </div>
           </div>
           <div class="control-group">
-            <label><input type="checkbox" id="canvas-border-visible">Show Canvas Border</label>
+            <label><input type="checkbox" id="canvas-border-visible" autocomplete="off">Show Canvas Border</label>
           </div>
           <div class="control-group" id="canvas-border-color-group">
             <label>Canvas Border Color</label>
@@ -145,7 +145,7 @@
             </div>
           </div>
           <div class="control-group">
-            <label><input type="checkbox" id="stereoscopic-mode">Stereoscopic View (VR)</label>
+            <label><input type="checkbox" id="stereoscopic-mode" autocomplete="off">Stereoscopic View (VR)</label>
           </div>
           <div class="control-group">
             <label>Eye Separation</label>
@@ -204,10 +204,6 @@
       </div>
       <div class="section-content">
         <div class="section-body">
-          <div class="control-group">
-            <label><input type="checkbox" id="overlay-visible"> Show Overlay</label>
-          </div>
-          
           <!-- Overlay Preset Selector -->
           <div class="control-group" style="margin-top:12px;">
             <label>Preset</label>
@@ -216,10 +212,8 @@
             </select>
           </div>
           
-          <div style="margin-top:12px;">
-            <button id="load-overlay-btn" style="width:100%;padding:10px;background:#1a1a3a;border:1px solid #2d2d5f;color:#aaaaff;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Load Custom Image</button>
-            <input type="file" id="load-overlay-input" accept=".png,.jpg,.jpeg,.svg" style="display:none;">
-          </div>
+          <input type="file" id="load-overlay-input" accept=".png,.jpg,.jpeg,.svg" style="display:none;">
+          
           <div style="margin-top:12px;">
             <button id="overlay-auto-fit" style="width:100%;padding:10px;background:#1a3a1a;border:1px solid #2d5f2d;color:#aaffaa;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Auto-Fit to Canvas</button>
           </div>
@@ -251,7 +245,6 @@
               <span class="value-display" id="overlay-y-val">50</span>
             </div>
           </div>
-          <button id="clear-overlay-btn" style="width:100%;padding:8px;margin-top:8px;background:#3a1a1a;border:1px solid #5f2d2d;color:#ffaaaa;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:4px;cursor:pointer;">Clear Image</button>
         </div>
       </div>
     </div>
@@ -420,7 +413,7 @@
       <div class="section-content">
         <div class="section-body">
           <div class="control-group">
-            <label><input type="checkbox" id="random-thickness">Random Thickness</label>
+            <label><input type="checkbox" id="random-thickness" autocomplete="off">Random Thickness</label>
           </div>
           <div class="control-group">
             <label>Thickness Range <span style="color:#444">(% of base)</span></label>
@@ -435,7 +428,7 @@
             </div>
           </div>
           <div class="control-group">
-            <label><input type="checkbox" id="random-speed">Random Speed</label>
+            <label><input type="checkbox" id="random-speed" autocomplete="off">Random Speed</label>
           </div>
           <div class="control-group">
             <label>Speed Range <span style="color:#444">(% of base)</span></label>
