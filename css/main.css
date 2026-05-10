@@ -196,9 +196,9 @@ body.hide-cursor * {
   transition: right 0.3s ease;
 }
 
-/* Offset when right control panel is visible */
-body:not(.ui-hidden) #mini-toast-container {
-  right: 314px;
+/* Offset when right control panel is hovered */
+body.right-controls-hovered #mini-toast-container {
+  right: 294px;
 }
 
 .mini-toast {

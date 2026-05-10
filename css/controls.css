@@ -23,6 +23,21 @@
   z-index: 10;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  opacity: 0.24;
+}
+
+/* Full opacity on hover */
+.controls:hover,
+.controls-middle:hover,
+.controls-right:hover {
+  opacity: 1;
+}
+
+/* Full opacity at startup (first 10 seconds) */
+.controls.startup-visible,
+.controls-middle.startup-visible,
+.controls-right.startup-visible {
+  opacity: 1;
 }
 
 .controls::-webkit-scrollbar,

@@ -338,6 +338,30 @@ async function init() {
   setupKeyboardHandlers(ZM);
   setupMouseHandlers(ZM);
   
+  // Setup mini-toast offset when hovering right control panel
+  const controlsRight = document.querySelector('.controls-right');
+  if (controlsRight) {
+    controlsRight.addEventListener('mouseenter', () => {
+      document.body.classList.add('right-controls-hovered');
+    });
+    controlsRight.addEventListener('mouseleave', () => {
+      document.body.classList.remove('right-controls-hovered');
+    });
+  }
+  
+  // Keep control panels fully visible for 10 seconds at startup
+  const controlsLeft = document.querySelector('.controls');
+  const controlsMiddle = document.querySelector('.controls-middle');
+  if (controlsLeft) controlsLeft.classList.add('startup-visible');
+  if (controlsMiddle) controlsMiddle.classList.add('startup-visible');
+  if (controlsRight) controlsRight.classList.add('startup-visible');
+  
+  setTimeout(() => {
+    if (controlsLeft) controlsLeft.classList.remove('startup-visible');
+    if (controlsMiddle) controlsMiddle.classList.remove('startup-visible');
+    if (controlsRight) controlsRight.classList.remove('startup-visible');
+  }, 10000);
+  
   // Setup cursor auto-hide in fullscreen
   let cursorTimeout = null;
   const hideCursor = () => {
