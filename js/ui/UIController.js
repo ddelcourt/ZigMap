@@ -1094,8 +1094,8 @@ function setupOverlayControls(ZM) {
         const scaleY = canvasHeight / overlayImg.naturalHeight;
         const scale = Math.min(scaleX, scaleY, 1); // Don't upscale beyond 100%
         
-        // Update the overlayScale parameter (convert to percentage)
-        ZM.params.overlayScale = Math.round(scale * 100);
+        // Update the overlayScale parameter (convert to percentage, ensure minimum 1%)
+        ZM.params.overlayScale = Math.max(1, Math.round(scale * 100));
         
         // Reset position to center
         ZM.params.overlayX = 50;
@@ -1132,7 +1132,7 @@ function setupOverlayControls(ZM) {
         updateOverlay();
         ZM.saveToLocalStorage();
         
-        console.log(`📐 Auto-fit overlay: ${ZM.params.overlayScale}% at center (canvas display: ${Math.round(canvasWidth)}×${Math.round(canvasHeight)}px)`);
+        console.log(`📐 Auto-fit overlay: ${ZM.params.overlayScale}% at center (canvas: ${Math.round(canvasWidth)}×${Math.round(canvasHeight)}px, image: ${overlayImg.naturalWidth}×${overlayImg.naturalHeight}px)`);
         showToast(`Auto-fit: ${ZM.params.overlayScale}%`, 'success');
       });
     });

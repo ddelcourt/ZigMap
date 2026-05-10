@@ -253,7 +253,8 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       const eyeOffsetX = eyeOffset * ZM.params.eyeSeparation;
       
       p.perspective(fovRad, ZM.W / ZM.H, ZM.params.near, ZM.params.far);
-      p.camera(eyeOffsetX, 0, cameraZ, eyeOffsetX, 0, 0, 0, 1, 0);
+      // Both stereo cameras look at center (0,0,0) for proper convergence
+      p.camera(eyeOffsetX, 0, cameraZ, 0, 0, 0, 0, 1, 0);
       
       // Apply camera transforms
       p.translate(ZM.camera.offsetX, ZM.camera.offsetY, -ZM.camera.distance);
