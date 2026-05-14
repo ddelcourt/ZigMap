@@ -1491,6 +1491,9 @@ function setupStatePanel(ZM) {
   // Initial render
   updateStatePanel(ZM);
   
+  // Setup drag-and-drop reordering (only once on initialization)
+  setupDragAndDrop(ZM, stateContainer);
+  
   // New state button - direct save with auto-generated name
   const newStateBtn = document.getElementById('new-state-btn');
   if (newStateBtn) {
@@ -1554,13 +1557,14 @@ function updateStatePanel(ZM) {
     return;
   }
   
-  stateContainer.innerHTML = states.map(state => {
+  stateContainer.innerHTML = states.map((state, index) => {
     const isActive = state.id === activeId;
     const date = new Date(state.timestamp);
     const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
     return `
-      <div class="state-item ${isActive ? 'active' : ''}" data-state-id="${state.id}">
+      <div class="state-item ${isActive ? 'active' : ''}" data-state-id="${state.id}" data-index="${index}" draggable="true">
+        <div class="state-drag-handle" title="Drag to reorder">⋮⋮</div>
         <div class="state-info">
           <div class="state-name">${escapeHtml(state.name)}</div>
           <div class="state-timestamp">${timeStr}</div>
@@ -1589,8 +1593,9 @@ function updateStatePanel(ZM) {
     
     // Click on item to load
     item.addEventListener('click', (e) => {
-      // Ignore if clicking on action buttons or in edit mode
+      // Ignore if clicking on action buttons, drag handle, or in edit mode
       if (e.target.closest('.state-action-btn')) return;
+      if (e.target.closest('.state-drag-handle')) return;
       if (e.target.closest('.state-name.editing')) return;
       ZM.stateManager.load(stateId);
     });
@@ -1624,6 +1629,122 @@ function updateStatePanel(ZM) {
           showDeleteConfirmation(ZM, stateId, item);
         }
       });
+    });
+  });
+}
+
+/**
+ * Setup drag-and-drop reordering for state items
+ */
+function setupDragAndDrop(ZM, container) {
+  let draggedElement = null;
+  let draggedIndex = null;
+  let dropTargetIndex = null;
+  let didReorder = false;
+  
+  container.addEventListener('dragstart', (e) => {
+    const stateItem = e.target.closest('.state-item');
+    if (!stateItem) return;
+    
+    // Don't allow drag if in edit mode or clicking on action buttons
+    if (stateItem.querySelector('.state-name.editing')) {
+      e.preventDefault();
+      return;
+    }
+    if (e.target.closest('.state-action-btn')) {
+      e.preventDefault();
+      return;
+    }
+    
+    draggedElement = stateItem;
+    draggedIndex = parseInt(stateItem.dataset.index);
+    dropTargetIndex = null;
+    didReorder = false;
+    
+    stateItem.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', stateItem.innerHTML);
+    
+    // Set drag image with some transparency
+    if (e.dataTransfer.setDragImage) {
+      e.dataTransfer.setDragImage(stateItem, 20, 20);
+    }
+  });
+  
+  container.addEventListener('dragend', (e) => {
+    const stateItem = e.target.closest('.state-item');
+    if (stateItem) {
+      stateItem.classList.remove('dragging');
+    }
+    
+    // Remove all drag-over classes
+    container.querySelectorAll('.state-item').forEach(item => {
+      item.classList.remove('drag-over');
+    });
+    
+    // Update UI and show feedback only once after drag completes
+    if (didReorder) {
+      // Refresh the UI to show new order
+      if (ZM.updateStatePanel) {
+        ZM.updateStatePanel();
+      }
+      
+      // Show single confirmation toast
+      if (ZM.showToast) {
+        ZM.showToast('✓ States reordered', 'success');
+      }
+    }
+    
+    // Reset state
+    draggedElement = null;
+    draggedIndex = null;
+    dropTargetIndex = null;
+    didReorder = false;
+  });
+  
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const stateItem = e.target.closest('.state-item');
+    if (!stateItem || !draggedElement || stateItem === draggedElement) {
+      return;
+    }
+    
+    e.dataTransfer.dropEffect = 'move';
+    
+    // Visual feedback: add drag-over class
+    container.querySelectorAll('.state-item').forEach(item => {
+      item.classList.remove('drag-over');
+    });
+    stateItem.classList.add('drag-over');
+  });
+  
+  container.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const targetItem = e.target.closest('.state-item');
+    if (!targetItem || !draggedElement || targetItem === draggedElement) {
+      return;
+    }
+    
+    dropTargetIndex = parseInt(targetItem.dataset.index);
+    
+    // Perform reorder silently (no UI updates or toasts during drag)
+    const reordered = ZM.stateManager.reorder(draggedIndex, dropTargetIndex, true);
+    if (reordered) {
+      didReorder = true;
+      // Update draggedIndex to new position for subsequent drops in same drag
+      draggedIndex = dropTargetIndex;
+    }
+    
+    // Clean up visual feedback
+    targetItem.classList.remove('drag-over');
+  });
+  
+  // Prevent default drag behavior on drag handle to allow easy dragging
+  container.querySelectorAll('.state-drag-handle').forEach(handle => {
+    handle.addEventListener('mousedown', (e) => {
+      // Don't prevent default - allow drag to start
     });
   });
 }

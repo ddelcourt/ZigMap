@@ -1,13 +1,18 @@
 {
   "presets": [
     {
-      "filename": "zigmap_init.json",
-      "name": "zigmap_init",
+      "filename": "Init.json",
+      "name": "Init",
       "type": "Init"
     },
     {
       "filename": "DowntownAmbient.json",
       "name": "DowntownAmbient",
+      "type": "Preset"
+    },
+    {
+      "filename": "FashionLedShow.json",
+      "name": "FashionLedShow",
       "type": "Preset"
     },
     {

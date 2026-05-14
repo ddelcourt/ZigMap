@@ -233,6 +233,43 @@
   border-bottom: none;
 }
 
+/* Drag handle */
+.state-drag-handle {
+  width: 16px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+  line-height: 1;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  transition: color 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  letter-spacing: -2px;
+}
+
+.state-item:hover .state-drag-handle {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.state-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Dragging state */
+.state-item.dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+/* Drop target indicator */
+.state-item.drag-over {
+  border-top: 2px solid #6496ff;
+  background: rgba(100, 150, 255, 0.1);
+}
+
 /* State Info */
 .state-info {
   flex: 1;

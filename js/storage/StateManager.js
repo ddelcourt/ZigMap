@@ -35,6 +35,7 @@ export function initializeStateManager(ZM) {
     getAllStates: () => ZM.stateManager.states,
     setActive: (id) => setActiveState(ZM, id),
     saveToStorage: () => saveStatesToStorage(ZM),
+    reorder: (fromIndex, toIndex, silent) => reorderStates(ZM, fromIndex, toIndex, silent),
     
     // Auto-trigger
     loadRandomState: () => loadRandomState(ZM),
@@ -765,6 +766,39 @@ function duplicateState(ZM, id) {
   updateAutoTriggerStatus(ZM);
   
   return newState;
+}
+
+/**
+ * Reorder states array by moving item from one index to another
+ * @param {Object} ZM - Main application object
+ * @param {Number} fromIndex - Source index
+ * @param {Number} toIndex - Target index
+ * @param {Boolean} silent - If true, skip UI updates and notifications (for drag operations)
+ * @returns {Boolean} True if reorder was performed
+ */
+function reorderStates(ZM, fromIndex, toIndex, silent = false) {
+  if (fromIndex === toIndex) return false;
+  if (fromIndex < 0 || fromIndex >= ZM.stateManager.states.length) return false;
+  if (toIndex < 0 || toIndex >= ZM.stateManager.states.length) return false;
+  
+  // Remove item from old position
+  const [movedState] = ZM.stateManager.states.splice(fromIndex, 1);
+  
+  // Insert at new position
+  ZM.stateManager.states.splice(toIndex, 0, movedState);
+  
+  // Clear shuffle pool to refresh auto-trigger sequence
+  ZM.shufflePool = [];
+  
+  // Save to storage
+  saveStatesToStorage(ZM);
+  
+  // Update UI if not silent
+  if (!silent && ZM.updateStatePanel) {
+    ZM.updateStatePanel();
+  }
+  
+  return true;
 }
 
 /**
