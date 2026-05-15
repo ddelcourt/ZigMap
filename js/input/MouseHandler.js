@@ -97,8 +97,21 @@ export function setupMouseHandlers(ZM) {
   
   // Mouse up
   window.addEventListener('mouseup', () => {
+    const wasDragging = ZM.camera.isDragging;
+    const wasPanning = ZM.camera.isPanning;
+    
     ZM.camera.isDragging = false;
     ZM.camera.isPanning = false;
+    
+    // Broadcast camera changes to display window after drag/pan
+    if ((wasDragging || wasPanning) && ZM.windowSync && ZM.windowSync.broadcastParamChanges) {
+      ZM.windowSync.broadcastParamChanges({
+        cameraRotationX: ZM.params.cameraRotationX,
+        cameraRotationY: ZM.params.cameraRotationY,
+        cameraOffsetX: ZM.params.cameraOffsetX,
+        cameraOffsetY: ZM.params.cameraOffsetY
+      });
+    }
   });
   
   // Prevent context menu on right-click
@@ -123,5 +136,12 @@ export function setupMouseHandlers(ZM) {
     
     ZM.params.cameraDistance = ZM.camera.distance;
     ZM.saveToLocalStorage();
+    
+    // Broadcast camera distance to display window
+    if (ZM.windowSync && ZM.windowSync.broadcastParamChanges) {
+      ZM.windowSync.broadcastParamChanges({
+        cameraDistance: ZM.params.cameraDistance
+      });
+    }
   }, { passive: false });
 }

@@ -14,8 +14,8 @@ const ACTIVE_STATE_KEY = 'ZigMap26_activeState';
  */
 export function initializeStateManager(ZM) {
   ZM.stateManager = {
-    states: loadStates(),
-    activeStateId: loadActiveStateId(),
+    states: ZM.isDisplayMode || ZM.isPlayerMode ? [] : loadStates(),
+    activeStateId: ZM.isDisplayMode || ZM.isPlayerMode ? null : loadActiveStateId(),
     
     // Core operations
     save: (name) => saveState(ZM, name),
@@ -61,11 +61,13 @@ export function initializeStateManager(ZM) {
     currentIndex: -1
   };
   
-  // Initialize auto-trigger controls
-  initializeAutoTriggerControls(ZM);
+  // Initialize auto-trigger controls (skip in display/player mode - no UI controls)
+  if (!ZM.isDisplayMode && !ZM.isPlayerMode) {
+    initializeAutoTriggerControls(ZM);
+  }
   
-  // Create initial state if none exist
-  if (ZM.stateManager.states.length === 0) {
+  // Create initial state if none exist (skip in display/player mode)
+  if (!ZM.isDisplayMode && !ZM.isPlayerMode && ZM.stateManager.states.length === 0) {
     const initialState = captureCurrentState(ZM, 'Initial State');
     ZM.stateManager.states.push(initialState);
     ZM.stateManager.activeStateId = initialState.id;
@@ -575,7 +577,12 @@ function loadState(ZM, id, instant = false, toastPrefix = 'State: ') {
   
   restoreState(ZM, state, instant);
   ZM.stateManager.activeStateId = id;
-  saveActiveStateId(id);
+  saveActiveStateId(ZM, id);
+  
+  // Broadcast full state to display window
+  if (ZM.windowSync && ZM.windowSync.broadcastFullState) {
+    ZM.windowSync.broadcastFullState();
+  }
 
   if (ZM.showToast) {
     if (ZM.buildPaletteSwatchNode) {
@@ -941,7 +948,7 @@ function getStateById(ZM, id) {
  */
 function setActiveState(ZM, id) {
   ZM.stateManager.activeStateId = id;
-  saveActiveStateId(id);
+  saveActiveStateId(ZM, id);
 }
 
 /**
@@ -984,6 +991,9 @@ function loadStates() {
  * @param {Object} ZM - Main application object
  */
 function saveStatesToStorage(ZM) {
+  // Don't save in player mode or display mode
+  if (ZM.isPlayerMode || ZM.isDisplayMode) return;
+  
   try {
     localStorage.setItem(STATES_STORAGE_KEY, JSON.stringify(ZM.stateManager.states));
   } catch (e) {
@@ -1005,9 +1015,13 @@ function loadActiveStateId() {
 
 /**
  * Save active state ID
+ * @param {Object} ZM - Main application object
  * @param {String} id - State ID
  */
-function saveActiveStateId(id) {
+function saveActiveStateId(ZM, id) {
+  // Don't save in player mode or display mode
+  if (ZM.isPlayerMode || ZM.isDisplayMode) return;
+  
   try {
     localStorage.setItem(ACTIVE_STATE_KEY, id);
   } catch (e) {
@@ -1046,7 +1060,7 @@ function navigateHistory(ZM, direction) {
   // Load the state
   restoreState(ZM, state);
   ZM.stateManager.activeStateId = stateId;
-  saveActiveStateId(stateId);
+  saveActiveStateId(ZM, stateId);
 
   if (ZM.showToast) {
     const prefix = direction < 0 ? '⏮ ' : '⏭ ';
@@ -1257,6 +1271,12 @@ function initializeAutoTriggerControls(ZM) {
  * @returns {Boolean} Success status
  */
 function loadRandomState(ZM) {
+  // Never auto-trigger in display or player mode
+  if (ZM.isDisplayMode || ZM.isPlayerMode) {
+    console.warn('[Auto-Trigger] Blocked - should not run in display/player mode');
+    return false;
+  }
+  
   const states = ZM.stateManager.states;
   const activeId = ZM.stateManager.activeStateId;
   
@@ -1310,8 +1330,8 @@ function loadRandomState(ZM) {
  * @param {Object} ZM - Main application object
  */
 function updateAutoTriggerStatus(ZM) {
-  // Skip UI updates in player mode (no DOM elements to update)
-  if (ZM.isPlayerMode) return;
+  // Skip UI updates in player mode or display mode (no DOM elements to update)
+  if (ZM.isPlayerMode || ZM.isDisplayMode) return;
   
   const statusDiv = document.getElementById('auto-trigger-status');
   const currentStateNameDisplay = document.getElementById('current-state-name');

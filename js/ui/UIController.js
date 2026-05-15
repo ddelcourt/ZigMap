@@ -4,6 +4,7 @@
 
 import { triggerPaletteChange, getBackgroundColor } from '../core/colorUtils.js';
 import { OVERLAY_FILES, OVERLAY_FOLDER } from '../../config/overlayPresets.js';
+import { openDisplayWindow } from '../sync/WindowSync.js';
 
 // Debounce timer for auto-updating active state
 let stateAutoUpdateTimer = null;
@@ -201,6 +202,13 @@ function wireSlider(ZM, sliderId, displayId, paramKey, decimals = 0, label = '')
       }
     });
   }
+  
+  // Broadcast param change to display window on mouse up
+  slider.addEventListener('pointerup', () => {
+    if (ZM.windowSync && ZM.windowSync.broadcastParamChanges) {
+      ZM.windowSync.broadcastParamChanges({ [paramKey]: ZM.params[paramKey] });
+    }
+  });
 }
 
 /**
@@ -224,6 +232,11 @@ function wireCheckbox(ZM, checkboxId, paramKey, label) {
     
     if (label && ZM.showToast) {
       ZM.showToast(label + (e.target.checked ? ' — ON' : ' — OFF'));
+    }
+    
+    // Broadcast param change to display window
+    if (ZM.windowSync && ZM.windowSync.broadcastParamChanges) {
+      ZM.windowSync.broadcastParamChanges({ [paramKey]: ZM.params[paramKey] });
     }
 
     // Special handling for auto-trigger states checkbox
@@ -280,6 +293,14 @@ function setupFOVControl(ZM) {
 
   slider.addEventListener('pointerup', () => {
     if (ZM.showToast) ZM.showToast(`FOV: ${ZM.params.fov.toFixed(2)}`);
+    
+    // Broadcast FOV and compensated camera distance to display window
+    if (ZM.windowSync && ZM.windowSync.broadcastParamChanges) {
+      ZM.windowSync.broadcastParamChanges({ 
+        fov: ZM.params.fov,
+        cameraDistance: ZM.params.cameraDistance
+      });
+    }
   });
 }
 
@@ -347,6 +368,11 @@ function setupRangeControl(ZM, baseId, paramBase, suffix = '') {
   });
   minSlider.addEventListener('pointerup', () => {
     if (ZM.showToast) ZM.showToast(`${baseId} min: ${ZM.params[minKey]}${suffix}`);
+    
+    // Broadcast range param change to display window
+    if (ZM.windowSync && ZM.windowSync.broadcastParamChanges) {
+      ZM.windowSync.broadcastParamChanges({ [minKey]: ZM.params[minKey] });
+    }
   });
   
   maxSlider.addEventListener('input', () => {
@@ -359,6 +385,11 @@ function setupRangeControl(ZM, baseId, paramBase, suffix = '') {
   });
   maxSlider.addEventListener('pointerup', () => {
     if (ZM.showToast) ZM.showToast(`${baseId} max: ${ZM.params[maxKey]}${suffix}`);
+    
+    // Broadcast range param change to display window
+    if (ZM.windowSync && ZM.windowSync.broadcastParamChanges) {
+      ZM.windowSync.broadcastParamChanges({ [maxKey]: ZM.params[maxKey] });
+    }
   });
 }
 
@@ -628,6 +659,13 @@ function setupPaletteUI(ZM) {
       if (ZM.showToast) {
         ZM.showToast(`Palette ${paletteIndex + 1}`, '', 4400, buildPaletteSwatchNode(ZM, paletteIndex));
       }
+      
+      // Broadcast palette change to display window
+      if (ZM.windowSync && ZM.windowSync.broadcastParamChanges) {
+        ZM.windowSync.broadcastParamChanges({ 
+          activePaletteIndex: ZM.params.activePaletteIndex
+        });
+      }
 
       // Auto-update active state (debounced)
       scheduleStateAutoUpdate(ZM);
@@ -652,6 +690,16 @@ function setupPaletteUI(ZM) {
 
       // Auto-update active state (debounced)
       scheduleStateAutoUpdate(ZM);
+    });
+    
+    // Broadcast color change to display window when user finishes picking
+    picker.addEventListener('change', () => {
+      if (ZM.windowSync && ZM.windowSync.broadcastParamChanges) {
+        ZM.windowSync.broadcastParamChanges({ 
+          palettes: ZM.params.palettes,
+          activePaletteIndex: ZM.params.activePaletteIndex
+        });
+      }
     });
   });
   
@@ -679,6 +727,14 @@ function setupPaletteUI(ZM) {
       if (ZM.showToast) {
         const idx = ZM.params.activePaletteIndex;
         ZM.showToast(`Palette ${idx + 1}`, '', 4400, buildPaletteSwatchNode(ZM, idx));
+      }
+      
+      // Broadcast palette change to display window
+      if (ZM.windowSync && ZM.windowSync.broadcastParamChanges) {
+        ZM.windowSync.broadcastParamChanges({ 
+          palettes: ZM.params.palettes,
+          activePaletteIndex: ZM.params.activePaletteIndex
+        });
       }
       
       // Auto-update active state (debounced)
@@ -832,6 +888,7 @@ function setupFileSaveLoad(ZM) {
   const saveBtn = document.getElementById('save-json');
   const loadBtn = document.getElementById('load-json');
   const loadInput = document.getElementById('load-json-input');
+  const displayWindowBtn = document.getElementById('open-display-window');
   
   if (saveBtn) {
     saveBtn.addEventListener('click', () => {
@@ -850,6 +907,18 @@ function setupFileSaveLoad(ZM) {
       const file = e.target.files[0];
       if (file) {
         ZM.loadJSON(file);
+      }
+    });
+  }
+  
+  // Display window button
+  if (displayWindowBtn) {
+    displayWindowBtn.addEventListener('click', () => {
+      const displayWindow = openDisplayWindow();
+      if (displayWindow && ZM.showToast) {
+        ZM.showToast('🖥️ Display window opened', 'success');
+      } else if (!displayWindow && ZM.showToast) {
+        ZM.showToast('❌ Failed to open display window (popup blocked?)', 'error');
       }
     });
   }

@@ -33,6 +33,9 @@ import { initializeUI } from './ui/UIController.js';
 import { setupKeyboardHandlers } from './input/KeyboardHandler.js';
 import { setupMouseHandlers } from './input/MouseHandler.js';
 
+// Import window sync
+import { initializePrimarySync } from './sync/WindowSync.js';
+
 // ═══════════════════════════════════════════════════════════════════════════
 // GLOBAL APPLICATION STATE
 // ═══════════════════════════════════════════════════════════════════════════
@@ -135,6 +138,11 @@ window.ZigMap26 = {
       // Sync main UI
       window.ZigMap26.syncUIFromParams();
     }
+    
+    // Broadcast full state to display window after project load
+    if (window.ZigMap26.windowSync && window.ZigMap26.windowSync.broadcastFullState) {
+      window.ZigMap26.windowSync.broadcastFullState();
+    }
   }),
   
   // Export functions
@@ -228,6 +236,9 @@ async function init() {
   // Initialize camera
   ZM.camera = new Camera(ZM.params);
   
+  // Initialize window sync for primary window
+  initializePrimarySync(ZM);
+  
   // Initialize preset manager FIRST (needed before loading presets)
   initializeStateManager(ZM);
   
@@ -240,6 +251,11 @@ async function init() {
     // Load preset from URL parameter (overrides localStorage)
     console.log(`Loading preset from URL: ${presetParam}`);
     await loadPresetFile(ZM, presetParam);
+    
+    // Broadcast full state to display window after preset load
+    if (ZM.windowSync && ZM.windowSync.broadcastFullState) {
+      ZM.windowSync.broadcastFullState();
+    }
   } else {
     // Load saved settings or initial preset
     hadSavedSettings = ZM.loadFromLocalStorage();
