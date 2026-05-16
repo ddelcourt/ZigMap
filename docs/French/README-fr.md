@@ -198,6 +198,38 @@ Définit la portion visible de l'espace 3D. À ajuster si la géométrie appara�
 
 ---
 
+### Fenêtre d'affichage (Synchronisation multi-écran)
+
+**Bouton Ouvrir Fenêtre d'Affichage** (situé dans la section Projet)  
+Ouvre une fenêtre secondaire plein écran pour les présentations multi-écrans. La fenêtre d'affichage reproduit l'animation de la fenêtre principale en temps réel, synchronisée via diffusion de paramètres.
+
+**Fonctionnement :**
+- La fenêtre principale diffuse tous les changements de paramètres aux fenêtres d'affichage via l'API BroadcastChannel
+- Chaque fenêtre exécute son propre code génératif indépendant en utilisant les paramètres synchronisés
+- Les deux fenêtres génèrent leurs animations de manière indépendante en se basant sur les mêmes valeurs d'état
+
+**Important : Pourquoi les affichages peuvent ne pas correspondre exactement**
+
+Les images de l'affichage principal et de l'affichage secondaire apparaîtront **similaires mais non identiques au pixel près**. C'est un comportement attendu car :
+
+1. **Synchronisation basée sur les paramètres** : Le système synchronise les *paramètres d'état* (couleurs, géométrie, position de caméra, taux d'émission, etc.), et non les pixels rendus eux-mêmes. Chaque fenêtre reçoit les mêmes instructions mais exécute l'algorithme génératif de manière indépendante.
+
+2. **Exécution générative indépendante** : Chaque fenêtre exécute sa propre boucle d'animation avec sa propre génération de nombres aléatoires, temporisation et pipeline de rendu. Les lignes sont créées et animées de manière indépendante, suivant les mêmes règles mais produisant des variations uniques.
+
+3. **Variations de temporisation** : Le timing des frames du navigateur et les cycles de rendu peuvent différer légèrement entre les fenêtres, causant de subtiles différences dans les positions des lignes et les moments de génération.
+
+**Pourquoi cette approche est plus efficace que la diffusion d'images :**
+
+- **Bande passante inférieure** : Diffuser des mises à jour de paramètres compactes (quelques octets) est beaucoup plus efficace que diffuser des trames vidéo haute résolution (mégaoctets par seconde)
+- **Meilleures performances** : Chaque fenêtre effectue un rendu natif à sa propre résolution et taux de rafraîchissement, évitant les artefacts de compression vidéo
+- **Accélération matérielle** : Chaque fenêtre utilise l'accélération GPU complète pour le rendu WebGL, maintenant des performances fluides à 60 images par seconde
+- **Évolutivité** : Plusieurs fenêtres d'affichage peuvent se connecter sans augmenter exponentiellement le transfert de données
+- **Indépendance de résolution** : Chaque affichage peut fonctionner à sa résolution optimale sans réduction d'échelle du contenu diffusé
+
+Cette approche de synchronisation générative est idéale pour les installations en direct, les configurations multi-projecteurs et les contextes de performance où un rendu fluide et de haute qualité sur plusieurs affichages est essentiel.
+
+---
+
 ### Section Géométrie
 
 **Hauteur de géométrie** — plage : 10–240, par défaut : 120, unités : pixels

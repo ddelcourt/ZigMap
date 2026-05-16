@@ -111,6 +111,31 @@ Contrôles de résolution de sortie, appliqués aux exports.
 
 ---
 
+### Fenêtre d'affichage
+
+Pour les présentations multi-écrans et les installations, le bouton **Ouvrir Fenêtre d'Affichage** (dans la section Projet) ouvre une fenêtre d'affichage secondaire synchronisée.
+
+**Fonctionnement :**
+La fenêtre principale diffuse tous les changements de paramètres aux fenêtres d'affichage en temps réel. Chaque fenêtre exécute son propre code génératif indépendant en utilisant les mêmes paramètres, créant des animations similaires mais non identiques.
+
+**Pourquoi les affichages diffèrent légèrement :**
+Les images sur les affichages principal et secondaire seront **visuellement similaires mais non identiques au pixel près**. C'est normal et attendu :
+
+- **Synchronisation de paramètres** : Le système synchronise les paramètres d'état (couleurs, caméra, géométrie, etc.), pas les pixels réels
+- **Génération indépendante** : Chaque fenêtre génère son animation de manière indépendante en utilisant les mêmes règles mais des graines aléatoires différentes
+- **Variations de temporisation** : Les cycles de rendu du navigateur diffèrent légèrement entre les fenêtres
+
+**Avantages par rapport à la diffusion d'images :**
+- Bande passante beaucoup plus faible (paramètres vs. trames vidéo)
+- Rendu GPU natif sur chaque affichage maintenant 60 images par seconde fluides
+- Chaque affichage fonctionne à sa résolution optimale de manière indépendante
+- Plusieurs affichages peuvent se connecter sans dégradation des performances
+- Aucun artefact de compression vidéo
+
+Cette approche est idéale pour les installations en direct et les configurations multi-projecteurs nécessitant des animations synchronisées de haute qualité.
+
+---
+
 ### Géométrie
 
 - **Segment Length** : longueur de chaque segment zigzag.

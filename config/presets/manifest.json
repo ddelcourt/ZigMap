@@ -16,6 +16,11 @@
       "type": "Preset"
     },
     {
+      "filename": "GeekSpaceOne.json",
+      "name": "GeekSpaceOne",
+      "type": "Preset"
+    },
+    {
       "filename": "GrooveAmbient.json",
       "name": "GrooveAmbient",
       "type": "Preset"

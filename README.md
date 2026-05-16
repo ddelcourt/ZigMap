@@ -205,6 +205,38 @@ Defines visible portion of 3D space. Adjust if geometry appears clipped at extre
 
 ---
 
+### Display Window (Multi-display synchronization)
+
+**Open Display Window** button (located in Project section)  
+Opens a secondary fullscreen window for multi-monitor presentations. The display window mirrors the main window's animation in real-time, synchronized via parameter broadcasting.
+
+**How it works:**
+- The main window broadcasts all parameter changes to display windows via the BroadcastChannel API
+- Each window runs its own independent generative code using the synchronized parameters
+- Both windows generate their animations independently based on the same state values
+
+**Important: Why displays may not match exactly**
+
+The main display and secondary display images will appear **similar but not pixel-perfect identical**. This is expected behavior because:
+
+1. **Parameter-based synchronization**: The system syncs the *state parameters* (colors, geometry, camera position, emit rate, etc.), not the rendered pixels themselves. Each window receives the same instructions but executes the generative algorithm independently.
+
+2. **Independent generative execution**: Each window runs its own animation loop with its own random number generation, timing, and rendering pipeline. Lines are created and animated independently, following the same rules but producing unique variations.
+
+3. **Timing variations**: Browser frame timing and render cycles can differ slightly between windows, causing subtle differences in line positions and generation moments.
+
+**Why this approach is more efficient than image streaming:**
+
+- **Lower bandwidth**: Broadcasting compact parameter updates (a few bytes) is far more efficient than streaming high-resolution video frames (megabytes per second)
+- **Better performance**: Each window renders natively at its own resolution and refresh rate, avoiding video compression artifacts
+- **Hardware acceleration**: Each window uses full GPU acceleration for WebGL rendering, maintaining smooth 60fps performance
+- **Scalability**: Multiple display windows can connect without exponentially increasing data transfer
+- **Resolution independence**: Each display can run at its optimal resolution without downscaling streamed content
+
+This generative synchronization approach is ideal for live installations, multi-projector setups, and performance contexts where smooth, high-quality rendering across multiple displays is essential.
+
+---
+
 ### Geometry section
 
 **Geometry height** — range: 10–240, default: 120, units: pixels

@@ -113,6 +113,31 @@ Camera and display settings.
 
 ---
 
+### Display Window
+
+For multi-monitor presentations and installations, the **Open Display Window** button (in the Project section) opens a synchronized secondary display window.
+
+**How it works:**
+The main window broadcasts all parameter changes to display windows in real-time. Each window runs its own independent generative code using the same parameters, creating similar but not identical animations.
+
+**Why displays differ slightly:**
+The images on the main and secondary displays will be **visually similar but not pixel-perfect identical**. This is normal and expected:
+
+- **Parameter synchronization**: The system syncs state parameters (colors, camera, geometry, etc.), not the actual pixels
+- **Independent generation**: Each window generates its animation independently using the same rules but different random seeds
+- **Timing variations**: Browser rendering cycles differ slightly between windows
+
+**Advantages over image streaming:**
+- Much lower bandwidth (parameters vs. video frames)
+- Native GPU rendering on each display maintains smooth 60fps
+- Each display runs at its optimal resolution independently
+- Multiple displays can connect without performance degradation
+- No video compression artifacts
+
+This approach is ideal for live installations and multi-projector setups requiring high-quality synchronized animations.
+
+---
+
 ### Geometry
 
 - **Segment Length**: height of each zigzag segment.
