@@ -15,6 +15,12 @@ export function isRecording_() {
 }
 
 export function startVideoRecording(ZM) {
+  // Only allow recording from main window, not display windows
+  if (ZM.isDisplayMode) {
+    console.log('🎥 startVideoRecording() blocked: display windows cannot record');
+    return;
+  }
+  
   if (isRecording) {
     stopVideoRecording(ZM);
     return;
@@ -94,6 +100,12 @@ function renderVideoFrame(ZM) {
 }
 
 export function stopVideoRecording(ZM) {
+  // Only allow stopping from main window
+  if (ZM.isDisplayMode) {
+    console.log('🎥 stopVideoRecording() blocked: display windows cannot record');
+    return;
+  }
+  
   if (!isRecording) return;
   
   document.getElementById('video-progress').textContent = 'Encoding video...';

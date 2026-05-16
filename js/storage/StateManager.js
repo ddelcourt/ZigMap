@@ -267,6 +267,13 @@ function restoreState(ZM, state, instant = false) {
       ZM.camera.transition.isActive = false;
       ZM.camera.transition.progress = 1.0;
       
+      // Update params to reflect camera state
+      ZM.params.cameraRotationX = state.camera.rotationX;
+      ZM.params.cameraRotationY = state.camera.rotationY;
+      ZM.params.cameraDistance = state.camera.distance;
+      ZM.params.cameraOffsetX = state.camera.offsetX || 0;
+      ZM.params.cameraOffsetY = state.camera.offsetY || 0;
+      
       // Broadcast immediate camera update to display windows
       if (ZM.windowSync && ZM.windowSync.broadcastCameraImmediate) {
         ZM.windowSync.broadcastCameraImmediate({
@@ -286,6 +293,14 @@ function restoreState(ZM, state, instant = false) {
         state.camera.offsetX,
         state.camera.offsetY
       );
+      
+      // Update params with TARGET camera values (even though transition is in progress)
+      // This ensures params reflect the destination state
+      ZM.params.cameraRotationX = state.camera.rotationX;
+      ZM.params.cameraRotationY = state.camera.rotationY;
+      ZM.params.cameraDistance = state.camera.distance;
+      ZM.params.cameraOffsetX = state.camera.offsetX || 0;
+      ZM.params.cameraOffsetY = state.camera.offsetY || 0;
       
       // Broadcast camera transition command to display windows
       if (ZM.windowSync && ZM.windowSync.broadcastCameraTransition) {
@@ -625,8 +640,30 @@ function loadState(ZM, id, instant = false, toastPrefix = 'State: ') {
   ZM.stateManager.activeStateId = id;
   saveActiveStateId(ZM, id);
   
-  // Broadcast full state to display window
-  if (ZM.windowSync && ZM.windowSync.broadcastFullState) {
+  // Broadcast params to display windows (excluding transitioning values)
+  // restoreState() already sent transition commands for camera/geometry/FOV/emitterRotation
+  if (ZM.windowSync && !instant) {
+    // Create params object excluding transitioning values
+    const paramsToSync = { ...ZM.params };
+    delete paramsToSync.cameraRotationX;
+    delete paramsToSync.cameraRotationY;
+    delete paramsToSync.cameraDistance;
+    delete paramsToSync.cameraOffsetX;
+    delete paramsToSync.cameraOffsetY;
+    delete paramsToSync.geometryScale;
+    delete paramsToSync.fov;
+    delete paramsToSync.emitterRotation;
+    
+    console.log('📤 Broadcasting non-transitioning params immediately:', Object.keys(paramsToSync).length, 'params');
+    // Send immediately without throttling (for state loads)
+    ZM.windowSync.channel.postMessage({
+      type: 'delta-sync',
+      changes: paramsToSync,
+      timestamp: Date.now()
+    });
+  } else if (ZM.windowSync && ZM.windowSync.broadcastFullState && instant) {
+    // Instant mode: send full state (no transitions to worry about)
+    console.log('📤 Broadcasting full state (instant mode)');
     ZM.windowSync.broadcastFullState();
   }
 
@@ -1107,6 +1144,28 @@ function navigateHistory(ZM, direction) {
   restoreState(ZM, state);
   ZM.stateManager.activeStateId = stateId;
   saveActiveStateId(ZM, stateId);
+  
+  // Broadcast params to display windows (excluding transitioning values)
+  // restoreState() already sent transition commands for camera/geometry/FOV/emitterRotation
+  if (ZM.windowSync) {
+    const paramsToSync = { ...ZM.params };
+    delete paramsToSync.cameraRotationX;
+    delete paramsToSync.cameraRotationY;
+    delete paramsToSync.cameraDistance;
+    delete paramsToSync.cameraOffsetX;
+    delete paramsToSync.cameraOffsetY;
+    delete paramsToSync.geometryScale;
+    delete paramsToSync.fov;
+    delete paramsToSync.emitterRotation;
+    
+    console.log('📤 Broadcasting non-transitioning params immediately (history nav):', Object.keys(paramsToSync).length, 'params');
+    // Send immediately without throttling (for history navigation)
+    ZM.windowSync.channel.postMessage({
+      type: 'delta-sync',
+      changes: paramsToSync,
+      timestamp: Date.now()
+    });
+  }
 
   if (ZM.showToast) {
     const prefix = direction < 0 ? '⏮ ' : '⏭ ';

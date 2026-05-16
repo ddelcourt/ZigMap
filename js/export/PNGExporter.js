@@ -121,6 +121,12 @@ function createCompositeCanvas(ZM, leftCanvas, rightCanvas = null) {
 }
 
 export function exportPNG(ZM) {
+  // Only allow exports from main window, not display windows
+  if (ZM.isDisplayMode) {
+    console.log('📸 exportPNG() blocked: display windows cannot export');
+    return;
+  }
+  
   console.log('📸 exportPNG() called');
   console.log('  Stereoscopic mode:', ZM.params.stereoscopicMode);
   console.log('  ZM.p5Instance exists:', !!ZM.p5Instance);

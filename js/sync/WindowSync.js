@@ -125,16 +125,16 @@ export function initializePrimarySync(ZM) {
         transition: {
           isActive: ZM.camera.transition.isActive,
           progress: ZM.camera.transition.progress,
-          startRotationX: ZM.camera.transition.startRotationX,
-          startRotationY: ZM.camera.transition.startRotationY,
-          startDistance: ZM.camera.transition.startDistance,
-          startOffsetX: ZM.camera.transition.startOffsetX,
-          startOffsetY: ZM.camera.transition.startOffsetY,
-          targetRotationX: ZM.camera.transition.targetRotationX,
-          targetRotationY: ZM.camera.transition.targetRotationY,
-          targetDistance: ZM.camera.transition.targetDistance,
-          targetOffsetX: ZM.camera.transition.targetOffsetX,
-          targetOffsetY: ZM.camera.transition.targetOffsetY,
+          startRotationX: ZM.camera.transition.start.rotationX,
+          startRotationY: ZM.camera.transition.start.rotationY,
+          startDistance: ZM.camera.transition.start.distance,
+          startOffsetX: ZM.camera.transition.start.offsetX,
+          startOffsetY: ZM.camera.transition.start.offsetY,
+          targetRotationX: ZM.camera.transition.target.rotationX,
+          targetRotationY: ZM.camera.transition.target.rotationY,
+          targetDistance: ZM.camera.transition.target.distance,
+          targetOffsetX: ZM.camera.transition.target.offsetX,
+          targetOffsetY: ZM.camera.transition.target.offsetY,
           duration: ZM.camera.transition.duration
         }
       };
@@ -335,20 +335,52 @@ export function initializeDisplaySync(ZM) {
           ZM.noiseOffset = noiseOffset;
         }
 
-        // Update camera state - snap to current values (no independent transitions)
+        // Update camera state - if primary is transitioning, start transition; otherwise snap
         if (event.data.camera && ZM.camera) {
           const camData = event.data.camera;
           
-          // Set current camera values (use primary's current position)
-          ZM.camera.rotationX = camData.rotationX;
-          ZM.camera.rotationY = camData.rotationY;
-          ZM.camera.distance = camData.distance;
-          ZM.camera.offsetX = camData.offsetX;
-          ZM.camera.offsetY = camData.offsetY;
+          // Check if primary window is transitioning
+          if (camData.transition && camData.transition.isActive) {
+            // Primary is transitioning - start matching transition in display
+            ZM.camera.transitionTo(
+              camData.transition.targetRotationX,
+              camData.transition.targetRotationY,
+              camData.transition.targetDistance,
+              camData.transition.targetOffsetX,
+              camData.transition.targetOffsetY
+            );
+            // Match the transition state (progress, duration) from primary
+            ZM.camera.transition.duration = camData.transition.duration;
+            ZM.camera.transition.progress = camData.transition.progress;
+            ZM.camera.transition.isActive = true;
+            
+            // Set current position to primary's current position
+            ZM.camera.rotationX = camData.rotationX;
+            ZM.camera.rotationY = camData.rotationY;
+            ZM.camera.distance = camData.distance;
+            ZM.camera.offsetX = camData.offsetX;
+            ZM.camera.offsetY = camData.offsetY;
+            
+            console.log(`📥 Syncing camera transition: progress=${(camData.transition.progress * 100).toFixed(1)}%`);
+          } else {
+            // Primary is NOT transitioning - snap to current values
+            ZM.camera.rotationX = camData.rotationX;
+            ZM.camera.rotationY = camData.rotationY;
+            ZM.camera.distance = camData.distance;
+            ZM.camera.offsetX = camData.offsetX;
+            ZM.camera.offsetY = camData.offsetY;
+            
+            // Disable any active transition
+            ZM.camera.transition.isActive = false;
+            ZM.camera.transition.progress = 1.0;
+          }
           
-          // Disable camera transitions in display window
-          ZM.camera.transition.isActive = false;
-          ZM.camera.transition.progress = 1.0;
+          // Always update params to match
+          ZM.params.cameraRotationX = camData.rotationX;
+          ZM.params.cameraRotationY = camData.rotationY;
+          ZM.params.cameraDistance = camData.distance;
+          ZM.params.cameraOffsetX = camData.offsetX;
+          ZM.params.cameraOffsetY = camData.offsetY;
         } else if (ZM.camera) {
           // Fallback: sync from params if camera data not provided
           ZM.camera.syncFromParams(ZM.params);
@@ -356,19 +388,30 @@ export function initializeDisplaySync(ZM) {
           ZM.camera.transition.progress = 1.0;
         }
         
-        // Update geometry scale transition - snap to current value (no independent transitions)
+        // Update geometry scale transition - if primary is transitioning, start transition; otherwise snap
         if (event.data.geometryScaleTransition && ZM.geometryScaleTransition) {
           const trans = event.data.geometryScaleTransition;
-          // Use the primary window's CURRENT value for rendering
-          ZM.geometryScaleTransition.current = trans.current;
-          ZM.geometryScaleTransition.target = trans.current;  // Set target = current to prevent display from re-interpolating
-          ZM.geometryScaleTransition.start = trans.current;
-          ZM.geometryScaleTransition.progress = 1.0;
-          ZM.geometryScaleTransition.isTransitioning = false; // Never run transition logic in display window
           
-          // Debug: log if we're receiving transition updates
-          if (trans.isTransitioning && !initialSyncReceived) {
-            console.log(`📊 Display receiving transition: geometryScale = ${trans.current.toFixed(1)} (primary transitioning: ${trans.isTransitioning})`);
+          // Check if primary window is transitioning
+          if (trans.isTransitioning) {
+            // Primary is transitioning - start matching transition in display
+            ZM.geometryScaleTransition.start = trans.start;
+            ZM.geometryScaleTransition.target = trans.target;
+            ZM.geometryScaleTransition.current = trans.current;
+            ZM.geometryScaleTransition.progress = trans.progress;
+            ZM.geometryScaleTransition.duration = trans.duration;
+            ZM.geometryScaleTransition.isTransitioning = true;
+            
+            if (!initialSyncReceived) {
+              console.log(`📊 Syncing geometry transition: ${trans.current.toFixed(1)} → ${trans.target.toFixed(1)} (${(trans.progress * 100).toFixed(1)}%)`);
+            }
+          } else {
+            // Primary is NOT transitioning - snap to current value
+            ZM.geometryScaleTransition.current = trans.current;
+            ZM.geometryScaleTransition.target = trans.current;
+            ZM.geometryScaleTransition.start = trans.current;
+            ZM.geometryScaleTransition.progress = 1.0;
+            ZM.geometryScaleTransition.isTransitioning = false;
           }
         } else if (ZM.geometryScaleTransition && params.geometryScale !== undefined) {
           // Fallback: snap to param value if transition data not provided
@@ -379,15 +422,27 @@ export function initializeDisplaySync(ZM) {
           ZM.geometryScaleTransition.isTransitioning = false;
         }
         
-        // Update emitter rotation transition - snap to current value (no independent transitions)
+        // Update emitter rotation transition - if primary is transitioning, start transition; otherwise snap
         if (event.data.emitterRotationTransition && ZM.emitterRotationTransition) {
           const trans = event.data.emitterRotationTransition;
-          // Use the primary window's CURRENT value, not start a new transition
-          ZM.emitterRotationTransition.current = trans.current;
-          ZM.emitterRotationTransition.target = trans.current;  // Set target = current to prevent transitioning
-          ZM.emitterRotationTransition.start = trans.current;
-          ZM.emitterRotationTransition.progress = 1.0;
-          ZM.emitterRotationTransition.isTransitioning = false; // Never transition in display window
+          
+          // Check if primary window is transitioning
+          if (trans.isTransitioning) {
+            // Primary is transitioning - start matching transition in display
+            ZM.emitterRotationTransition.start = trans.start;
+            ZM.emitterRotationTransition.target = trans.target;
+            ZM.emitterRotationTransition.current = trans.current;
+            ZM.emitterRotationTransition.progress = trans.progress;
+            ZM.emitterRotationTransition.duration = trans.duration;
+            ZM.emitterRotationTransition.isTransitioning = true;
+          } else {
+            // Primary is NOT transitioning - snap to current value
+            ZM.emitterRotationTransition.current = trans.current;
+            ZM.emitterRotationTransition.target = trans.current;
+            ZM.emitterRotationTransition.start = trans.current;
+            ZM.emitterRotationTransition.progress = 1.0;
+            ZM.emitterRotationTransition.isTransitioning = false;
+          }
         } else if (ZM.emitterRotationTransition && params.emitterRotation !== undefined) {
           // Fallback: snap to param value if transition data not provided
           ZM.emitterRotationTransition.current = params.emitterRotation;
@@ -397,15 +452,27 @@ export function initializeDisplaySync(ZM) {
           ZM.emitterRotationTransition.isTransitioning = false;
         }
         
-        // Update FOV transition - snap to current value (no independent transitions)
+        // Update FOV transition - if primary is transitioning, start transition; otherwise snap
         if (event.data.fovTransition && ZM.fovTransition) {
           const trans = event.data.fovTransition;
-          // Use the primary window's CURRENT value, not start a new transition
-          ZM.fovTransition.current = trans.current;
-          ZM.fovTransition.target = trans.current;  // Set target = current to prevent transitioning
-          ZM.fovTransition.start = trans.current;
-          ZM.fovTransition.progress = 1.0;
-          ZM.fovTransition.isTransitioning = false; // Never transition in display window
+          
+          // Check if primary window is transitioning
+          if (trans.isTransitioning) {
+            // Primary is transitioning - start matching transition in display
+            ZM.fovTransition.start = trans.start;
+            ZM.fovTransition.target = trans.target;
+            ZM.fovTransition.current = trans.current;
+            ZM.fovTransition.progress = trans.progress;
+            ZM.fovTransition.duration = trans.duration;
+            ZM.fovTransition.isTransitioning = true;
+          } else {
+            // Primary is NOT transitioning - snap to current value
+            ZM.fovTransition.current = trans.current;
+            ZM.fovTransition.target = trans.current;
+            ZM.fovTransition.start = trans.current;
+            ZM.fovTransition.progress = 1.0;
+            ZM.fovTransition.isTransitioning = false;
+          }
         } else if (ZM.fovTransition && params.fov !== undefined) {
           // Fallback: snap to param value if transition data not provided
           ZM.fovTransition.current = params.fov;
@@ -415,15 +482,26 @@ export function initializeDisplaySync(ZM) {
           ZM.fovTransition.isTransitioning = false;
         }
         
-        // Update background color transition - snap to current value (no independent transitions)
+        // Update background color transition - if primary is transitioning, start transition; otherwise snap
         if (event.data.bgTransition && ZM.bgTransition) {
           const trans = event.data.bgTransition;
-          // Use the primary window's CURRENT color, not start a new transition
-          ZM.bgTransition.current = [...trans.current];
-          ZM.bgTransition.target = [...trans.current];  // Set target = current to prevent transitioning
-          ZM.bgTransition.start = [...trans.current];
-          ZM.bgTransition.progress = 1.0;
-          ZM.bgTransition.isTransitioning = false; // Never transition in display window
+          
+          // Check if primary window is transitioning
+          if (trans.isTransitioning) {
+            // Primary is transitioning - start matching transition in display
+            ZM.bgTransition.start = [...trans.start];
+            ZM.bgTransition.target = [...trans.target];
+            ZM.bgTransition.current = [...trans.current];
+            ZM.bgTransition.progress = trans.progress;
+            ZM.bgTransition.isTransitioning = true;
+          } else {
+            // Primary is NOT transitioning - snap to current value
+            ZM.bgTransition.current = [...trans.current];
+            ZM.bgTransition.target = [...trans.current];
+            ZM.bgTransition.start = [...trans.current];
+            ZM.bgTransition.progress = 1.0;
+            ZM.bgTransition.isTransitioning = false;
+          }
         }
 
         // Sync UI if it exists
@@ -460,12 +538,26 @@ export function initializeDisplaySync(ZM) {
 
       } else if (type === 'delta-sync') {
         // Apply only changed parameters
+        const transitionParams = new Set(['cameraRotationX', 'cameraRotationY', 'cameraDistance', 
+                                          'cameraOffsetX', 'cameraOffsetY', 'fov', 
+                                          'geometryScale', 'emitterRotation']);
+        
+        const hasTransitionParams = Object.keys(changes).some(k => transitionParams.has(k));
+        if (hasTransitionParams) {
+          console.warn('⚠️ delta-sync contains transition params (will cancel transitions):', 
+                       Object.keys(changes).filter(k => transitionParams.has(k)));
+        } else {
+          console.log('📥 delta-sync: no transition params, safe to apply');
+        }
+        
         Object.assign(ZM.params, changes);
         console.log('📥 Synced params:', Object.keys(changes).join(', '));
 
-        // Update camera if camera params changed (snap instantly, no transitions)
-        const cameraParams = ['cameraRotationX', 'cameraRotationY', 'cameraDistance', 'cameraOffsetX', 'cameraOffsetY', 'fov'];
-        if (cameraParams.some(param => param in changes) && ZM.camera) {
+        // ONLY update camera/geometry if transition params are present (instant changes)
+        if (hasTransitionParams) {
+          // Update camera if camera params changed (snap instantly, no transitions)
+          const cameraParams = ['cameraRotationX', 'cameraRotationY', 'cameraDistance', 'cameraOffsetX', 'cameraOffsetY', 'fov'];
+          if (cameraParams.some(param => param in changes) && ZM.camera) {
           // Handle FOV changes (snap to value, no transition)
           if ('fov' in changes && ZM.fovTransition) {
             ZM.fovTransition.current = changes.fov;
@@ -500,16 +592,8 @@ export function initializeDisplaySync(ZM) {
           ZM.camera.transition.isActive = false;
           ZM.camera.transition.progress = 1.0;
         }
-
-        // Update palette if palette params changed
-        const paletteParams = ['activePaletteIndex', 'palettes', 'backgroundColor'];
-        if (paletteParams.some(param => param in changes)) {
-          if (ZM.triggerPaletteChange && ZM.sketchReady) {
-            ZM.triggerPaletteChange();
-          }
-        }
         
-        // Update geometry scale transition (snap to current value, no transition)
+        // Update geometry scale transition (snap to current value, cancel transition)
         if ('geometryScale' in changes && ZM.geometryScaleTransition) {
           ZM.geometryScaleTransition.current = changes.geometryScale;
           ZM.geometryScaleTransition.target = changes.geometryScale;
@@ -518,7 +602,7 @@ export function initializeDisplaySync(ZM) {
           ZM.geometryScaleTransition.isTransitioning = false;
         }
         
-        // Update emitter rotation transition (snap to current value, no transition)
+        // Update emitter rotation transition (snap to current value, cancel transition)
         if ('emitterRotation' in changes && ZM.emitterRotationTransition) {
           ZM.emitterRotationTransition.current = changes.emitterRotation;
           ZM.emitterRotationTransition.target = changes.emitterRotation;
@@ -526,38 +610,47 @@ export function initializeDisplaySync(ZM) {
           ZM.emitterRotationTransition.progress = 1.0;
           ZM.emitterRotationTransition.isTransitioning = false;
         }
-        
-        // Update transition durations when changed
-        if ('stateTransitionDuration' in changes) {
-          if (ZM.geometryScaleTransition) {
-            ZM.geometryScaleTransition.duration = changes.stateTransitionDuration;
-          }
-          if (ZM.emitterRotationTransition) {
-            ZM.emitterRotationTransition.duration = changes.stateTransitionDuration;
-          }
-          if (ZM.fovTransition) {
-            ZM.fovTransition.duration = changes.stateTransitionDuration;
-          }
-          if (ZM.camera && ZM.camera.transition) {
-            ZM.camera.transition.duration = changes.stateTransitionDuration;
-          }
-        }
-        
-        if ('colorTransitionDuration' in changes) {
-          // Color transition duration is used in palette transitions
-          // The duration is read from ZM.params.colorTransitionDuration when needed
-        }
+      }  // End hasTransitionParams block
 
-        // Handle specific param updates
-        if ('overlayImageSrc' in changes || 'overlayVisible' in changes) {
-          // Overlay changes are handled automatically by params
+      // Always update palette if palette params changed (not transition-related)
+      const paletteParams = ['activePaletteIndex', 'palettes', 'backgroundColor'];
+      if (paletteParams.some(param => param in changes)) {
+        if (ZM.triggerPaletteChange && ZM.sketchReady) {
+          ZM.triggerPaletteChange();
         }
-        
-        // Update overlay if overlay params changed
-        if (ZM.updateOverlay && ('overlayX' in changes || 'overlayY' in changes || 
-            'overlayScale' in changes || 'overlayOpacity' in changes || 
-            'overlayRotation' in changes || 'overlayImageSrc' in changes || 
-            'overlayVisible' in changes)) {
+      }
+      
+      // Always update transition durations when changed
+      if ('stateTransitionDuration' in changes) {
+        if (ZM.geometryScaleTransition) {
+          ZM.geometryScaleTransition.duration = changes.stateTransitionDuration;
+        }
+        if (ZM.emitterRotationTransition) {
+          ZM.emitterRotationTransition.duration = changes.stateTransitionDuration;
+        }
+        if (ZM.fovTransition) {
+          ZM.fovTransition.duration = changes.stateTransitionDuration;
+        }
+        if (ZM.camera && ZM.camera.transition) {
+          ZM.camera.transition.duration = changes.stateTransitionDuration;
+        }
+      }
+      
+      if ('colorTransitionDuration' in changes) {
+        // Color transition duration is used in palette transitions
+        // The duration is read from ZM.params.colorTransitionDuration when needed
+      }
+
+      // Handle specific param updates
+      if ('overlayImageSrc' in changes || 'overlayVisible' in changes) {
+        // Overlay changes are handled automatically by params
+      }
+      
+      // Update overlay if overlay params changed
+      if (ZM.updateOverlay && ('overlayX' in changes || 'overlayY' in changes || 
+          'overlayScale' in changes || 'overlayOpacity' in changes || 
+          'overlayRotation' in changes || 'overlayImageSrc' in changes || 
+          'overlayVisible' in changes)) {
           ZM.updateOverlay();
         }
       

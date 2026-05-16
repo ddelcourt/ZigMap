@@ -6,6 +6,12 @@
 import { getBackgroundColor } from '../core/colorUtils.js';
 
 export function exportSVG(ZM) {
+  // Only allow exports from main window, not display windows
+  if (ZM.isDisplayMode) {
+    console.log('📄 exportSVG() blocked: display windows cannot export');
+    return;
+  }
+  
   console.log('╔═══════════════════════════════════════════════════════════════════╗');
   console.log('║                         SVG EXPORT START                           ║');
   console.log('╠═══════════════════════════════════════════════════════════════════╣');

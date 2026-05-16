@@ -21,6 +21,12 @@ export function setupKeyboardHandlers(ZM) {
       }
       
       window.addEventListener('keydown', (e) => {
+        // Safety check: ensure e.target is a valid DOM element with getAttribute
+        if (!e.target || typeof e.target.getAttribute !== 'function') {
+          console.warn('⚠️ Keyboard event with invalid target:', e);
+          return;
+        }
+        
         // Skip if typing in a text-like input field, textarea, or contenteditable element
         // (range and checkbox inputs should NOT block global shortcuts)
         const TEXT_INPUT_TYPES = ['text', 'number', 'email', 'password', 'search', 'tel', 'url'];

@@ -206,6 +206,12 @@ function rasterizeDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {
  * Main export function
  */
 export function exportDepthMap(ZM) {
+  // Only allow exports from main window, not display windows
+  if (ZM.isDisplayMode) {
+    console.log('🗺️ exportDepthMap() blocked: display windows cannot export');
+    return;
+  }
+  
   // Allow exports as long as we have valid geometry, even during sketch reinitialization
   if (!ZM.emitterInstance || !ZM.emitterInstance.lines || ZM.emitterInstance.lines.length === 0) {
     console.log('Depth Export: No geometry available');

@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^git restore js/input/KeyboardHandler\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

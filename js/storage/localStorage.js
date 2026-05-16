@@ -121,6 +121,12 @@ export function loadFromLocalStorage(defaultParams) {
  * @param {string} format - Export format: 'project' (v2.0) or 'states' (individual files)
  */
 export function downloadJSON(ZM, format = 'project') {
+  // Only allow downloads from main window, not display windows
+  if (ZM.isDisplayMode) {
+    console.log('💾 downloadJSON() blocked: display windows cannot download');
+    return;
+  }
+  
   console.log('[Export] Format selected:', format);
   
   // Force-update active state before exporting to capture any recent changes
