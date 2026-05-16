@@ -257,6 +257,26 @@ The main display and secondary display images will appear **similar but not pixe
 - **Resolution independence**: Each display can run at its optimal resolution without downscaling streamed content
 - **Intelligent synchronization**: Transition commands ensure smooth animations with minimal overhead, while real-time updates provide responsive manual control
 
+**Bidirectional keyboard control**
+
+Display windows support **remote keyboard control**, allowing you to operate the entire system from any display window. This is ideal for live performances where you watch the projector output instead of the control window.
+
+**Supported keys from display windows:**
+- **Arrow keys** (← →): Navigate state history (previous/next state)
+- **Space bar**: Play/pause auto-trigger
+- **Number keys** (1–4): Select color palettes
+- **Export keys**: P (PNG), S (SVG), D (Depth), V (Video), Ctrl+S/⌘+S (Save project)
+- **Camera keys**: R (Reset camera), 0 (Reset zoom)
+
+**How it works:**
+1. Press a key in any display window
+2. Command is sent to the main window via BroadcastChannel
+3. Main window processes the command (e.g., loads next state)
+4. Main window broadcasts the result to all displays
+5. All displays (including the one that sent the command) sync to the new state
+
+The main window always remains the single source of truth, ensuring consistent behavior across all displays.
+
 This generative synchronization approach is ideal for live installations, multi-projector setups, and performance contexts where smooth, high-quality rendering across multiple displays is essential.
 
 ---

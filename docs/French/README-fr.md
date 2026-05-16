@@ -41,11 +41,18 @@ Outil génératif en temps réel produisant des motifs zigzag animés dans un es
 
 | Action | Contrôle |
 |--------|----------|
-| Pivoter la caméra | Clic gauche + glisser |
-| Déplacer la caméra | Clic droit + glisser (ou clic molette + glisser) |
+| Pivoter la caméra (orbite) | Clic gauche + glisser |
+| Déplacer la caméra (décalage 2D) | Clic droit + glisser |
+| Rotation Z (roulis) | Clic molette + glisser horizontalement |
 | Zoom | Molette |
 
 Les contrôles de caméra sont actifs uniquement lorsque le curseur se trouve sur le canevas. En mode stéréoscopique, les contrôles s'appliquent au canevas sur lequel le clic a été effectué. La sensibilité du défilement est proportionnelle à la distance de la caméra.
+
+**Détails des contrôles :**
+- **Contrôle d'orbite** (clic gauche + glisser) : Fait pivoter la caméra autour du centre de la scène (axes X/Y)
+- **Contrôle de déplacement** (clic droit + glisser) : Déplace la vue de la caméra dans l'espace 2D sans changer l'angle d'orbite
+- **Contrôle de rotation Z** (clic molette + glisser) : Fait pivoter toute la scène autour de l'axe Z, créant un effet de rotation
+- **Contrôle de zoom** (molette) : Change la distance de la caméra par rapport au centre de la scène
 
 ### Clavier
 
@@ -201,10 +208,26 @@ Définit la portion visible de l'espace 3D. À ajuster si la géométrie appara�
 ### Fenêtre d'affichage (Synchronisation multi-écran)
 
 **Bouton Ouvrir Fenêtre d'Affichage** (situé dans la section Projet)  
-Ouvre une fenêtre secondaire plein écran pour les présentations multi-écrans. La fenêtre d'affichage reproduit l'animation de la fenêtre principale en temps réel, synchronisée via diffusion de paramètres.
+Ouvre des fenêtres secondaires plein écran pour les présentations multi-écrans. Les fenêtres d'affichage reproduisent l'animation de la fenêtre principale en temps réel, synchronisées via diffusion intelligente de paramètres. Vous pouvez ouvrir plusieurs fenêtres d'affichage en cliquant plusieurs fois sur le bouton—chacune reçoit un ID séquentiel unique (display-1, display-2, display-3, etc.).
+
+**Stratégie de synchronisation duale :**
+
+Le système utilise deux approches de diffusion différentes pour des performances optimales :
+
+1. **Transitions d'états** (efficace) :
+   - Lors du chargement d'états ou de la modification de paramètres via l'interface, la fenêtre principale diffuse une seule *commande* de transition
+   - Les fenêtres d'affichage reçoivent la commande et exécutent la même transition fluide localement
+   - Résultat : Synchronisation parfaite avec une bande passante minimale (1 message au lieu de 60+ par seconde)
+   - Exemples : Chargement d'un nouvel état, modification du FOV, ajustement de l'échelle géométrique
+
+2. **Contrôle manuel de la caméra** (temps réel) :
+   - Pendant le glissement de la souris, le déplacement, le zoom ou la rotation Z, la fenêtre principale diffuse les mises à jour de position de la caméra à 60 images par seconde
+   - Les fenêtres d'affichage s'alignent instantanément pour correspondre aux mouvements de contrôle manuel
+   - Résultat : Suivi réactif en temps réel pendant la performance en direct ou l'interaction
+   - Exemples : Glisser pour orbiter la caméra, glisser avec la molette pour la rotation Z, zoom avec la molette
 
 **Fonctionnement :**
-- La fenêtre principale diffuse tous les changements de paramètres aux fenêtres d'affichage via l'API BroadcastChannel
+- La fenêtre principale diffuse les changements de paramètres et les commandes aux fenêtres d'affichage via l'API BroadcastChannel
 - Chaque fenêtre exécute son propre code génératif indépendant en utilisant les paramètres synchronisés
 - Les deux fenêtres génèrent leurs animations de manière indépendante en se basant sur les mêmes valeurs d'état
 
@@ -220,11 +243,33 @@ Les images de l'affichage principal et de l'affichage secondaire apparaîtront *
 
 **Pourquoi cette approche est plus efficace que la diffusion d'images :**
 
-- **Bande passante inférieure** : Diffuser des mises à jour de paramètres compactes (quelques octets) est beaucoup plus efficace que diffuser des trames vidéo haute résolution (mégaoctets par seconde)
+- **Bande passante inférieure** : Diffuser des mises à jour de paramètres compactes (quelques octets) et des commandes de transition est beaucoup plus efficace que diffuser des trames vidéo haute résolution (mégaoctets par seconde)
 - **Meilleures performances** : Chaque fenêtre effectue un rendu natif à sa propre résolution et taux de rafraîchissement, évitant les artefacts de compression vidéo
 - **Accélération matérielle** : Chaque fenêtre utilise l'accélération GPU complète pour le rendu WebGL, maintenant des performances fluides à 60 images par seconde
 - **Évolutivité** : Plusieurs fenêtres d'affichage peuvent se connecter sans augmenter exponentiellement le transfert de données
 - **Indépendance de résolution** : Chaque affichage peut fonctionner à sa résolution optimale sans réduction d'échelle du contenu diffusé
+- **Synchronisation intelligente** : Les commandes de transition assurent des animations fluides avec une surcharge minimale, tandis que les mises à jour en temps réel fournissent un contrôle manuel réactif
+
+**Contrôle clavier bidirectionnel**
+
+Les fenêtres d'affichage prennent en charge le **contrôle clavier à distance**, vous permettant de piloter l'ensemble du système depuis n'importe quelle fenêtre d'affichage. C'est idéal pour les performances en direct où vous regardez la sortie du projecteur plutôt que la fenêtre de contrôle.
+
+**Touches prises en charge depuis les fenêtres d'affichage :**
+- **Flèches directionnelles** (← →) : Naviguer dans l'historique des états (état précédent/suivant)
+- **Barre d'espace** : Lecture/pause du déclenchement automatique
+- **Touches numériques** (1–4) : Sélectionner les palettes de couleurs
+- **Touches d'export** : P (PNG), S (SVG), D (Profondeur), V (Vidéo), Ctrl+S/⌘+S (Sauvegarder projet)
+- **Touches caméra** : R (Réinitialiser caméra), 0 (Réinitialiser zoom)
+
+**Fonctionnement :**
+1. Appuyez sur une touche dans n'importe quelle fenêtre d'affichage
+2. La commande est envoyée à la fenêtre principale via BroadcastChannel
+3. La fenêtre principale traite la commande (ex : charge l'état suivant)
+4. La fenêtre principale diffuse le résultat à tous les affichages
+5. Tous les affichages (y compris celui qui a envoyé la commande) se synchronisent avec le nouvel état
+
+La fenêtre principale reste toujours la source unique de vérité, garantissant un comportement cohérent sur tous les affichages
+- **Synchronisation intelligente** : Commandes de transition pour des animations fluides avec une surcharge minimale, mises à jour en temps réel pour un contrôle manuel réactif
 
 Cette approche de synchronisation générative est idéale pour les installations en direct, les configurations multi-projecteurs et les contextes de performance où un rendu fluide et de haute qualité sur plusieurs affichages est essentiel.
 

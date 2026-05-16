@@ -27,11 +27,34 @@ export function initializePrimarySync(ZM) {
 
   console.log('📡 Primary window sync initialized');
 
-  // Listen for ready messages from display windows
+  // Listen for messages from display windows
   channel.onmessage = (event) => {
-    if (event.data.type === 'display-ready') {
+    const { type } = event.data;
+    
+    if (type === 'display-ready') {
       console.log('🖥️ Display window connected, sending full state...');
       sendFullState();
+    } else if (type === 'keyboard-command') {
+      // Bidirectional keyboard control: Display windows can send commands back to main window
+      // Flow: Display → keyboard-command → Main → KeyboardHandler executes action
+      //       → Action triggers state change → StateManager broadcasts transitions
+      //       → All displays (including sender) receive and execute transitions
+      const { key, ctrlKey, metaKey, shiftKey } = event.data;
+      console.log(`⌨️ Remote command: ${key}${ctrlKey || metaKey ? ' (Ctrl/Cmd)' : ''}`);
+      
+      // Simulate keyboard event on document.body (not window) so e.target has getAttribute()
+      const keyEvent = new KeyboardEvent('keydown', {
+        key: key,
+        code: key,
+        ctrlKey: ctrlKey,
+        metaKey: metaKey,
+        shiftKey: shiftKey,
+        bubbles: true,
+        cancelable: true
+      });
+      
+      document.body.dispatchEvent(keyEvent);
+      // Note: Main window's action execution will automatically broadcast results to all displays
     }
   };
 

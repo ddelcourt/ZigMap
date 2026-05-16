@@ -313,7 +313,40 @@ function setupKeyboardShortcuts() {
 
   // Keyboard shortcuts
   window.addEventListener('keydown', (e) => {
-    // F11 or 'f' or 'F' or Enter key: Toggle fullscreen
+    // Keys allowed to be forwarded to main window
+    const forwardKeys = [
+      'p', 'P',           // Export PNG
+      's', 'S',           // Export SVG (or Ctrl+S/Cmd+S for save)
+      'd', 'D',           // Export Depth
+      'v', 'V',           // Video recording
+      'r', 'R',           // Reset camera
+      '0',                // Reset zoom
+      'ArrowLeft',        // Previous state
+      'ArrowRight',       // Next state
+      ' ',                // Space bar (media control)
+      '1', '2', '3', '4'  // Palette selection
+    ];
+    
+    const shouldForward = forwardKeys.includes(e.key) || 
+                         ((e.key === 's' || e.key === 'S') && (e.ctrlKey || e.metaKey));
+    
+    // Forward keyboard command to main window
+    // Main window will process the command and broadcast the result to all displays
+    if (shouldForward && window.ZigMap26.windowSync && window.ZigMap26.windowSync.channel) {
+      window.ZigMap26.windowSync.channel.postMessage({
+        type: 'keyboard-command',
+        key: e.key,
+        ctrlKey: e.ctrlKey,
+        metaKey: e.metaKey,
+        shiftKey: e.shiftKey,
+        timestamp: Date.now()
+      });
+      e.preventDefault();
+      console.log(`⌨️ → ${e.key}${e.ctrlKey || e.metaKey ? ' (Ctrl/Cmd)' : ''}`);
+      return;
+    }
+    
+    // F11 or 'f' or 'F' or Enter key: Toggle fullscreen (local only, not forwarded)
     if (e.key === 'F11' || e.key === 'f' || e.key === 'F' || e.key === 'Enter') {
       e.preventDefault();
       toggleFullscreen();

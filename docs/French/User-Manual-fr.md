@@ -16,11 +16,18 @@
 
 | Action | Contrôle |
 |--------|----------|
-| Faire pivoter la vue | Clic gauche + glisser |
-| Déplacer la vue | Clic droit + glisser |
+| Faire pivoter la vue (orbite) | Clic gauche + glisser |
+| Déplacer la vue (décalage 2D) | Clic droit + glisser |
+| Rotation Z (roulis de la scène) | Clic molette + glisser horizontalement |
 | Zoom | Molette |
 
 Les contrôles souris sont actifs uniquement lorsque le curseur se trouve sur la zone d'animation, pas sur le panneau de contrôle.
+
+**Détails des contrôles :**
+- **Orbite** (clic gauche) : Fait pivoter la caméra autour du centre de la scène sur les axes X/Y
+- **Déplacement** (clic droit) : Déplace la vue de la caméra en 2D sans changer l'angle d'orbite  
+- **Rotation Z** (clic molette) : Fait pivoter toute la scène autour de l'axe Z
+- **Zoom** (molette) : Change la distance de la caméra par rapport au centre de la scène
 
 ---
 
@@ -113,10 +120,16 @@ Contrôles de résolution de sortie, appliqués aux exports.
 
 ### Fenêtre d'affichage
 
-Pour les présentations multi-écrans et les installations, le bouton **Ouvrir Fenêtre d'Affichage** (dans la section Projet) ouvre une fenêtre d'affichage secondaire synchronisée.
+Pour les présentations multi-écrans et les installations, le bouton **Ouvrir Fenêtre d'Affichage** (dans la section Projet) ouvre des fenêtres d'affichage secondaires synchronisées. Vous pouvez ouvrir plusieurs fenêtres d'affichage—chacune reçoit un ID unique (display-1, display-2, display-3, etc.).
+
+**Stratégie de synchronisation duale :**
+
+1. **Transitions d'états** (efficace) : Lors du chargement d'états ou de la modification de paramètres via l'interface, une seule commande de transition est diffusée. Les fenêtres d'affichage exécutent la même transition fluide localement. Résultat : Synchronisation parfaite avec une bande passante minimale.
+
+2. **Contrôle manuel de la caméra** (temps réel) : Pendant l'interaction de la souris (orbite, déplacement, zoom, rotation Z), les positions de la caméra sont diffusées à 60 images par seconde pour un suivi réactif en temps réel.
 
 **Fonctionnement :**
-La fenêtre principale diffuse tous les changements de paramètres aux fenêtres d'affichage en temps réel. Chaque fenêtre exécute son propre code génératif indépendant en utilisant les mêmes paramètres, créant des animations similaires mais non identiques.
+La fenêtre principale diffuse les changements de paramètres et les commandes aux fenêtres d'affichage en temps réel. Chaque fenêtre exécute son propre code génératif indépendant en utilisant les mêmes paramètres, créant des animations similaires mais non identiques.
 
 **Pourquoi les affichages diffèrent légèrement :**
 Les images sur les affichages principal et secondaire seront **visuellement similaires mais non identiques au pixel près**. C'est normal et attendu :
@@ -131,6 +144,32 @@ Les images sur les affichages principal et secondaire seront **visuellement simi
 - Chaque affichage fonctionne à sa résolution optimale de manière indépendante
 - Plusieurs affichages peuvent se connecter sans dégradation des performances
 - Aucun artefact de compression vidéo
+- Synchronisation intelligente : commandes de transition pour des animations fluides, mises à jour en temps réel pour le contrôle manuel
+
+**Contrôle clavier bidirectionnel**
+
+Les fenêtres d'affichage prennent en charge le **contrôle clavier à distance**, vous permettant de piloter l'ensemble du système depuis n'importe quelle fenêtre d'affichage. Ceci est particulièrement utile pour les performances en direct où vous regardez la sortie du projecteur plutôt que la fenêtre de contrôle.
+
+**Touches prises en charge depuis les fenêtres d'affichage :**
+- **Flèches directionnelles** (← →) : Naviguer dans l'historique des états (état précédent/suivant)
+- **Barre d'espace** : Lecture/pause du déclenchement automatique
+- **Touches numériques** (1–4) : Sélectionner les palettes de couleurs
+- **Touches d'export** : P (PNG), S (SVG), D (Profondeur), V (Vidéo), Ctrl+S/⌘+S (Sauvegarder projet)
+- **Touches caméra** : R (Réinitialiser caméra), 0 (Réinitialiser zoom)
+
+**Touches locales uniquement (non transférées) :**
+- **Entrée / F / f** : Basculer plein écran (chaque fenêtre contrôle son propre état plein écran)
+- **Tab** : Basculer la visibilité du panneau de contrôle (fenêtre principale uniquement)
+- **y** : Basculer le mode stéréoscopique (fenêtre principale uniquement)
+
+**Flux de commande :**
+1. Appuyez sur une touche dans n'importe quelle fenêtre d'affichage
+2. La commande est transmise à la fenêtre principale
+3. La fenêtre principale exécute l'action
+4. La fenêtre principale diffuse le résultat à tous les affichages
+5. Tous les affichages (y compris l'expéditeur) se synchronisent avec le nouvel état
+
+La fenêtre principale reste toujours la source unique de vérité, garantissant un comportement cohérent et prévisible sur tous les affichages.
 
 Cette approche est idéale pour les installations en direct et les configurations multi-projecteurs nécessitant des animations synchronisées de haute qualité.
 

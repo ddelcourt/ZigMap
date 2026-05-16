@@ -87,6 +87,7 @@ Complete list of all configurable parameters in the `params` object:
 - [Function Reference](#function-reference)
 - [Rendering Pipeline](#rendering-pipeline)
 - [Camera System](#camera-system)
+- [Overlay System](#overlay-system)
 - [Export System](#export-system)
 - [State Management](#state-management)
 - [Event Handling](#event-handling)

@@ -148,6 +148,31 @@ The images on the main and secondary displays will be **visually similar but not
 - No video compression artifacts
 - Intelligent synchronization: transition commands for smooth animations, real-time updates for manual control
 
+**Bidirectional keyboard control**
+
+Display windows support **remote keyboard control**, enabling you to operate the entire system from any display window. This is particularly useful for live performances where you're watching the projector output instead of the control window.
+
+**Supported keys from display windows:**
+- **Arrow keys** (← →): Navigate state history (previous/next state)
+- **Space bar**: Play/pause auto-trigger
+- **Number keys** (1–4): Select color palettes
+- **Export keys**: P (PNG), S (SVG), D (Depth), V (Video), Ctrl+S/⌘+S (Save project)
+- **Camera keys**: R (Reset camera), 0 (Reset zoom)
+
+**Local-only keys (not forwarded):**
+- **Enter / F / f**: Toggle fullscreen (each window controls its own fullscreen state)
+- **Tab**: Toggle control panel visibility (main window only)
+- **y**: Toggle stereoscopic mode (main window only)
+
+**Command flow:**
+1. Press a key in any display window
+2. Command is forwarded to the main window
+3. Main window executes the action
+4. Main window broadcasts the result to all displays
+5. All displays (including sender) sync to the new state
+
+The main window always remains the single source of truth, ensuring consistent and predictable behavior across all displays.
+
 This approach is ideal for live installations and multi-projector setups requiring high-quality synchronized animations.
 
 ---
