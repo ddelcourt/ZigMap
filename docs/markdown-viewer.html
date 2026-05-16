@@ -9,20 +9,29 @@
 <body>
   <a href="javascript:window.close()" class="back-btn">← Close</a>
   
+  <!-- Language Switcher -->
+  <div class="language-switcher">
+    <button id="lang-en" class="lang-btn active" data-lang="en">EN</button>
+    <button id="lang-fr" class="lang-btn" data-lang="fr">FR</button>
+  </div>
+  
   <!-- Left Navigation: H2 Sections -->
   <nav id="left-nav" class="left-sidebar">
-    <div class="nav-header">Sections</div>
+    <div class="nav-header" id="left-nav-header">Sections</div>
     <ul id="left-nav-list"></ul>
   </nav>
   
   <!-- Main Content -->
   <div class="container">
-    <div id="content" class="loading">Loading documentation...</div>
+    <div id="content" class="loading">
+      <span class="loading-en">Loading documentation...</span>
+      <span class="loading-fr" style="display:none;">Chargement de la documentation...</span>
+    </div>
   </div>
   
   <!-- Right Navigation: H3 Subsections -->
   <nav id="right-nav" class="right-sidebar">
-    <div class="nav-header">In this Section</div>
+    <div class="nav-header" id="right-nav-header">In This Section</div>
     <ul id="right-nav-list"></ul>
   </nav>
 
@@ -58,6 +67,13 @@
 
     // Check if we're running on local file system (file://) or web server (http://)
     const isLocalFile = window.location.protocol === 'file:';
+    
+    // Update loading message based on language
+    const currentLang = urlParams.get('lang') || (docFile.includes('-fr.md') || docFile.includes('French/') ? 'fr' : 'en');
+    if (currentLang === 'fr') {
+      document.querySelector('.loading-en').style.display = 'none';
+      document.querySelector('.loading-fr').style.display = 'block';
+    }
 
     if (isLocalFile) {
       // Running from file system - open .md file directly
@@ -330,6 +346,96 @@
         li.appendChild(a);
         rightNavList.appendChild(li);
       });
+    }
+    
+    // Language switching functionality
+    function getCurrentLanguage() {
+      // Detect language from current docFile
+      if (docFile.includes('-fr.md') || docFile.includes('French/')) {
+        return 'fr';
+      }
+      return 'en';
+    }
+    
+    function switchLanguage(newLang) {
+      const currentLang = getCurrentLanguage();
+      if (currentLang === newLang) return;
+      
+      let newDocFile = docFile;
+      
+      // Convert between English and French file paths
+      if (newLang === 'fr') {
+        // Switch to French
+        if (docFile.includes('English/')) {
+          // File is in English folder
+          newDocFile = docFile.replace('English/', 'French/');
+          // Add -fr suffix if not already present
+          if (!newDocFile.includes('-fr.md')) {
+            newDocFile = newDocFile.replace('.md', '-fr.md');
+          }
+        } else if (docFile.includes('../README.md')) {
+          // Root README
+          newDocFile = 'French/README-fr.md';
+        } else {
+          // Just add -fr suffix
+          newDocFile = newDocFile.replace('.md', '-fr.md');
+        }
+      } else {
+        // Switch to English
+        if (docFile.includes('French/')) {
+          // File is in French folder
+          newDocFile = docFile.replace('French/', 'English/');
+          // Remove -fr suffix
+          newDocFile = newDocFile.replace('-fr.md', '.md');
+        } else {
+          // Just remove -fr suffix
+          newDocFile = newDocFile.replace('-fr.md', '.md');
+        }
+      }
+      
+      // Update URL and reload
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('doc', newDocFile);
+      window.location.href = newUrl.toString();
+    }
+    
+    // Setup language switcher buttons
+    function setupLanguageSwitcher() {
+      const currentLang = getCurrentLanguage();
+      const langButtons = document.querySelectorAll('.lang-btn');
+      
+      // Update active state
+      langButtons.forEach(btn => {
+        const btnLang = btn.getAttribute('data-lang');
+        if (btnLang === currentLang) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+        
+        // Add click handler
+        btn.addEventListener('click', function() {
+          const targetLang = this.getAttribute('data-lang');
+          switchLanguage(targetLang);
+        });
+      });
+      
+      // Update navigation headers based on language
+      const leftNavHeader = document.getElementById('left-nav-header');
+      const rightNavHeader = document.getElementById('right-nav-header');
+      
+      if (currentLang === 'fr') {
+        leftNavHeader.textContent = 'Sections';
+        rightNavHeader.textContent = 'Dans cette section';
+      } else {
+        leftNavHeader.textContent = 'Sections';
+        rightNavHeader.textContent = 'In This Section';
+      }
+    }
+    
+    // Initialize language switcher
+    if (!isLocalFile) {
+      setupLanguageSwitcher();
     }
   </script>
 </body>

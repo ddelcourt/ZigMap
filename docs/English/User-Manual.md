@@ -32,7 +32,6 @@ Mouse controls are active only when the cursor is on the animation area, not on 
 | Enter | Fullscreen |
 | P | Export PNG (includes overlay) |
 | S | Export SVG (vector only) |
-| D | Export depth map |
 | R | Reset camera |
 | 0 | Reset zoom |
 | 1 – 4 | Select color palette |
@@ -162,7 +161,7 @@ Static images overlaid on top of the animation for branding, watermarks, or desi
 - **Clear Image button**: remove current overlay.
 
 **Export behavior**
-Overlays are included in PNG, video, and depth map exports. Overlays are excluded from SVG exports (vector only).
+Overlays are included in PNG and video exports. Overlays are excluded from SVG exports (vector only).
 
 **Creating new presets**
 Use the utility tool at `utilities/overlay-converter.html` to convert images to Base64 JSON format. Place JSON files in `assets/overlays/` folder and reload the application.
@@ -177,8 +176,6 @@ Press p or click Export PNG. Captures current frame as PNG image. Resolution mat
 ### SVG export
 Press s or click Export SVG. Exports current frame as vectorsvg file. Resolution-independent format. Ideal for print or vector editing. Does not include overlay (vector only).
 
-### Depth map export
-Press d or click Export Depth Map. Exports depth information as grayscale PNG. White = close to camera, black = far away. Use cases: post-processing, compositing.
 
 ### Video recording
 1. Set Duration (how many seconds).

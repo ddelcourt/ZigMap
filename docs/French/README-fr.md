@@ -53,7 +53,7 @@ Les contrôles de caméra sont actifs uniquement lorsque le curseur se trouve su
 |--------|--------|--------|--------|
 | Tab | Masquer/afficher panneau UI | Enter | Plein écran |
 | P | Exporter PNG | S | Exporter SVG |
-| D | Exporter carte de profondeur | Ctrl+S (⌘+S) | Sauvegarder projet JSON |
+| V | Enregistrer vidéo | Ctrl+S (⌘+S) | Sauvegarder projet JSON |
 | R | Réinitialiser position caméra | 0 | Réinitialiser zoom (600 unités) |
 | 1–4 | Sélectionner palette de couleurs | t | Activer/désactiver épaisseur aléatoire |
 | m | Activer/désactiver vitesse aléatoire | y | Activer/désactiver mode stéréoscopique |
@@ -278,7 +278,7 @@ Contrôle la transparence de l'incrustation.
 Place l'incrustation n'importe où sur l'écran. 0%, 0% = coin supérieur gauche ; 100%, 100% = coin inférieur droit ; 50%, 50% = centré.
 
 **Comportement à l'export**  
-Les incrustations sont incluses dans les exports PNG, vidéo et carte de profondeur. Exclues des exports SVG (vecteur uniquement). Pour exporter sans incrustation : décocher Afficher l'incrustation avant l'export.
+Les incrustations sont incluses dans les exports PNG et vidéo. Exclues des exports SVG (vecteur uniquement). Pour exporter sans incrustation : décocher Afficher l'incrustation avant l'export.
 
 ---
 
@@ -289,9 +289,6 @@ Capture directe du canevas avec transparence. Les dimensions correspondent au ca
 
 **Exporter SVG** (S) — format : `.svg`  
 Version vectorielle de l'image actuelle, ligne par ligne avec projection exacte. Mise à l'échelle infinie sans perte de qualité.
-
-**Exporter carte de profondeur** (D) — format : `.png` en niveaux de gris  
-Encode la profondeur Z en luminosité : proche = blanc, loin = noir.
 
 **Enregistrement vidéo** — format : `.webm` ou `.mp4`  
 Capture image par image pour un rendu fluide et déterministe. Démarrage/arrêt depuis l'interface de la section Export. Un indicateur rouge s'affiche pendant l'enregistrement. Le fichier s'exporte automatiquement à l'arrêt.
@@ -306,7 +303,6 @@ Capture image par image pour un rendu fluide et déterministe. Démarrage/arrêt
 |--------|------|-------------|-------------|
 | PNG | Matriciel | Web, réseaux sociaux | Dimensions fixes |
 | SVG | Vectoriel | Impression, design, édition | Infinie |
-| Carte de profondeur | Matriciel | VFX, composition, 3D | Dimensions fixes |
 | Vidéo | Temporel | Animation, présentation | Résolution vidéo |
 
 ### Export rapide
@@ -314,9 +310,8 @@ Capture image par image pour un rendu fluide et déterministe. Démarrage/arrêt
 **Image actuelle :**
 - P : exporter image PNG (inclut l'incrustation)
 - S : exporter fichier vectoriel SVG
-- D : exporter carte de profondeur
 
-**Enregistrement vidéo :**
+**Enregistrement vidéo :****
 1. Cliquer sur le bouton Démarrer l'enregistrement dans la section Export
 2. Cliquer sur le bouton Arrêter l'enregistrement (optionnel, arrêt automatique à la durée configurée)
 3. La vidéo se télécharge automatiquement avec l'incrustation incluse

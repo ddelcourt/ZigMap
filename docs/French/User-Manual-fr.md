@@ -32,7 +32,6 @@ Les contrôles souris sont actifs uniquement lorsque le curseur se trouve sur la
 | Entrée | Plein écran |
 | P | Exporter PNG (inclut l'overlay) |
 | S | Exporter SVG (vectoriel uniquement) |
-| D | Exporter carte de profondeur |
 | R | Réinitialiser la caméra |
 | 0 | Réinitialiser le zoom |
 | 1 – 4 | Sélectionner une palette de couleurs |
@@ -174,7 +173,6 @@ Les overlays sont inclus dans les exports PNG et vidéo, avec l'échelle, l'opac
 
 - **p** — PNG : inclut l'overlay si actif. Correction automatique pour écrans haute résolution.
 - **s** — SVG vectoriel : compatible avec Illustrator, Inkscape, etc. N'inclut pas l'overlay.
-- **d** — Carte de profondeur : blanc = proche, noir = lointain. Utile pour la post-production.
 
 ### Enregistrement vidéo
 

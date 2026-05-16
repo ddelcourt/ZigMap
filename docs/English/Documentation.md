@@ -62,8 +62,6 @@ Complete list of all configurable parameters in the `params` object:
 | Video Duration | `videoDuration` | Recording length in seconds |
 | Video FPS | `videoFPS` | Recording frame rate (frames per second) |
 | Video Format | `videoFormat` | Video codec format (e.g., 'webm') |
-| **Depth Map** |||
-| Depth Invert | `depthInvert` | Invert depth values in depth map export |
 | **Overlay Image** |||
 | Overlay Image Source | `overlayImageSrc` | Source URL or data URL of the overlay image |
 | Overlay Preset File | `overlayPresetFile` | Filename of selected preset overlay |

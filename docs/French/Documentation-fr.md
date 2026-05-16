@@ -62,8 +62,6 @@ Liste complète de tous les paramètres configurables dans l'objet `params` :
 | Durée Vidéo | `videoDuration` | Durée d'enregistrement en secondes |
 | FPS Vidéo | `videoFPS` | Fréquence d'images de l'enregistrement (images par seconde) |
 | Format Vidéo | `videoFormat` | Format du codec vidéo (ex: 'webm') |
-| **Carte de Profondeur** |||
-| Inverser Profondeur | `depthInvert` | Inverser les valeurs de profondeur dans l'export de carte de profondeur |
 | **Image de Superposition** |||
 | Source Image Superposition | `overlayImageSrc` | URL source ou URL de données de l'image de superposition |
 | Fichier Préréglage Superposition | `overlayPresetFile` | Nom du fichier de superposition préréglé sélectionné |
