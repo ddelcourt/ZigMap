@@ -266,6 +266,17 @@ function restoreState(ZM, state, instant = false) {
       ZM.camera.offsetY = state.camera.offsetY || 0;
       ZM.camera.transition.isActive = false;
       ZM.camera.transition.progress = 1.0;
+      
+      // Broadcast immediate camera update to display windows
+      if (ZM.windowSync && ZM.windowSync.broadcastCameraImmediate) {
+        ZM.windowSync.broadcastCameraImmediate({
+          rotationX: state.camera.rotationX,
+          rotationY: state.camera.rotationY,
+          distance: state.camera.distance,
+          offsetX: state.camera.offsetX || 0,
+          offsetY: state.camera.offsetY || 0
+        });
+      }
     } else {
       // Normal mode: use transitions
       ZM.camera.transitionTo(
@@ -275,6 +286,17 @@ function restoreState(ZM, state, instant = false) {
         state.camera.offsetX,
         state.camera.offsetY
       );
+      
+      // Broadcast camera transition command to display windows
+      if (ZM.windowSync && ZM.windowSync.broadcastCameraTransition) {
+        ZM.windowSync.broadcastCameraTransition({
+          rotationX: state.camera.rotationX,
+          rotationY: state.camera.rotationY,
+          distance: state.camera.distance,
+          offsetX: state.camera.offsetX || 0,
+          offsetY: state.camera.offsetY || 0
+        }, ZM.params.stateTransitionDuration);
+      }
     }
   }
   
@@ -294,6 +316,11 @@ function restoreState(ZM, state, instant = false) {
       ZM.fovTransition.progress = 0.0;
       ZM.fovTransition.duration = ZM.params.stateTransitionDuration;
       ZM.fovTransition.isTransitioning = true;
+      
+      // Broadcast FOV transition command to display windows
+      if (ZM.windowSync && ZM.windowSync.broadcastFOVTransition) {
+        ZM.windowSync.broadcastFOVTransition(state.params.fov, ZM.params.stateTransitionDuration);
+      }
     }
   } else if (!ZM.fovTransition && state.params.fov !== undefined) {
     // Sketches not initialized yet - directly set FOV
@@ -316,6 +343,14 @@ function restoreState(ZM, state, instant = false) {
       ZM.emitterRotationTransition.progress = 0.0;
       ZM.emitterRotationTransition.duration = ZM.params.stateTransitionDuration;
       ZM.emitterRotationTransition.isTransitioning = true;
+      
+      // Broadcast emitter rotation transition command to display windows
+      if (ZM.windowSync && ZM.windowSync.broadcastEmitterRotationTransition) {
+        ZM.windowSync.broadcastEmitterRotationTransition(
+          state.params.emitterRotation, 
+          ZM.params.stateTransitionDuration
+        );
+      }
     }
   } else if (!ZM.emitterRotationTransition && state.params.emitterRotation !== undefined) {
     // Sketches not initialized yet - directly set rotation
@@ -339,6 +374,14 @@ function restoreState(ZM, state, instant = false) {
       ZM.geometryScaleTransition.duration = ZM.params.stateTransitionDuration;
       ZM.geometryScaleTransition.isTransitioning = true;
       console.log(`  ⚙️ Geometry scale transition: ${ZM.geometryScaleTransition.start.toFixed(1)} → ${ZM.geometryScaleTransition.target.toFixed(1)} over ${ZM.params.stateTransitionDuration}ms`);
+      
+      // Broadcast geometry transition command to display windows
+      if (ZM.windowSync && ZM.windowSync.broadcastGeometryTransition) {
+        ZM.windowSync.broadcastGeometryTransition(
+          state.params.geometryScale, 
+          ZM.params.stateTransitionDuration
+        );
+      }
     }
   } else if (!ZM.geometryScaleTransition && state.params.geometryScale !== undefined) {
     // Sketches not initialized yet - directly set scale

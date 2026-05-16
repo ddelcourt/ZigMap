@@ -6,6 +6,9 @@
 const CHANNEL_NAME = 'zigmap26-sync';
 const SYNC_THROTTLE_MS = 16; // ~60fps max
 
+// Display window counter for sequential IDs
+let displayWindowCounter = 0;
+
 /**
  * Initialize window sync for primary (control) window
  * @param {Object} ZM - Main application object
@@ -169,6 +172,87 @@ export function initializePrimarySync(ZM) {
   }
 
   /**
+   * Broadcast camera transition command (replaces continuous param updates)
+   */
+  function broadcastCameraTransition(target, duration) {
+    const message = {
+      type: 'camera-transition',
+      target: {
+        rotationX: target.rotationX,
+        rotationY: target.rotationY,
+        distance: target.distance,
+        offsetX: target.offsetX,
+        offsetY: target.offsetY
+      },
+      duration: duration,
+      timestamp: Date.now()
+    };
+    channel.postMessage(message);
+    console.log(`📤 Camera transition: duration=${duration}s`);
+  }
+
+  /**
+   * Broadcast geometry scale transition command
+   */
+  function broadcastGeometryTransition(targetScale, duration) {
+    const message = {
+      type: 'geometry-transition',
+      targetScale: targetScale,
+      duration: duration,
+      timestamp: Date.now()
+    };
+    channel.postMessage(message);
+    console.log(`📤 Geometry transition: scale=${targetScale}, duration=${duration}s`);
+  }
+
+  /**
+   * Broadcast FOV transition command
+   */
+  function broadcastFOVTransition(targetFOV, duration) {
+    const message = {
+      type: 'fov-transition',
+      targetFOV: targetFOV,
+      duration: duration,
+      timestamp: Date.now()
+    };
+    channel.postMessage(message);
+    console.log(`📤 FOV transition: fov=${targetFOV}°, duration=${duration}s`);
+  }
+
+  /**
+   * Broadcast emitter rotation transition command
+   */
+  function broadcastEmitterRotationTransition(targetRotation, duration) {
+    const message = {
+      type: 'emitter-rotation-transition',
+      targetRotation: targetRotation,
+      duration: duration,
+      timestamp: Date.now()
+    };
+    channel.postMessage(message);
+    console.log(`📤 Emitter rotation transition: rotation=${targetRotation}°, duration=${duration}s`);
+  }
+
+  /**
+   * Broadcast immediate camera update (for manual mouse control end)
+   */
+  function broadcastCameraImmediate(cameraState) {
+    const message = {
+      type: 'camera-immediate',
+      state: {
+        rotationX: cameraState.rotationX,
+        rotationY: cameraState.rotationY,
+        distance: cameraState.distance,
+        offsetX: cameraState.offsetX,
+        offsetY: cameraState.offsetY
+      },
+      timestamp: Date.now()
+    };
+    channel.postMessage(message);
+    console.log('📤 Camera immediate update (mouse drag end)');
+  }
+
+  /**
    * Close sync channel
    */
   function close() {
@@ -182,6 +266,11 @@ export function initializePrimarySync(ZM) {
     broadcastParamChanges,
     broadcastFullState,
     sendFullState,
+    broadcastCameraTransition,
+    broadcastGeometryTransition,
+    broadcastFOVTransition,
+    broadcastEmitterRotationTransition,
+    broadcastCameraImmediate,
     close,
     isPrimary: true
   };
@@ -448,6 +537,103 @@ export function initializeDisplaySync(ZM) {
             'overlayVisible' in changes)) {
           ZM.updateOverlay();
         }
+      
+      } else if (type === 'camera-transition') {
+        // NEW: Handle smooth camera transition command
+        const { target, duration } = event.data;
+        
+        if (ZM.camera && target) {
+          console.log(`📥 Camera transition: duration=${duration}s`);
+          ZM.camera.transitionTo(
+            target.rotationX,
+            target.rotationY,
+            target.distance,
+            target.offsetX,
+            target.offsetY
+          );
+          // Set duration from broadcast message
+          ZM.camera.transition.duration = duration;
+          
+          // Update params to match target
+          ZM.params.cameraRotationX = target.rotationX;
+          ZM.params.cameraRotationY = target.rotationY;
+          ZM.params.cameraDistance = target.distance;
+          ZM.params.cameraOffsetX = target.offsetX;
+          ZM.params.cameraOffsetY = target.offsetY;
+        }
+      
+      } else if (type === 'camera-immediate') {
+        // NEW: Handle immediate camera update (mouse drag end)
+        const { state } = event.data;
+        
+        if (ZM.camera && state) {
+          console.log('📥 Camera immediate update');
+          // Snap instantly to new position
+          ZM.camera.rotationX = state.rotationX;
+          ZM.camera.rotationY = state.rotationY;
+          ZM.camera.distance = state.distance;
+          ZM.camera.offsetX = state.offsetX;
+          ZM.camera.offsetY = state.offsetY;
+          
+          // Cancel any active transition
+          ZM.camera.transition.isActive = false;
+          ZM.camera.transition.progress = 1.0;
+          
+          // Update params
+          ZM.params.cameraRotationX = state.rotationX;
+          ZM.params.cameraRotationY = state.rotationY;
+          ZM.params.cameraDistance = state.distance;
+          ZM.params.cameraOffsetX = state.offsetX;
+          ZM.params.cameraOffsetY = state.offsetY;
+        }
+      
+      } else if (type === 'geometry-transition') {
+        // NEW: Handle smooth geometry scale transition
+        const { targetScale, duration } = event.data;
+        
+        if (ZM.geometryScaleTransition && targetScale !== undefined) {
+          console.log(`📥 Geometry transition: scale=${targetScale}, duration=${duration}s`);
+          ZM.geometryScaleTransition.start = ZM.geometryScaleTransition.current;
+          ZM.geometryScaleTransition.target = targetScale;
+          ZM.geometryScaleTransition.duration = duration;
+          ZM.geometryScaleTransition.progress = 0.0;
+          ZM.geometryScaleTransition.isTransitioning = true;
+          
+          // Update params
+          ZM.params.geometryScale = targetScale;
+        }
+      
+      } else if (type === 'fov-transition') {
+        // NEW: Handle smooth FOV transition
+        const { targetFOV, duration } = event.data;
+        
+        if (ZM.fovTransition && targetFOV !== undefined) {
+          console.log(`📥 FOV transition: fov=${targetFOV}°, duration=${duration}s`);
+          ZM.fovTransition.start = ZM.fovTransition.current;
+          ZM.fovTransition.target = targetFOV;
+          ZM.fovTransition.duration = duration;
+          ZM.fovTransition.progress = 0.0;
+          ZM.fovTransition.isTransitioning = true;
+          
+          // Update params
+          ZM.params.fov = targetFOV;
+        }
+      
+      } else if (type === 'emitter-rotation-transition') {
+        // NEW: Handle smooth emitter rotation transition
+        const { targetRotation, duration } = event.data;
+        
+        if (ZM.emitterRotationTransition && targetRotation !== undefined) {
+          console.log(`📥 Emitter rotation transition: rotation=${targetRotation}°, duration=${duration}s`);
+          ZM.emitterRotationTransition.start = ZM.emitterRotationTransition.current;
+          ZM.emitterRotationTransition.target = targetRotation;
+          ZM.emitterRotationTransition.duration = duration;
+          ZM.emitterRotationTransition.progress = 0.0;
+          ZM.emitterRotationTransition.isTransitioning = true;
+          
+          // Update params
+          ZM.params.emitterRotation = targetRotation;
+        }
       }
     };
 
@@ -487,20 +673,24 @@ export function initializeDisplaySync(ZM) {
 }
 
 /**
- * Open display window
+ * Open display window with sequential ID
  * @returns {Window} Reference to opened window
  */
 export function openDisplayWindow() {
-  // Open display window with minimal chrome
-  // Note: Modern browsers may ignore these features for security reasons
+  // Generate sequential display ID
+  displayWindowCounter++;
+  const displayId = `display-${displayWindowCounter}`;
+  
+  // Open display window with ID in URL and as window name
+  // Using ID as window name prevents duplicate windows with same ID
   const displayWindow = window.open(
-    'display.html',
-    'zigmap26-display',
+    `display.html?id=${displayId}`,
+    displayId,
     'width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes'
   );
 
   if (displayWindow) {
-    console.log('🪟 Display window opened');
+    console.log(`🪟 Display window opened: ${displayId}`);
   } else {
     console.error('❌ Failed to open display window (popup blocked?)');
   }

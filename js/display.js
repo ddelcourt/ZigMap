@@ -27,8 +27,20 @@ import { initializeDisplaySync } from './sync/WindowSync.js';
 // GLOBAL APPLICATION STATE (Display Window)
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Get display ID from URL parameters
+const urlParams = new URLSearchParams(window.location.search);
+const displayId = urlParams.get('id') || 'display-unknown';
+
+// Update document title with display ID
+document.title = `ZigMap26 — ${displayId}`;
+
+console.log(`🖥️ Display window ID: ${displayId}`);
+
 // Create global ZigMap26 namespace
 window.ZigMap26 = {
+  // Display identification
+  displayId: displayId,
+  
   // Parameters (will be synced from primary window)
   params: { ...DEFAULT_PARAMS },
   
@@ -85,7 +97,7 @@ function updateConnectionStatus(connected) {
   
   if (connected) {
     statusEl.classList.add('connected');
-    textEl.textContent = 'Connected';
+    textEl.textContent = `${window.ZigMap26.displayId} — Connected`;
     
     // Hide status after 2 seconds
     setTimeout(() => {
@@ -93,7 +105,7 @@ function updateConnectionStatus(connected) {
     }, 2000);
   } else {
     statusEl.classList.remove('connected');
-    textEl.textContent = 'Waiting for primary window...';
+    textEl.textContent = `${window.ZigMap26.displayId} — Waiting...`;
   }
 }
 
