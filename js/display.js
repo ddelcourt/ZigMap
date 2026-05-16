@@ -186,6 +186,9 @@ async function init() {
   // Setup keyboard shortcuts
   setupKeyboardShortcuts();
   
+  // Setup mouse handlers for bidirectional control
+  setupMouseHandlers();
+  
   // Initialize sketches
   console.log('🎨 Initializing sketches...');
   ZM.initializeSketches();
@@ -342,7 +345,6 @@ function setupKeyboardShortcuts() {
         timestamp: Date.now()
       });
       e.preventDefault();
-      console.log(`⌨️ → ${e.key}${e.ctrlKey || e.metaKey ? ' (Ctrl/Cmd)' : ''}`);
       return;
     }
     
@@ -392,6 +394,128 @@ function setupKeyboardShortcuts() {
 
   document.addEventListener('fullscreenchange', onFullscreenChange);
   document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+}
+
+/**
+ * Setup mouse handlers for bidirectional control
+ * Display windows can control camera just like main window
+ */
+function setupMouseHandlers() {
+  const container = document.getElementById('canvas-container');
+  
+  // Mouse state
+  let isDragging = false;
+  let isPanning = false;
+  let isRotating = false;
+  let lastMouseX = 0;
+  let lastMouseY = 0;
+  
+  // Helper to forward mouse commands to main window
+  function forwardMouseCommand(command) {
+    if (window.ZigMap26.windowSync && window.ZigMap26.windowSync.channel) {
+      window.ZigMap26.windowSync.channel.postMessage({
+        type: 'mouse-command',
+        command: command,
+        timestamp: Date.now()
+      });
+    }
+  }
+  
+  // Mouse down
+  container.addEventListener('mousedown', (e) => {
+    if (e.button === 0) {
+      // Left click: orbit
+      isDragging = true;
+      isPanning = false;
+      isRotating = false;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      
+      // Cancel transitions when starting manual control
+      forwardMouseCommand({ action: 'cancel-transitions' });
+    } else if (e.button === 1) {
+      // Middle click: Z-rotation
+      isRotating = true;
+      isDragging = false;
+      isPanning = false;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      
+      forwardMouseCommand({ action: 'cancel-transitions' });
+      e.preventDefault();
+    } else if (e.button === 2) {
+      // Right click: pan
+      isPanning = true;
+      isDragging = false;
+      isRotating = false;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      
+      forwardMouseCommand({ action: 'cancel-transitions' });
+      e.preventDefault();
+    }
+  });
+  
+  // Mouse move
+  window.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      
+      forwardMouseCommand({
+        action: 'orbit',
+        dx: dx,
+        dy: dy
+      });
+      
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    } else if (isPanning) {
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      
+      forwardMouseCommand({
+        action: 'pan',
+        dx: dx,
+        dy: dy
+      });
+      
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    } else if (isRotating) {
+      const dx = e.clientX - lastMouseX;
+      
+      forwardMouseCommand({
+        action: 'rotate',
+        dx: dx
+      });
+      
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    }
+  });
+  
+  // Mouse up
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+    isPanning = false;
+    isRotating = false;
+  });
+  
+  // Prevent context menu on right-click
+  container.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+  });
+  
+  // Mouse wheel for zoom
+  container.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    
+    forwardMouseCommand({
+      action: 'zoom',
+      delta: e.deltaY
+    });
+  }, { passive: false });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

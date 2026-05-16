@@ -142,79 +142,18 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
     };
     
     p.draw = () => {
-      // Time management (only update on primary canvas)
+      // Time management
+      const now = p.millis() / 1000;
+      const dt = sharedLastTime === 0 ? 0.016 : now - sharedLastTime;
+      sharedLastTime = now;
+      
+      // Update primary canvas only features (emitter, noise, background transitions)
       if (isPrimary) {
-        const now = p.millis() / 1000;
-        const dt = sharedLastTime === 0 ? 0.016 : now - sharedLastTime;
-        sharedLastTime = now;
-        
         // Update noise offset
         ZM.noiseOffset += dt * (ZM.params.ambientSpeedMaster / 100);
         
-        // Update emitter (only on primary canvas)
+        // Update emitter (only on primary canvas to avoid duplicate particle generation)
         emitter.update(dt);
-        
-        // Update camera transition
-        if (ZM.camera.transition.isActive) {
-          ZM.camera.updateTransition(dt);
-          // Sync to params for consistency
-          ZM.params.cameraRotationX = ZM.camera.rotationX;
-          ZM.params.cameraRotationY = ZM.camera.rotationY;
-          ZM.params.cameraDistance = ZM.camera.distance;
-          ZM.params.cameraOffsetX = ZM.camera.offsetX;
-          ZM.params.cameraOffsetY = ZM.camera.offsetY;
-        }
-        
-        // Update FOV transition
-        if (ZM.fovTransition.isTransitioning) {
-          ZM.fovTransition.progress += dt / ZM.fovTransition.duration;
-          if (ZM.fovTransition.progress >= 1.0) {
-            ZM.fovTransition.progress = 1.0;
-            ZM.fovTransition.current = ZM.fovTransition.target;
-            ZM.params.fov = ZM.fovTransition.target;
-            ZM.fovTransition.isTransitioning = false;
-          } else {
-            // Ease-in-out cubic
-            const t = ZM.fovTransition.progress < 0.5
-              ? 4 * ZM.fovTransition.progress * ZM.fovTransition.progress * ZM.fovTransition.progress
-              : 1 - Math.pow(-2 * ZM.fovTransition.progress + 2, 3) / 2;
-            ZM.fovTransition.current = ZM.fovTransition.start + (ZM.fovTransition.target - ZM.fovTransition.start) * t;
-          }
-        }
-        
-        // Update emitter rotation transition
-        if (ZM.emitterRotationTransition.isTransitioning) {
-          ZM.emitterRotationTransition.progress += dt / ZM.emitterRotationTransition.duration;
-          if (ZM.emitterRotationTransition.progress >= 1.0) {
-            ZM.emitterRotationTransition.progress = 1.0;
-            ZM.emitterRotationTransition.current = ZM.emitterRotationTransition.target;
-            ZM.params.emitterRotation = ZM.emitterRotationTransition.target;
-            ZM.emitterRotationTransition.isTransitioning = false;
-          } else {
-            // Ease-in-out cubic
-            const t = ZM.emitterRotationTransition.progress < 0.5
-              ? 4 * ZM.emitterRotationTransition.progress * ZM.emitterRotationTransition.progress * ZM.emitterRotationTransition.progress
-              : 1 - Math.pow(-2 * ZM.emitterRotationTransition.progress + 2, 3) / 2;
-            ZM.emitterRotationTransition.current = ZM.emitterRotationTransition.start + (ZM.emitterRotationTransition.target - ZM.emitterRotationTransition.start) * t;
-          }
-        }
-        
-        // Update geometry scale transition
-        if (ZM.geometryScaleTransition.isTransitioning) {
-          ZM.geometryScaleTransition.progress += dt / ZM.geometryScaleTransition.duration;
-          if (ZM.geometryScaleTransition.progress >= 1.0) {
-            ZM.geometryScaleTransition.progress = 1.0;
-            ZM.geometryScaleTransition.current = ZM.geometryScaleTransition.target;
-            ZM.params.geometryScale = ZM.geometryScaleTransition.target;
-            ZM.geometryScaleTransition.isTransitioning = false;
-          } else {
-            // Ease-in-out cubic
-            const t = ZM.geometryScaleTransition.progress < 0.5
-              ? 4 * ZM.geometryScaleTransition.progress * ZM.geometryScaleTransition.progress * ZM.geometryScaleTransition.progress
-              : 1 - Math.pow(-2 * ZM.geometryScaleTransition.progress + 2, 3) / 2;
-            ZM.geometryScaleTransition.current = ZM.geometryScaleTransition.start + (ZM.geometryScaleTransition.target - ZM.geometryScaleTransition.start) * t;
-          }
-        }
         
         // Update background color transition (only if actively transitioning)
         if (ZM.bgTransition.isTransitioning) {
@@ -232,8 +171,74 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
             );
           }
         }
-        
-        // Auto-trigger random state switching (only on primary canvas AND not in display mode)
+      }
+      
+      // Update transitions (in ALL canvases including display windows)
+      // This allows display windows to animate camera/geometry/FOV transitions
+      
+      // Update camera transition
+      if (ZM.camera.transition.isActive) {
+        ZM.camera.updateTransition(dt);
+        // Sync to params for consistency
+        ZM.params.cameraRotationX = ZM.camera.rotationX;
+        ZM.params.cameraRotationY = ZM.camera.rotationY;
+        ZM.params.cameraDistance = ZM.camera.distance;
+        ZM.params.cameraOffsetX = ZM.camera.offsetX;
+        ZM.params.cameraOffsetY = ZM.camera.offsetY;
+      }
+      
+      // Update FOV transition
+      if (ZM.fovTransition.isTransitioning) {
+        ZM.fovTransition.progress += dt / ZM.fovTransition.duration;
+        if (ZM.fovTransition.progress >= 1.0) {
+          ZM.fovTransition.progress = 1.0;
+          ZM.fovTransition.current = ZM.fovTransition.target;
+          ZM.params.fov = ZM.fovTransition.target;
+          ZM.fovTransition.isTransitioning = false;
+        } else {
+          // Ease-in-out cubic
+          const t = ZM.fovTransition.progress < 0.5
+            ? 4 * ZM.fovTransition.progress * ZM.fovTransition.progress * ZM.fovTransition.progress
+            : 1 - Math.pow(-2 * ZM.fovTransition.progress + 2, 3) / 2;
+          ZM.fovTransition.current = ZM.fovTransition.start + (ZM.fovTransition.target - ZM.fovTransition.start) * t;
+        }
+      }
+      
+      // Update emitter rotation transition
+      if (ZM.emitterRotationTransition.isTransitioning) {
+        ZM.emitterRotationTransition.progress += dt / ZM.emitterRotationTransition.duration;
+        if (ZM.emitterRotationTransition.progress >= 1.0) {
+          ZM.emitterRotationTransition.progress = 1.0;
+          ZM.emitterRotationTransition.current = ZM.emitterRotationTransition.target;
+          ZM.params.emitterRotation = ZM.emitterRotationTransition.target;
+          ZM.emitterRotationTransition.isTransitioning = false;
+        } else {
+          // Ease-in-out cubic
+          const t = ZM.emitterRotationTransition.progress < 0.5
+            ? 4 * ZM.emitterRotationTransition.progress * ZM.emitterRotationTransition.progress * ZM.emitterRotationTransition.progress
+            : 1 - Math.pow(-2 * ZM.emitterRotationTransition.progress + 2, 3) / 2;
+          ZM.emitterRotationTransition.current = ZM.emitterRotationTransition.start + (ZM.emitterRotationTransition.target - ZM.emitterRotationTransition.start) * t;
+        }
+      }
+      
+      // Update geometry scale transition
+      if (ZM.geometryScaleTransition.isTransitioning) {
+        ZM.geometryScaleTransition.progress += dt / ZM.geometryScaleTransition.duration;
+        if (ZM.geometryScaleTransition.progress >= 1.0) {
+          ZM.geometryScaleTransition.progress = 1.0;
+          ZM.geometryScaleTransition.current = ZM.geometryScaleTransition.target;
+          ZM.params.geometryScale = ZM.geometryScaleTransition.target;
+          ZM.geometryScaleTransition.isTransitioning = false;
+        } else {
+          // Ease-in-out cubic
+          const t = ZM.geometryScaleTransition.progress < 0.5
+            ? 4 * ZM.geometryScaleTransition.progress * ZM.geometryScaleTransition.progress * ZM.geometryScaleTransition.progress
+            : 1 - Math.pow(-2 * ZM.geometryScaleTransition.progress + 2, 3) / 2;
+          ZM.geometryScaleTransition.current = ZM.geometryScaleTransition.start + (ZM.geometryScaleTransition.target - ZM.geometryScaleTransition.start) * t;
+        }
+      }
+      
+      // Primary canvas only: Auto-trigger random state switching (only on primary canvas AND not in display mode)
         // Each trigger loads a TRULY RANDOM state (excluding current) - no sequence or pattern
         if (isPrimary && !ZM.isDisplayMode && ZM.params.autoTriggerStates && ZM.stateManager && ZM.stateManager.states.length > 1) {
           // Debug on frame 600 (10 seconds)
@@ -261,7 +266,6 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
             ZM.stateManager.updateAutoTriggerStatus();
           }
         }
-      }
       
       // Clear background with cached color (no per-frame lerp)
       p.background(...ZM.bgTransition.current);

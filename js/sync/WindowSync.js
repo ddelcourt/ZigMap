@@ -27,6 +27,20 @@ export function initializePrimarySync(ZM) {
 
   console.log('📡 Primary window sync initialized');
 
+  // Throttle mouse command broadcasts for real-time sync (60fps)
+  let lastMouseBroadcast = 0;
+  const MOUSE_BROADCAST_THROTTLE = 17; // ~60fps
+  
+  function broadcastCameraFromMouse(state) {
+    const now = Date.now();
+    if (now - lastMouseBroadcast < MOUSE_BROADCAST_THROTTLE) return;
+    
+    if (ZM.windowSync && ZM.windowSync.broadcastCameraImmediate) {
+      ZM.windowSync.broadcastCameraImmediate(state);
+      lastMouseBroadcast = now;
+    }
+  }
+
   // Listen for messages from display windows
   channel.onmessage = (event) => {
     const { type } = event.data;
@@ -55,6 +69,136 @@ export function initializePrimarySync(ZM) {
       
       document.body.dispatchEvent(keyEvent);
       // Note: Main window's action execution will automatically broadcast results to all displays
+    } else if (type === 'mouse-command') {
+      // Bidirectional mouse control: Display windows can send mouse commands to main window
+      // Flow: Display → mouse-command → Main → Apply to camera → broadcastCameraImmediate
+      //       → All displays (including sender) receive camera state update
+      const { command } = event.data;
+      
+      if (!ZM.camera) return;
+      
+      switch (command.action) {
+        case 'cancel-transitions':
+          // Cancel any active transitions when manual mouse control starts
+          if (ZM.camera.transition.isActive) {
+            ZM.camera.transition.isActive = false;
+          }
+          if (ZM.emitterRotationTransition && ZM.emitterRotationTransition.isTransitioning) {
+            ZM.emitterRotationTransition.isTransitioning = false;
+          }
+          break;
+          
+        case 'orbit':
+          // Apply camera orbit (rotation)
+          ZM.camera.rotationY += command.dx * 0.005;
+          ZM.camera.rotationX += command.dy * 0.005;
+          ZM.params.cameraRotationY = ZM.camera.rotationY;
+          ZM.params.cameraRotationX = ZM.camera.rotationX;
+          ZM.saveToLocalStorage();
+          
+          // Broadcast to all displays (throttled)
+          const state = {
+            rotationX: ZM.camera.rotationX,
+            rotationY: ZM.camera.rotationY,
+            distance: ZM.camera.distance,
+            offsetX: ZM.camera.offsetX,
+            offsetY: ZM.camera.offsetY
+          };
+          if (ZM.emitterRotationTransition && ZM.emitterRotationTransition.current !== undefined) {
+            state.emitterRotation = ZM.emitterRotationTransition.current;
+          }
+          broadcastCameraFromMouse(state);
+          break;
+          
+        case 'pan':
+          // Apply camera pan (offset)
+          // Scale mouse movement if in framebuffer mode
+          let scaledDx = command.dx;
+          let scaledDy = command.dy;
+          
+          if (ZM.params.framebufferMode && ZM.p5Instance && ZM.p5Instance.canvas) {
+            const canvasW = ZM.W;
+            const canvasH = ZM.H;
+            const displayW = ZM.p5Instance.canvas.clientWidth;
+            const displayH = ZM.p5Instance.canvas.clientHeight;
+            
+            if (displayW > 0 && displayH > 0) {
+              const scaleX = canvasW / displayW;
+              const scaleY = canvasH / displayH;
+              scaledDx = command.dx * scaleX;
+              scaledDy = command.dy * scaleY;
+            }
+          }
+          
+          ZM.camera.offsetX += scaledDx;
+          ZM.camera.offsetY += scaledDy;
+          ZM.params.cameraOffsetX = ZM.camera.offsetX;
+          ZM.params.cameraOffsetY = ZM.camera.offsetY;
+          ZM.saveToLocalStorage();
+          
+          // Broadcast to all displays (throttled)
+          const panState = {
+            rotationX: ZM.camera.rotationX,
+            rotationY: ZM.camera.rotationY,
+            distance: ZM.camera.distance,
+            offsetX: ZM.camera.offsetX,
+            offsetY: ZM.camera.offsetY
+          };
+          if (ZM.emitterRotationTransition && ZM.emitterRotationTransition.current !== undefined) {
+            panState.emitterRotation = ZM.emitterRotationTransition.current;
+          }
+          broadcastCameraFromMouse(panState);
+          break;
+          
+        case 'rotate':
+          // Apply Z-rotation (emitter rotation)
+          if (ZM.emitterRotationTransition) {
+            ZM.emitterRotationTransition.current += command.dx * 0.5;
+            ZM.params.emitterRotation = ZM.emitterRotationTransition.current;
+            
+            // Cancel transition and snap to current value
+            ZM.emitterRotationTransition.target = ZM.emitterRotationTransition.current;
+            ZM.emitterRotationTransition.start = ZM.emitterRotationTransition.current;
+            ZM.emitterRotationTransition.progress = 1.0;
+            ZM.emitterRotationTransition.isTransitioning = false;
+            
+            ZM.saveToLocalStorage();
+            
+            // Broadcast to all displays (throttled)
+            const state = {
+              rotationX: ZM.camera.rotationX,
+              rotationY: ZM.camera.rotationY,
+              distance: ZM.camera.distance,
+              offsetX: ZM.camera.offsetX,
+              offsetY: ZM.camera.offsetY,
+              emitterRotation: ZM.emitterRotationTransition.current
+            };
+            broadcastCameraFromMouse(state);
+          }
+          break;
+          
+        case 'zoom':
+          // Apply camera zoom
+          const zoomSpeed = 2;
+          ZM.camera.distance += command.delta * zoomSpeed;
+          ZM.camera.distance = Math.max(50, Math.min(10000, ZM.camera.distance));
+          ZM.params.cameraDistance = ZM.camera.distance;
+          ZM.saveToLocalStorage();
+          
+          // Broadcast to all displays (throttled)
+          const zoomState = {
+            rotationX: ZM.camera.rotationX,
+            rotationY: ZM.camera.rotationY,
+            distance: ZM.camera.distance,
+            offsetX: ZM.camera.offsetX,
+            offsetY: ZM.camera.offsetY
+          };
+          if (ZM.emitterRotationTransition && ZM.emitterRotationTransition.current !== undefined) {
+            zoomState.emitterRotation = ZM.emitterRotationTransition.current;
+          }
+          broadcastCameraFromMouse(zoomState);
+          break;
+      }
     }
   };
 
@@ -195,6 +339,20 @@ export function initializePrimarySync(ZM) {
   }
 
   /**
+   * Broadcast state load to display windows
+   * Display windows will call restoreState() with the same logic as main window
+   */
+  function broadcastStateLoad(state, instant = false) {
+    const message = {
+      type: 'state-load',
+      state: state,
+      instant: instant,
+      timestamp: Date.now()
+    };
+    channel.postMessage(message);
+  }
+
+  /**
    * Broadcast camera transition command (replaces continuous param updates)
    */
   function broadcastCameraTransition(target, duration) {
@@ -211,7 +369,6 @@ export function initializePrimarySync(ZM) {
       timestamp: Date.now()
     };
     channel.postMessage(message);
-    console.log(`📤 Camera transition: duration=${duration}s`);
   }
 
   /**
@@ -225,7 +382,6 @@ export function initializePrimarySync(ZM) {
       timestamp: Date.now()
     };
     channel.postMessage(message);
-    console.log(`📤 Geometry transition: scale=${targetScale}, duration=${duration}s`);
   }
 
   /**
@@ -239,7 +395,6 @@ export function initializePrimarySync(ZM) {
       timestamp: Date.now()
     };
     channel.postMessage(message);
-    console.log(`📤 FOV transition: fov=${targetFOV}°, duration=${duration}s`);
   }
 
   /**
@@ -253,7 +408,6 @@ export function initializePrimarySync(ZM) {
       timestamp: Date.now()
     };
     channel.postMessage(message);
-    console.log(`📤 Emitter rotation transition: rotation=${targetRotation}°, duration=${duration}s`);
   }
 
   /**
@@ -289,6 +443,7 @@ export function initializePrimarySync(ZM) {
     broadcastParamChanges,
     broadcastFullState,
     sendFullState,
+    broadcastStateLoad,
     broadcastCameraTransition,
     broadcastGeometryTransition,
     broadcastFOVTransition,
@@ -524,7 +679,6 @@ export function initializeDisplaySync(ZM) {
         if (paletteChanged && ZM.triggerPaletteChange && ZM.sketchReady) {
           // Palette has changed - transition existing lines to new colors
           ZM.triggerPaletteChange();
-          console.log('🎨 Palette changed in display window - transitioning existing lines');
         }
         
         // Update previous palette state for next comparison
@@ -543,74 +697,67 @@ export function initializeDisplaySync(ZM) {
                                           'geometryScale', 'emitterRotation']);
         
         const hasTransitionParams = Object.keys(changes).some(k => transitionParams.has(k));
-        if (hasTransitionParams) {
-          console.warn('⚠️ delta-sync contains transition params (will cancel transitions):', 
-                       Object.keys(changes).filter(k => transitionParams.has(k)));
-        } else {
-          console.log('📥 delta-sync: no transition params, safe to apply');
-        }
         
         Object.assign(ZM.params, changes);
-        console.log('📥 Synced params:', Object.keys(changes).join(', '));
 
         // ONLY update camera/geometry if transition params are present (instant changes)
         if (hasTransitionParams) {
           // Update camera if camera params changed (snap instantly, no transitions)
           const cameraParams = ['cameraRotationX', 'cameraRotationY', 'cameraDistance', 'cameraOffsetX', 'cameraOffsetY', 'fov'];
           if (cameraParams.some(param => param in changes) && ZM.camera) {
-          // Handle FOV changes (snap to value, no transition)
-          if ('fov' in changes && ZM.fovTransition) {
-            ZM.fovTransition.current = changes.fov;
-            ZM.fovTransition.target = changes.fov;
-            ZM.fovTransition.start = changes.fov;
-            ZM.fovTransition.progress = 1.0;
-            ZM.fovTransition.isTransitioning = false;
+            // Handle FOV changes (snap to value, no transition)
+            if ('fov' in changes && ZM.fovTransition) {
+              ZM.fovTransition.current = changes.fov;
+              ZM.fovTransition.target = changes.fov;
+              ZM.fovTransition.start = changes.fov;
+              ZM.fovTransition.progress = 1.0;
+              ZM.fovTransition.isTransitioning = false;
+            }
+            
+            // Handle camera rotation changes (snap instantly)
+            if ('cameraRotationX' in changes) {
+              ZM.camera.rotationX = changes.cameraRotationX;
+            }
+            if ('cameraRotationY' in changes) {
+              ZM.camera.rotationY = changes.cameraRotationY;
+            }
+            
+            // Handle camera distance changes (snap instantly)
+            if ('cameraDistance' in changes) {
+              ZM.camera.distance = changes.cameraDistance;
+            }
+            
+            // Handle camera offset changes (snap instantly)
+            if ('cameraOffsetX' in changes) {
+              ZM.camera.offsetX = changes.cameraOffsetX;
+            }
+            if ('cameraOffsetY' in changes) {
+              ZM.camera.offsetY = changes.cameraOffsetY;
+            }
+            
+            // Cancel any active camera transition
+            ZM.camera.transition.isActive = false;
+            ZM.camera.transition.progress = 1.0;
           }
           
-          // Handle camera rotation changes (snap instantly)
-          if ('cameraRotationX' in changes) {
-            ZM.camera.rotationX = changes.cameraRotationX;
-          }
-          if ('cameraRotationY' in changes) {
-            ZM.camera.rotationY = changes.cameraRotationY;
-          }
-          
-          // Handle camera distance changes (snap instantly)
-          if ('cameraDistance' in changes) {
-            ZM.camera.distance = changes.cameraDistance;
+          // Update geometry scale transition (snap to current value, cancel transition)
+          if ('geometryScale' in changes && ZM.geometryScaleTransition) {
+            ZM.geometryScaleTransition.current = changes.geometryScale;
+            ZM.geometryScaleTransition.target = changes.geometryScale;
+            ZM.geometryScaleTransition.start = changes.geometryScale;
+            ZM.geometryScaleTransition.progress = 1.0;
+            ZM.geometryScaleTransition.isTransitioning = false;
           }
           
-          // Handle camera offset changes (snap instantly)
-          if ('cameraOffsetX' in changes) {
-            ZM.camera.offsetX = changes.cameraOffsetX;
+          // Update emitter rotation transition (snap to current value, cancel transition)
+          if ('emitterRotation' in changes && ZM.emitterRotationTransition) {
+            ZM.emitterRotationTransition.current = changes.emitterRotation;
+            ZM.emitterRotationTransition.target = changes.emitterRotation;
+            ZM.emitterRotationTransition.start = changes.emitterRotation;
+            ZM.emitterRotationTransition.progress = 1.0;
+            ZM.emitterRotationTransition.isTransitioning = false;
           }
-          if ('cameraOffsetY' in changes) {
-            ZM.camera.offsetY = changes.cameraOffsetY;
-          }
-          
-          // Cancel any active camera transition
-          ZM.camera.transition.isActive = false;
-          ZM.camera.transition.progress = 1.0;
-        }
-        
-        // Update geometry scale transition (snap to current value, cancel transition)
-        if ('geometryScale' in changes && ZM.geometryScaleTransition) {
-          ZM.geometryScaleTransition.current = changes.geometryScale;
-          ZM.geometryScaleTransition.target = changes.geometryScale;
-          ZM.geometryScaleTransition.start = changes.geometryScale;
-          ZM.geometryScaleTransition.progress = 1.0;
-          ZM.geometryScaleTransition.isTransitioning = false;
-        }
-        
-        // Update emitter rotation transition (snap to current value, cancel transition)
-        if ('emitterRotation' in changes && ZM.emitterRotationTransition) {
-          ZM.emitterRotationTransition.current = changes.emitterRotation;
-          ZM.emitterRotationTransition.target = changes.emitterRotation;
-          ZM.emitterRotationTransition.start = changes.emitterRotation;
-          ZM.emitterRotationTransition.progress = 1.0;
-          ZM.emitterRotationTransition.isTransitioning = false;
-        }
-      }  // End hasTransitionParams block
+        }  // End hasTransitionParams block
 
       // Always update palette if palette params changed (not transition-related)
       const paletteParams = ['activePaletteIndex', 'palettes', 'backgroundColor'];
@@ -654,28 +801,30 @@ export function initializeDisplaySync(ZM) {
           ZM.updateOverlay();
         }
       
-      } else if (type === 'camera-transition') {
-        // NEW: Handle smooth camera transition command
-        const { target, duration } = event.data;
+      } else if (type === 'state-load') {
+        // NEW: Handle state load - use same restoreState() logic as main window
+        const { state, instant } = event.data;
         
-        if (ZM.camera && target) {
-          console.log(`📥 Camera transition: duration=${duration}s`);
-          ZM.camera.transitionTo(
-            target.rotationX,
-            target.rotationY,
-            target.distance,
-            target.offsetX,
-            target.offsetY
-          );
-          // Set duration from broadcast message
-          ZM.camera.transition.duration = duration;
-          
-          // Update params to match target
-          ZM.params.cameraRotationX = target.rotationX;
-          ZM.params.cameraRotationY = target.rotationY;
-          ZM.params.cameraDistance = target.distance;
-          ZM.params.cameraOffsetX = target.offsetX;
-          ZM.params.cameraOffsetY = target.offsetY;
+        if (ZM.stateManager && ZM.stateManager.restoreState && state) {
+          // Call the exact same restoreState function as main window
+          // This ensures perfect synchronization of all transitions
+          ZM.stateManager.restoreState(state, instant);
+        }
+      
+      } else if (type === 'cancel-transitions') {
+        // Cancel all active transitions when manual mouse control starts (from any window)
+        if (ZM.camera && ZM.camera.transition) {
+          ZM.camera.transition.isActive = false;
+          ZM.camera.transition.progress = 1.0;
+        }
+        if (ZM.geometryScaleTransition && ZM.geometryScaleTransition.isTransitioning) {
+          ZM.geometryScaleTransition.isTransitioning = false;
+        }
+        if (ZM.fovTransition && ZM.fovTransition.isTransitioning) {
+          ZM.fovTransition.isTransitioning = false;
+        }
+        if (ZM.emitterRotationTransition && ZM.emitterRotationTransition.isTransitioning) {
+          ZM.emitterRotationTransition.isTransitioning = false;
         }
       
       } else if (type === 'camera-immediate') {
@@ -710,54 +859,6 @@ export function initializeDisplaySync(ZM) {
             ZM.emitterRotationTransition.isTransitioning = false;
             ZM.params.emitterRotation = state.emitterRotation;
           }
-        }
-      
-      } else if (type === 'geometry-transition') {
-        // NEW: Handle smooth geometry scale transition
-        const { targetScale, duration } = event.data;
-        
-        if (ZM.geometryScaleTransition && targetScale !== undefined) {
-          console.log(`📥 Geometry transition: scale=${targetScale}, duration=${duration}s`);
-          ZM.geometryScaleTransition.start = ZM.geometryScaleTransition.current;
-          ZM.geometryScaleTransition.target = targetScale;
-          ZM.geometryScaleTransition.duration = duration;
-          ZM.geometryScaleTransition.progress = 0.0;
-          ZM.geometryScaleTransition.isTransitioning = true;
-          
-          // Update params
-          ZM.params.geometryScale = targetScale;
-        }
-      
-      } else if (type === 'fov-transition') {
-        // NEW: Handle smooth FOV transition
-        const { targetFOV, duration } = event.data;
-        
-        if (ZM.fovTransition && targetFOV !== undefined) {
-          console.log(`📥 FOV transition: fov=${targetFOV}°, duration=${duration}s`);
-          ZM.fovTransition.start = ZM.fovTransition.current;
-          ZM.fovTransition.target = targetFOV;
-          ZM.fovTransition.duration = duration;
-          ZM.fovTransition.progress = 0.0;
-          ZM.fovTransition.isTransitioning = true;
-          
-          // Update params
-          ZM.params.fov = targetFOV;
-        }
-      
-      } else if (type === 'emitter-rotation-transition') {
-        // NEW: Handle smooth emitter rotation transition
-        const { targetRotation, duration } = event.data;
-        
-        if (ZM.emitterRotationTransition && targetRotation !== undefined) {
-          console.log(`📥 Emitter rotation transition: rotation=${targetRotation}°, duration=${duration}s`);
-          ZM.emitterRotationTransition.start = ZM.emitterRotationTransition.current;
-          ZM.emitterRotationTransition.target = targetRotation;
-          ZM.emitterRotationTransition.duration = duration;
-          ZM.emitterRotationTransition.progress = 0.0;
-          ZM.emitterRotationTransition.isTransitioning = true;
-          
-          // Update params
-          ZM.params.emitterRotation = targetRotation;
         }
       }
     };

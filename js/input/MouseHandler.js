@@ -41,6 +41,14 @@ export function setupMouseHandlers(ZM) {
       ZM.camera.transition.isActive = false;
     }
     
+    // Broadcast cancellation to display windows
+    if (ZM.windowSync && ZM.windowSync.channel) {
+      ZM.windowSync.channel.postMessage({
+        type: 'cancel-transitions',
+        timestamp: Date.now()
+      });
+    }
+    
     if (e.button === 0) {
       ZM.camera.isDragging = true;
       ZM.camera.isPanning = false;
@@ -175,6 +183,14 @@ export function setupMouseHandlers(ZM) {
     // Cancel any active camera transition (from state changes)
     if (ZM.camera.transition.isActive) {
       ZM.camera.transition.isActive = false;
+    }
+    
+    // Broadcast cancellation to display windows (only once per scroll session)
+    if (ZM.windowSync && ZM.windowSync.channel) {
+      ZM.windowSync.channel.postMessage({
+        type: 'cancel-transitions',
+        timestamp: Date.now()
+      });
     }
     
     const delta = e.deltaY;
