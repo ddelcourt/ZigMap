@@ -214,15 +214,17 @@ Ouvre des fenêtres secondaires plein écran pour les présentations multi-écra
 
 Le système utilise deux approches de diffusion différentes pour des performances optimales :
 
-1. **Transitions d'états** (efficace) :
-   - Lors du chargement d'états ou de la modification de paramètres via l'interface, la fenêtre principale diffuse une seule *commande* de transition
-   - Les fenêtres d'affichage reçoivent la commande et exécutent la même transition fluide localement
-   - Résultat : Synchronisation parfaite avec une bande passante minimale (1 message au lieu de 60+ par seconde)
-   - Exemples : Chargement d'un nouvel état, modification du FOV, ajustement de l'échelle géométrique
+1. **Transitions d'états** (animations fluides) :
+   - Lors du chargement d'états ou de la modification de paramètres via l'interface, la fenêtre principale diffuse des commandes de transition
+   - Les fenêtres d'affichage reçoivent les commandes et exécutent des transitions fluides identiques localement
+   - Position de la caméra, FOV, échelle de géométrie et rotation de l'émetteur transitent tous en parfaite synchronisation
+   - Résultat : Animations synchronisées image par image avec une bande passante minimale (1 commande par transition)
+   - Exemples : Chargement d'un nouvel état, navigation dans l'historique des états, transition caméra/géométrie
 
 2. **Contrôle manuel de la caméra** (temps réel) :
    - Pendant le glissement de la souris, le déplacement, le zoom ou la rotation Z, la fenêtre principale diffuse les mises à jour de position de la caméra à 60 images par seconde
    - Les fenêtres d'affichage s'alignent instantanément pour correspondre aux mouvements de contrôle manuel
+   - Le contrôle manuel remplace toute transition en cours pour une réactivité immédiate
    - Résultat : Suivi réactif en temps réel pendant la performance en direct ou l'interaction
    - Exemples : Glisser pour orbiter la caméra, glisser avec la molette pour la rotation Z, zoom avec la molette
 
@@ -231,24 +233,39 @@ Le système utilise deux approches de diffusion différentes pour des performanc
 - Chaque fenêtre exécute son propre code génératif indépendant en utilisant les paramètres synchronisés
 - Les deux fenêtres génèrent leurs animations de manière indépendante en se basant sur les mêmes valeurs d'état
 
-**Important : Pourquoi les affichages peuvent ne pas correspondre exactement**
+**Important : Transitions synchronisées vs variation générative**
 
-Les images de l'affichage principal et de l'affichage secondaire apparaîtront **similaires mais non identiques au pixel près**. C'est un comportement attendu car :
+Le système réalise une **synchronisation de transition image par image** tout en maintenant une **exécution générative indépendante** :
 
-1. **Synchronisation basée sur les paramètres** : Le système synchronise les *paramètres d'état* (couleurs, géométrie, position de caméra, taux d'émission, etc.), et non les pixels rendus eux-mêmes. Chaque fenêtre reçoit les mêmes instructions mais exécute l'algorithme génératif de manière indépendante.
+**Ce qui EST parfaitement synchronisé :**
+- **Transitions de caméra** : Rotation, distance, panoramique s'interpolent de manière identique sur tous les affichages
+- **Transitions de géométrie** : Les changements d'échelle s'animent en parfaite synchronisation
+- **Transitions FOV** : Les changements de champ de vision correspondent image par image
+- **Transitions de couleurs** : Les changements de palette se produisent simultanément
+- **Paramètres d'état** : Tous les paramètres restent parfaitement synchronisés
 
-2. **Exécution générative indépendante** : Chaque fenêtre exécute sa propre boucle d'animation avec sa propre génération de nombres aléatoires, temporisation et pipeline de rendu. Les lignes sont créées et animées de manière indépendante, suivant les mêmes règles mais produisant des variations uniques.
+**Ce qui varie par conception :**
+- **Génération de lignes** : Chaque fenêtre crée de nouvelles lignes indépendamment avec son propre timing
+- **Variations aléatoires** : L'épaisseur, la vitesse et la sélection de couleur utilisent des graines aléatoires indépendantes
+- **Timing de rendu** : Les cycles de frames du navigateur peuvent différer légèrement
 
-3. **Variations de temporisation** : Le timing des frames du navigateur et les cycles de rendu peuvent différer légèrement entre les fenêtres, causant de subtiles différences dans les positions des lignes et les moments de génération.
+Les affichages principal et secondaire afficheront des **vues de caméra et transitions identiques** mais avec des **motifs de lignes uniques**. Ceci est intentionnel et offre :
+
+1. **Synchronisation de transition** : Lorsque les états changent, tous les affichages s'animent fluidemont ensemble vers la nouvelle configuration caméra/géométrie
+
+2. **Synchronisation générative basée sur les paramètres** : Le système synchronise les *règles et paramètres* (couleurs, géométrie, caméra, taux d'émission, etc.), et non les lignes individuelles. Chaque fenêtre génère sa propre variation unique suivant les mêmes règles.
+
+3. **Pipelines d'animation indépendants** : Chaque fenêtre exécute son propre rendu WebGL avec génération aléatoire indépendante, créant une variété visuelle tout en maintenant une structure synchronisée.
 
 **Pourquoi cette approche est plus efficace que la diffusion d'images :**
 
-- **Bande passante inférieure** : Diffuser des mises à jour de paramètres compactes (quelques octets) et des commandes de transition est beaucoup plus efficace que diffuser des trames vidéo haute résolution (mégaoctets par seconde)
+- **Bande passante inférieure** : Diffuser des mises à jour de paramètres compactes et des commandes de transition (octets) est beaucoup plus efficace que diffuser des trames vidéo haute résolution (mégaoctets par seconde)
 - **Meilleures performances** : Chaque fenêtre effectue un rendu natif à sa propre résolution et taux de rafraîchissement, évitant les artefacts de compression vidéo
 - **Accélération matérielle** : Chaque fenêtre utilise l'accélération GPU complète pour le rendu WebGL, maintenant des performances fluides à 60 images par seconde
 - **Évolutivité** : Plusieurs fenêtres d'affichage peuvent se connecter sans augmenter exponentiellement le transfert de données
 - **Indépendance de résolution** : Chaque affichage peut fonctionner à sa résolution optimale sans réduction d'échelle du contenu diffusé
-- **Synchronisation intelligente** : Les commandes de transition assurent des animations fluides avec une surcharge minimale, tandis que les mises à jour en temps réel fournissent un contrôle manuel réactif
+- **Transitions image par image** : Les commandes de transition dédiées assurent des animations synchronisées fluides sur tous les affichages
+- **Synchronisation intelligente** : Les transitions d'états utilisent des commandes uniques tandis que le contrôle manuel utilise des mises à jour à 60fps — optimal pour chaque cas d'utilisation
 
 **Contrôle clavier bidirectionnel**
 

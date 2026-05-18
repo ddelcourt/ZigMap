@@ -222,14 +222,16 @@ Opens secondary fullscreen windows for multi-monitor presentations. The display 
 The system uses two different broadcasting approaches for optimal performance:
 
 1. **State transitions** (efficient):
-   - When loading states or changing parameters via UI, the main window broadcasts a single transition *command*
-   - Display windows receive the command and execute the same smooth transition locally
-   - Result: Perfect synchronization with minimal bandwidth (1 message instead of 60+ per second)
-   - Examples: Loading a new state, changing FOV, adjusting geometry scale
+   - When loading states or changing parameters via UI, the main window broadcasts transition commands
+   - Display windows receive the commands and execute identical smooth transitions locally
+   - Camera position, FOV, geometry scale, and emitter rotation all transition in perfect sync
+   - Result: Frame-perfect synchronized animations with minimal bandwidth (1 command per transition)
+   - Examples: Loading a new state, navigating state history, transitioning camera/geometry
 
 2. **Manual camera control** (real-time):
    - During mouse drag, pan, zoom, or Z-rotation, the main window broadcasts camera position updates at 60fps
    - Display windows snap instantly to match the manual control movements
+   - Manual control overrides any ongoing transitions for immediate responsiveness
    - Result: Responsive real-time following during live performance or interaction
    - Examples: Dragging to orbit camera, middle-click drag for Z-rotation, mouse wheel zoom
 
@@ -238,24 +240,39 @@ The system uses two different broadcasting approaches for optimal performance:
 - Each window runs its own independent generative code using the synchronized parameters
 - Both windows generate their animations independently based on the same state values
 
-**Important: Why displays may not match exactly**
+**Important: Synchronized transitions vs. generative variation**
 
-The main display and secondary display images will appear **similar but not pixel-perfect identical**. This is expected behavior because:
+The system achieves **frame-perfect transition synchronization** while maintaining **independent generative execution**:
 
-1. **Parameter-based synchronization**: The system syncs the *state parameters* (colors, geometry, camera position, emit rate, etc.), not the rendered pixels themselves. Each window receives the same instructions but executes the generative algorithm independently.
+**What IS perfectly synchronized:**
+- **Camera transitions**: Rotation, distance, panning all interpolate identically across displays
+- **Geometry transitions**: Scale changes animate in perfect sync
+- **FOV transitions**: Field of view changes match frame-by-frame
+- **Color transitions**: Palette changes happen simultaneously
+- **State parameters**: All settings stay perfectly synchronized
 
-2. **Independent generative execution**: Each window runs its own animation loop with its own random number generation, timing, and rendering pipeline. Lines are created and animated independently, following the same rules but producing unique variations.
+**What varies by design:**
+- **Line generation**: Each window creates new lines independently with its own timing
+- **Random variations**: Thickness, speed, and color selection use independent random seeds
+- **Rendering timing**: Browser frame cycles may differ slightly
 
-3. **Timing variations**: Browser frame timing and render cycles can differ slightly between windows, causing subtle differences in line positions and generation moments.
+The main display and secondary display will show **identical camera views and transitions** but with **unique line patterns**. This is intentional and provides:
+
+1. **Transition synchronization**: When states change, all displays smoothly animate together to the new camera/geometry configuration
+
+2. **Parameter-based generative sync**: The system syncs the *rules and parameters* (colors, geometry, camera, emit rate, etc.), not the individual lines. Each window generates its own unique variation following the same rules.
+
+3. **Independent animation pipelines**: Each window runs its own WebGL rendering with independent random generation, creating visual variety while maintaining synchronized structure.
 
 **Why this approach is more efficient than image streaming:**
 
-- **Lower bandwidth**: Broadcasting compact parameter updates (a few bytes) and transition commands is far more efficient than streaming high-resolution video frames (megabytes per second)
+- **Lower bandwidth**: Broadcasting compact parameter updates and transition commands (bytes) is far more efficient than streaming high-resolution video frames (megabytes per second)
 - **Better performance**: Each window renders natively at its own resolution and refresh rate, avoiding video compression artifacts
 - **Hardware acceleration**: Each window uses full GPU acceleration for WebGL rendering, maintaining smooth 60fps performance
 - **Scalability**: Multiple display windows can connect without exponentially increasing data transfer
 - **Resolution independence**: Each display can run at its optimal resolution without downscaling streamed content
-- **Intelligent synchronization**: Transition commands ensure smooth animations with minimal overhead, while real-time updates provide responsive manual control
+- **Frame-perfect transitions**: Dedicated transition commands ensure synchronized smooth animations across all displays
+- **Intelligent synchronization**: State transitions use single commands while manual control uses 60fps updates — optimal for each use case
 
 **Bidirectional keyboard control**
 

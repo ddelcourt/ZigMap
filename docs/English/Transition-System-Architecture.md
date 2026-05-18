@@ -370,33 +370,112 @@ Main Window:                  Display Windows:
 
 When display window connects:
 ```javascript
-// Main window sends everything
+// Main window sends everything including transition states
 {
   type: 'full-sync',
-  params: ZM.params,  // Includes colorTransitionDuration
-  camera: { ... },
-  fovTransition: { current, target, progress, ... },
-  geometryScaleTransition: { ... },
-  bgTransition: { ... }
+  params: ZM.params,  // Includes all parameters
+  camera: { 
+    rotationX, rotationY, distance, offsetX, offsetY,
+    transition: {
+      isActive: boolean,
+      progress: 0.0-1.0,
+      duration: milliseconds,
+      startRotationX, targetRotationX,
+      // ... all transition state
+    }
+  },
+  fovTransition: { current, target, start, progress, isTransitioning, duration },
+  geometryScaleTransition: { current, target, start, progress, isTransitioning, duration },
+  emitterRotationTransition: { current, target, start, progress, isTransitioning, duration },
+  bgTransition: { current, target, start, progress, isTransitioning }
 }
+
+// Display window receives and checks transition states
+if (camera.transition.isActive) {
+  // Primary is transitioning - match the transition
+  ZM.camera.transitionTo(target values);
+  ZM.camera.transition.progress = camera.transition.progress;
+  ZM.camera.transition.duration = camera.transition.duration;
+  ZM.camera.transition.isActive = true;
+  // Set current position to match primary's current position
+} else {
+  // Primary is NOT transitioning - snap to current values
+  ZM.camera.rotationX = camera.rotationX;
+  ZM.camera.transition.isActive = false;
+}
+
+// Same pattern for geometry, FOV, emitter rotation, background
 ```
 
-#### 2. **State Changes** (`state-load`)
+**Key Design Decision**: Display windows **respect ongoing transitions** from primary window.
+- If primary is mid-transition → display starts matching transition
+- If primary is idle → display snaps to current values
+- Ensures frame-perfect synchronization even when connecting mid-animation
 
-When state is loaded:
+#### 2. **State Changes** (transition commands)
+
+When state is loaded, the primary window broadcasts specific transition commands:
+
 ```javascript
-// Main window broadcasts once
+// Primary window sends individual transition commands
+broadcastCameraTransition(target, duration);
+broadcastGeometryTransition(targetScale, duration);
+broadcastFOVTransition(targetFOV, duration);
+broadcastEmitterRotationTransition(targetRotation, duration);
+
+// Example messages:
 {
-  type: 'state-load',
-  state: fullStateObject,
-  instant: boolean
+  type: 'camera-transition',
+  target: { rotationX, rotationY, distance, offsetX, offsetY },
+  duration: 3000  // milliseconds
 }
 
-// Display windows call restoreState(state, instant)
-// Results in identical transition setup
+{
+  type: 'geometry-transition',
+  targetScale: 219,
+  duration: 3000
+}
+
+// Display windows receive and start matching transitions
+ZM.camera.transitionTo(target.rotationX, target.rotationY, ...);
+ZM.camera.transition.duration = duration;
+
+ZM.geometryScaleTransition.start = current;
+ZM.geometryScaleTransition.target = targetScale;
+ZM.geometryScaleTransition.duration = duration;
+ZM.geometryScaleTransition.isTransitioning = true;
+
+// All windows then animate independently with identical parameters
 ```
 
-#### 3. **Real-Time Slider Changes** (`delta-sync`)
+**Why separate transition commands?**
+- **Explicit synchronization**: Each transition type gets its own dedicated message
+- **Frame-perfect timing**: All windows receive command and start transition simultaneously
+- **Clean separation**: Camera, geometry, FOV, emitter rotation handled independently
+- **Reliable delivery**: Dedicated messages ensure transitions don't get lost in full-sync
+
+#### 3. **Manual Camera Control** (`camera-immediate`)
+
+During real-time interaction (mouse drag, pan, zoom):
+
+```javascript
+// Primary broadcasts at 60fps (throttled)
+{
+  type: 'camera-immediate',
+  state: {
+    rotationX, rotationY, distance, offsetX, offsetY,
+    emitterRotation  // for Z-rotation control
+  }
+}
+
+// Display windows snap instantly (no transition)
+ZM.camera.rotationX = state.rotationX;
+ZM.camera.transition.isActive = false;  // Cancel any ongoing transition
+```
+
+**Real-time control always overrides transitions** to provide responsive manual interaction.
+
+#### 4. **Real-Time Slider Changes** (`delta-sync`)
 
 When user drags sliders:
 ```javascript
@@ -553,26 +632,50 @@ StateManager.js: navigateHistory(direction) / loadState(id)
   ↓
 restoreState(ZM, state, instant=false)
   ↓
-Setup transitions:
-  ├─ camera.transitionTo(...)
-  ├─ fovTransition: start → target, progress = 0
-  ├─ geometryScaleTransition: start → target, progress = 0
-  └─ emitterRotationTransition: start → target, progress = 0
+Setup transitions in PRIMARY window:
+  ├─ camera.transitionTo(...) → camera.transition.isActive = true
+  ├─ fovTransition: start → target, progress = 0, isTransitioning = true
+  ├─ geometryScaleTransition: start → target, progress = 0, isTransitioning = true
+  └─ emitterRotationTransition: start → target, progress = 0, isTransitioning = true
   ↓
-broadcastStateLoad(state, instant=false)
+Update ZM.params with TARGET values (important!)
+  ├─ ZM.params.cameraRotationX = state.camera.rotationX
+  ├─ ZM.params.geometryScale = state.params.geometryScale
+  └─ ... all target values set in params
   ↓
-Display Windows: Receive state-load
+Broadcast transition commands to DISPLAY windows:
+  ├─ broadcastCameraTransition(target, duration)
+  ├─ broadcastGeometryTransition(targetScale, duration)
+  ├─ broadcastFOVTransition(targetFOV, duration)
+  └─ broadcastEmitterRotationTransition(targetRotation, duration)
   ↓
-Display: restoreState(state, instant)
+Display Windows: Receive transition commands
   ↓
-Display: Setup identical transitions
+Display: Setup matching transitions
+  ├─ camera.transitionTo(target values)
+  ├─ Set transition.duration = received duration
+  ├─ geometryScaleTransition.isTransitioning = true
+  ├─ Update ZM.params with target values (matches primary)
+  └─ All transition objects configured identically
   ↓
-Animation Loop (ALL windows):
-  ├─ camera.updateTransition(dt)
-  ├─ fovTransition.progress += dt / duration
-  ├─ geometryScaleTransition.progress += dt / duration
-  └─ emitterRotationTransition.progress += dt / duration
+Animation Loop (ALL windows independently):
+  ├─ camera.updateTransition(dt) → rotationX/Y/distance/offset interpolated
+  ├─ fovTransition.progress += dt / duration → FOV interpolated
+  ├─ geometryScaleTransition.progress += dt / duration → scale interpolated
+  └─ emitterRotationTransition.progress += dt / duration → rotation interpolated
+  ↓
+When progress >= 1.0 (transition complete):
+  ├─ Snap to target values
+  ├─ Set isTransitioning/isActive = false
+  └─ Stop updating (performance optimization)
 ```
+
+**Key Implementation Details:**
+- **ZM.params updated immediately**: Target values set in params even during transition
+- **Separate broadcast messages**: Each transition type has dedicated command
+- **Independent animation**: Each window runs its own interpolation loop
+- **Synchronized durations**: All windows use same duration from state transition parameter
+- **Frame-perfect sync**: Identical code paths ensure pixel-perfect matching
 
 ### Real-Time Slider Flow
 
@@ -665,9 +768,12 @@ The ZigMap26 transition system achieves **perfect multi-window synchronization**
 
 1. **Shared Parameters**: All windows read from identically structured `ZM.params`
 2. **Distributed Animation**: Lines animate themselves using shared timing
-3. **Centralized State Transitions**: Single broadcast → identical setup in all windows
-4. **Real-Time Sync**: Slider changes broadcast during drag for instant synchronization
-5. **Frame-Independent Timing**: Delta time ensures consistent speed across all displays
+3. **Explicit Transition Commands**: Dedicated broadcast messages for each transition type
+4. **Matching Transition Setup**: Display windows replicate primary's transition configuration
+5. **Independent Animation Loops**: Each window runs its own interpolation with identical parameters
+6. **Transition State Preservation**: Full-sync respects ongoing transitions when display connects mid-animation
+7. **Real-Time Sync**: Slider changes and manual camera control broadcast during interaction
+8. **Frame-Independent Timing**: Delta time ensures consistent speed across all displays
 
 This architecture is:
 - ✅ **Simple**: Each component knows only what it needs
@@ -675,5 +781,28 @@ This architecture is:
 - ✅ **Scalable**: Works with any number of display windows
 - ✅ **Maintainable**: Single source of truth for transition logic
 - ✅ **Robust**: Guaranteed synchronization through identical code paths
+- ✅ **Synchronized**: Frame-perfect animation matching across all displays
 
-The key insight: **Don't broadcast animation frames, broadcast setup commands and animate locally**.
+### Key Implementation Insights
+
+**Three broadcast patterns for different needs:**
+
+1. **Transition Commands** (`camera-transition`, `geometry-transition`, etc.)
+   - Sent when states change
+   - Contains target values and duration
+   - Display windows start matching transition
+   - Result: Smooth synchronized state changes
+
+2. **Real-Time Updates** (`camera-immediate`, `delta-sync`)
+   - Sent during manual interaction (60fps throttled)
+   - Contains current values
+   - Display windows snap instantly
+   - Result: Responsive manual control
+
+3. **Full State Sync** (`full-sync`)
+   - Sent when display window connects
+   - Contains all parameters AND transition states
+   - Display checks if transitions are active
+   - Result: Joining mid-animation works perfectly
+
+The key insight: **Don't broadcast animation frames, broadcast setup commands and animate locally** — with special handling to preserve ongoing transitions when new displays connect.

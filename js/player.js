@@ -71,8 +71,8 @@ window.ZigMap26 = {
   saveToLocalStorage: () => {}, // No saving in player mode
   syncUIFromParams: () => {}, // No UI controls in player mode
   updatePaletteUI: () => {},
-  updateStatePanel: () => {},
-  showToast: () => {} // No toast in player mode
+  updateStatePanel: () => {}
+  // showToast will be assigned after function definition
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -794,6 +794,60 @@ function showShortcutsToast(withCountdown = true) {
     if (timerBar) timerBar.style.display = 'none';
   }
 }
+
+/**
+ * Show a mini-toast notification (for state changes, etc.)
+ * @param {string} message - The message to display
+ * @param {string} type - Optional type (not used in mini-toast)
+ * @param {number} duration - Duration in milliseconds
+ * @param {HTMLElement} node - Optional custom node to display
+ */
+function showMiniToast(message, type = '', duration = 4400, node = null) {
+  let container = document.getElementById('mini-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'mini-toast-container';
+    document.body.appendChild(container);
+  }
+
+  const el = document.createElement('div');
+  el.className = 'mini-toast' + (type ? ' ' + type : '');
+  if (message) {
+    const text = document.createElement('span');
+    text.textContent = message;
+    el.appendChild(text);
+  }
+  if (node) el.appendChild(node);
+  container.appendChild(el);
+
+  setTimeout(() => {
+    // Cancel the CSS entry animation (its 'forwards' fill would block opacity changes)
+    el.style.animation = 'none';
+    el.style.opacity = '1'; // pin current value before transitioning
+    el.offsetHeight; // force reflow
+    // Phase 1: fade out
+    el.style.transition = 'opacity 0.35s ease-out';
+    el.style.opacity = '0';
+    el.addEventListener('transitionend', () => {
+      // Phase 2: collapse height so remaining toasts slide up smoothly
+      const h = el.offsetHeight;
+      el.style.height = h + 'px';
+      el.style.overflow = 'hidden';
+      el.offsetHeight; // force reflow
+      el.style.transition = 'height 0.3s ease-in-out, padding 0.3s ease-in-out, margin 0.3s ease-in-out';
+      el.style.height = '0';
+      el.style.paddingTop = '0';
+      el.style.paddingBottom = '0';
+      el.style.marginBottom = '-8px';
+      el.addEventListener('transitionend', (e) => {
+        if (e.propertyName === 'height') el.remove();
+      }, { once: true });
+    }, { once: true });
+  }, duration);
+}
+
+// Assign showToast to the ZM object
+window.ZigMap26.showToast = showMiniToast;
 
 /**
  * Toggle the shortcuts toast (no countdown).

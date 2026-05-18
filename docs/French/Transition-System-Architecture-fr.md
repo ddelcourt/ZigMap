@@ -370,33 +370,112 @@ Fenêtre Principale :           Fenêtres d'Affichage :
 
 Quand une fenêtre d'affichage se connecte :
 ```javascript
-// La fenêtre principale envoie tout
+// La fenêtre principale envoie tout y compris les états de transition
 {
   type: 'full-sync',
-  params: ZM.params,  // Inclut colorTransitionDuration
-  camera: { ... },
-  fovTransition: { current, target, progress, ... },
-  geometryScaleTransition: { ... },
-  bgTransition: { ... }
+  params: ZM.params,  // Inclut tous les paramètres
+  camera: { 
+    rotationX, rotationY, distance, offsetX, offsetY,
+    transition: {
+      isActive: boolean,
+      progress: 0.0-1.0,
+      duration: millisecondes,
+      startRotationX, targetRotationX,
+      // ... tout l'état de transition
+    }
+  },
+  fovTransition: { current, target, start, progress, isTransitioning, duration },
+  geometryScaleTransition: { current, target, start, progress, isTransitioning, duration },
+  emitterRotationTransition: { current, target, start, progress, isTransitioning, duration },
+  bgTransition: { current, target, start, progress, isTransitioning }
 }
+
+// La fenêtre d'affichage reçoit et vérifie les états de transition
+if (camera.transition.isActive) {
+  // La principale est en transition - correspondre à la transition
+  ZM.camera.transitionTo(valeurs cibles);
+  ZM.camera.transition.progress = camera.transition.progress;
+  ZM.camera.transition.duration = camera.transition.duration;
+  ZM.camera.transition.isActive = true;
+  // Définir la position actuelle pour correspondre à celle de la principale
+} else {
+  // La principale N'EST PAS en transition - s'ajuster aux valeurs actuelles
+  ZM.camera.rotationX = camera.rotationX;
+  ZM.camera.transition.isActive = false;
+}
+
+// Même modèle pour la géométrie, FOV, rotation émetteur, arrière-plan
 ```
 
-#### 2. **Changements d'États** (`state-load`)
+**Décision de Conception Clé** : Les fenêtres d'affichage **respectent les transitions en cours** de la fenêtre principale.
+- Si la principale est en mi-transition → l'affichage démarre une transition correspondante
+- Si la principale est inactive → l'affichage s'ajuste aux valeurs actuelles
+- Assure une synchronisation image par image même lors de la connexion en mi-animation
 
-Quand un état est chargé :
+#### 2. **Changements d'États** (commandes de transition)
+
+Quand un état est chargé, la fenêtre principale diffuse des commandes de transition spécifiques :
+
 ```javascript
-// La fenêtre principale diffuse une fois
+// La fenêtre principale envoie des commandes de transition individuelles
+broadcastCameraTransition(target, duration);
+broadcastGeometryTransition(targetScale, duration);
+broadcastFOVTransition(targetFOV, duration);
+broadcastEmitterRotationTransition(targetRotation, duration);
+
+// Exemples de messages :
 {
-  type: 'state-load',
-  state: fullStateObject,
-  instant: boolean
+  type: 'camera-transition',
+  target: { rotationX, rotationY, distance, offsetX, offsetY },
+  duration: 3000  // millisecondes
 }
 
-// Les fenêtres d'affichage appellent restoreState(state, instant)
-// Résulte en une configuration de transition identique
+{
+  type: 'geometry-transition',
+  targetScale: 219,
+  duration: 3000
+}
+
+// Les fenêtres d'affichage reçoivent et démarrent des transitions correspondantes
+ZM.camera.transitionTo(target.rotationX, target.rotationY, ...);
+ZM.camera.transition.duration = duration;
+
+ZM.geometryScaleTransition.start = current;
+ZM.geometryScaleTransition.target = targetScale;
+ZM.geometryScaleTransition.duration = duration;
+ZM.geometryScaleTransition.isTransitioning = true;
+
+// Toutes les fenêtres animent ensuite indépendamment avec des paramètres identiques
 ```
 
-#### 3. **Changements de Curseur en Temps Réel** (`delta-sync`)
+**Pourquoi des commandes de transition séparées ?**
+- **Synchronisation explicite** : Chaque type de transition obtient son propre message dédié
+- **Timing image par image** : Toutes les fenêtres reçoivent la commande et démarrent la transition simultanément
+- **Séparation propre** : Caméra, géométrie, FOV, rotation émetteur gérés indépendamment
+- **Livraison fiable** : Les messages dédiés assurent que les transitions ne sont pas perdues dans full-sync
+
+#### 3. **Contrôle Manuel de la Caméra** (`camera-immediate`)
+
+Pendant l'interaction en temps réel (glissement souris, panoramique, zoom) :
+
+```javascript
+// La principale diffuse à 60fps (limité)
+{
+  type: 'camera-immediate',
+  state: {
+    rotationX, rotationY, distance, offsetX, offsetY,
+    emitterRotation  // pour le contrôle de rotation Z
+  }
+}
+
+// Les fenêtres d'affichage s'ajustent instantanément (sans transition)
+ZM.camera.rotationX = state.rotationX;
+ZM.camera.transition.isActive = false;  // Annuler toute transition en cours
+```
+
+**Le contrôle en temps réel remplace toujours les transitions** pour fournir une interaction manuelle réactive.
+
+#### 4. **Changements de Curseur en Temps Réel** (`delta-sync`)
 
 Quand l'utilisateur déplace les curseurs :
 ```javascript
@@ -665,9 +744,12 @@ Le système de transition ZigMap26 réalise une **synchronisation multi-fenêtre
 
 1. **Paramètres Partagés** : Toutes les fenêtres lisent depuis `ZM.params` structuré de manière identique
 2. **Animation Distribuée** : Les lignes s'animent elles-mêmes en utilisant un timing partagé
-3. **Transitions d'États Centralisées** : Diffusion unique → configuration identique dans toutes les fenêtres
-4. **Synchronisation en Temps Réel** : Les changements de curseur diffusent pendant le glissement pour synchronisation instantanée
-5. **Timing Indépendant des Frames** : Delta time garantit une vitesse cohérente sur tous les affichages
+3. **Commandes de Transition Explicites** : Messages de diffusion dédiés pour chaque type de transition
+4. **Configuration de Transition Correspondante** : Les fenêtres d'affichage répliquent la configuration de transition de la principale
+5. **Boucles d'Animation Indépendantes** : Chaque fenêtre exécute sa propre interpolation avec des paramètres identiques
+6. **Préservation de l'État de Transition** : Full-sync respecte les transitions en cours lorsque l'affichage se connecte en mi-animation
+7. **Synchronisation en Temps Réel** : Les changements de curseur et le contrôle manuel de caméra diffusent pendant l'interaction
+8. **Timing Indépendant des Frames** : Delta time garantit une vitesse cohérente sur tous les affichages
 
 Cette architecture est :
 - ✅ **Simple** : Chaque composant ne connaît que ce dont il a besoin
@@ -675,5 +757,28 @@ Cette architecture est :
 - ✅ **Évolutive** : Fonctionne avec n'importe quel nombre de fenêtres d'affichage
 - ✅ **Maintenable** : Source unique de vérité pour la logique de transition
 - ✅ **Robuste** : Synchronisation garantie par des chemins de code identiques
+- ✅ **Synchronisée** : Animation correspondant image par image sur tous les affichages
 
-L'idée clé : **Ne pas diffuser les frames d'animation, diffuser les commandes de configuration et animer localement**.
+### Idées Clés d'Implémentation
+
+**Trois modèles de diffusion pour différents besoins :**
+
+1. **Commandes de Transition** (`camera-transition`, `geometry-transition`, etc.)
+   - Envoyées lors des changements d'états
+   - Contient les valeurs cibles et la durée
+   - Les fenêtres d'affichage démarrent une transition correspondante
+   - Résultat : Changements d'états synchronisés fluides
+
+2. **Mises à Jour en Temps Réel** (`camera-immediate`, `delta-sync`)
+   - Envoyées pendant l'interaction manuelle (limitées à 60fps)
+   - Contient les valeurs actuelles
+   - Les fenêtres d'affichage s'ajustent instantanément
+   - Résultat : Contrôle manuel réactif
+
+3. **Synchronisation d'État Complet** (`full-sync`)
+   - Envoyée quand une fenêtre d'affichage se connecte
+   - Contient tous les paramètres ET les états de transition
+   - L'affichage vérifie si les transitions sont actives
+   - Résultat : Rejoindre en mi-animation fonctionne parfaitement
+
+L'idée clé : **Ne pas diffuser les frames d'animation, diffuser les commandes de configuration et animer localement** — avec une gestion spéciale pour préserver les transitions en cours lorsque de nouveaux affichages se connectent.

@@ -78,6 +78,9 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       canvas.parent(canvasId);
       p.frameRate(60);
       
+      // Prevent canvas from being dragged as an image
+      canvas.elt.addEventListener('dragstart', (e) => e.preventDefault());
+      
       // Optional: Check WebGL limits using p5's drawingContext (the actual WebGL context)
       if (isPrimary && p.drawingContext) {
         try {
