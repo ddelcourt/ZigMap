@@ -2,7 +2,7 @@
  * UIController — Binds UI controls to parameters
  */
 
-import { getBackgroundColor, initColorRNG } from '../core/colorUtils.js';
+import { triggerPaletteChange, getBackgroundColor, initColorRNG } from '../core/colorUtils.js';
 import { OVERLAY_FILES, OVERLAY_FOLDER } from '../../config/overlayPresets.js';
 import { openDisplayWindow } from '../sync/WindowSync.js';
 
@@ -1509,7 +1509,12 @@ function setupDocumentationButtons() {
     'doc-projection-en': 'Projection-Matrix-Guide.md',
     'doc-projection-fr': 'Projection-Matrix-Guide-fr.md',
     'doc-transitions-en': 'Transition-System-Architecture.md',
-    'doc-transitions-fr': 'Transition-System-Architecture-fr.md'
+    'doc-transitions-fr': 'Transition-System-Architecture-fr.md',
+    'doc-patch-system-en': 'PATCH-SYSTEM.md',
+    'doc-patch-system-fr': 'PATCH-SYSTEM.md',
+    'doc-player': 'Player-README.md',
+    'doc-preset-format': 'Preset-JSON-Format.md',
+    'doc-update-presets': 'Update-Presets.md'
   };
   
   for (const [id, doc] of Object.entries(docButtons)) {

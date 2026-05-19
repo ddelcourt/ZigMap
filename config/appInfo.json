@@ -23,6 +23,10 @@
     "projectionGuide": {
       "en": "docs/markdown-viewer.html?doc=Projection-Matrix-Guide.md",
       "fr": "docs/markdown-viewer.html?doc=Projection-Matrix-Guide-fr.md"
+    },
+    "patchSystem": {
+      "en": "docs/markdown-viewer.html?doc=PATCH-SYSTEM.md",
+      "fr": "docs/markdown-viewer.html?doc=PATCH-SYSTEM.md"
     }
   }
 }
