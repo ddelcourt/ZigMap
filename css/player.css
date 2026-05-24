@@ -127,6 +127,12 @@ html, body {
   display: block;
   cursor: grab;
   object-fit: contain;
+  border: 1px solid var(--canvas-border-color, #adff2f);
+}
+
+/* Hide canvas border when class is applied */
+#canvas-wrapper.canvas-border-hidden canvas {
+  border: none;
 }
 
 /* In non-framebuffer mode, canvas fills the container */

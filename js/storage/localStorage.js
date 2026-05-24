@@ -43,7 +43,12 @@ export function clearLocalStorage() {
  */
 export function saveToLocalStorage(params) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(params));
+    // Create a copy and remove canvas border settings (these should come from preset files only)
+    const paramsToSave = { ...params };
+    delete paramsToSave.canvasBorderVisible;
+    delete paramsToSave.canvasBorderColor;
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(paramsToSave));
   } catch (e) {
     console.warn('localStorage save failed:', e);
   }
@@ -60,6 +65,11 @@ export function loadFromLocalStorage(defaultParams) {
     if (!stored) return null;
     
     const loaded = JSON.parse(stored);
+    
+    // Remove canvas border settings - these should come from preset file, not localStorage
+    // The loaded preset file is the authority for these UI settings
+    delete loaded.canvasBorderVisible;
+    delete loaded.canvasBorderColor;
     
     // Ensure critical values are valid
     if (loaded.near === undefined || loaded.near < 0.01) loaded.near = 0.01;
@@ -103,10 +113,6 @@ export function loadFromLocalStorage(defaultParams) {
     
     // Ensure project-level settings exist (for backward compatibility)
     if (loaded.ambientSpeedMaster === undefined) loaded.ambientSpeedMaster = 100;
-    
-    // Ensure canvas border settings exist (for backward compatibility)
-    if (loaded.canvasBorderVisible === undefined) loaded.canvasBorderVisible = true;
-    if (loaded.canvasBorderColor === undefined) loaded.canvasBorderColor = '#adff2f';
     
     return { ...defaultParams, ...loaded };
   } catch (e) {
@@ -308,9 +314,31 @@ export function loadJSON(file, callback) {
       if (params.autoTriggerFrequency === undefined) params.autoTriggerFrequency = 30;
       if (params.colorSlotZOffset === undefined) params.colorSlotZOffset = 100;
       
-      // Ensure canvas border settings exist (for backward compatibility)
-      if (params.canvasBorderVisible === undefined) params.canvasBorderVisible = true;
-      if (params.canvasBorderColor === undefined) params.canvasBorderColor = '#adff2f';
+      // Clean up project-wide settings from states (same as we do in loadPresetFile)
+      if (isV2 && loaded.states && Array.isArray(loaded.states)) {
+        loaded.states.forEach(state => {
+          if (state.params) {
+            delete state.params.stateTransitionDuration;
+            delete state.params.colorTransitionDuration;
+            delete state.params.autoTriggerStates;
+            delete state.params.autoTriggerFrequency;
+            delete state.params.near;
+            delete state.params.far;
+            delete state.params.framebufferMode;
+            delete state.params.framebufferPreset;
+            delete state.params.framebufferWidth;
+            delete state.params.framebufferHeight;
+            delete state.params.stereoscopicMode;
+            delete state.params.eyeSeparation;
+            delete state.params.canvasBorderVisible;
+            delete state.params.canvasBorderColor;
+            delete state.params.videoDuration;
+            delete state.params.videoFPS;
+            delete state.params.videoFormat;
+            delete state.params.depthInvert;
+          }
+        });
+      }
       
       // Pass back full data structure or just params for v1
       callback(isV2 ? {

@@ -46,6 +46,11 @@
       "type": "Preset"
     },
     {
+      "filename": "SyllepseScopeProto.json",
+      "name": "SyllepseScopeProto",
+      "type": "Preset"
+    },
+    {
       "filename": "TransitionUniverse.json",
       "name": "TransitionUniverse",
       "type": "Preset"

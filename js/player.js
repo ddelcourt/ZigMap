@@ -76,6 +76,22 @@ window.ZigMap26 = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// CANVAS BORDER CONTROL
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Apply canvas border visibility and color
+ * @param {boolean} visible - Whether border should be visible
+ * @param {string} color - Border color (default green)
+ */
+function applyCanvasBorder(visible, color = '#adff2f') {
+  const wrapper = document.getElementById('canvas-wrapper');
+  if (!wrapper) return;
+  wrapper.style.setProperty('--canvas-border-color', color);
+  wrapper.classList.toggle('canvas-border-hidden', !visible);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // PRESET LOADING FROM URL
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -277,6 +293,8 @@ function loadPreset(jsonData) {
         framebufferHeight: ZM.params.framebufferHeight,
         stereoscopicMode: ZM.params.stereoscopicMode,
         eyeSeparation: ZM.params.eyeSeparation,
+        canvasBorderVisible: ZM.params.canvasBorderVisible,
+        canvasBorderColor: ZM.params.canvasBorderColor,
       };
 
       // Then load the first state's params (overrides state-specific settings)
@@ -298,6 +316,10 @@ function loadPreset(jsonData) {
       // No states - use top-level params
       Object.assign(ZM.params, jsonData.params);
     }
+    
+    // Apply canvas border from params
+    const borderVisible = ZM.params.canvasBorderVisible === true;
+    applyCanvasBorder(borderVisible, ZM.params.canvasBorderColor || '#adff2f');
     
     // Initialize visualization if not already initialized
     if (!ZM.p5Instance) {

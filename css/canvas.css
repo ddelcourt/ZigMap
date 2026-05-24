@@ -100,11 +100,12 @@
   height: 100%;
 }
 
-#canvas-wrapper.framebuffer-mode canvas {
+/* Canvas border - applies to all modes */
+#canvas-wrapper canvas {
   border: 1px solid var(--canvas-border-color, #adff2f);
 }
 
-#canvas-wrapper.framebuffer-mode.canvas-border-hidden canvas {
+#canvas-wrapper.canvas-border-hidden canvas {
   border: none;
 }
 

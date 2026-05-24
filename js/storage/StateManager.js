@@ -111,6 +111,10 @@ function captureCurrentState(ZM, name) {
   delete params.stereoscopicMode;
   delete params.eyeSeparation;
   
+  // Exclude canvas border settings (project-wide, not state-specific)
+  delete params.canvasBorderVisible;
+  delete params.canvasBorderColor;
+  
   // Exclude export settings (project-wide)
   delete params.videoDuration;
   delete params.videoFPS;
@@ -220,6 +224,7 @@ function restoreState(ZM, state, instant = false) {
     framebufferHeight: ZM.params.framebufferHeight,
     stereoscopicMode: ZM.params.stereoscopicMode,
     eyeSeparation: ZM.params.eyeSeparation,
+    // NOTE: canvasBorderVisible is NOT preserved - it should come from preset file only
     // Export settings
     videoDuration: ZM.params.videoDuration,
     videoFPS: ZM.params.videoFPS,
@@ -928,6 +933,8 @@ function importStateFromData(ZM, jsonData) {
           delete state.params.framebufferHeight;
           delete state.params.stereoscopicMode;
           delete state.params.eyeSeparation;
+          delete state.params.canvasBorderVisible;
+          delete state.params.canvasBorderColor;
           // Remove export settings (project-wide)
           delete state.params.videoDuration;
           delete state.params.videoFPS;
@@ -952,6 +959,8 @@ function importStateFromData(ZM, jsonData) {
       delete jsonData.params.framebufferHeight;
       delete jsonData.params.stereoscopicMode;
       delete jsonData.params.eyeSeparation;
+      delete jsonData.params.canvasBorderVisible;
+      delete jsonData.params.canvasBorderColor;
       // Remove export settings (project-wide)
       delete jsonData.params.videoDuration;
       delete jsonData.params.videoFPS;
@@ -1022,6 +1031,8 @@ function loadStates() {
         delete state.params.framebufferHeight;
         delete state.params.stereoscopicMode;
         delete state.params.eyeSeparation;
+        delete state.params.canvasBorderVisible;
+        delete state.params.canvasBorderColor;
       }
     });
     

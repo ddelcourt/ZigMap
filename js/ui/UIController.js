@@ -606,7 +606,7 @@ function setupFramebufferControls(ZM) {
   };
 
   if (borderVisibleCheckbox) {
-    borderVisibleCheckbox.checked = ZM.params.canvasBorderVisible !== false;
+    borderVisibleCheckbox.checked = ZM.params.canvasBorderVisible === true;
     borderVisibleCheckbox.addEventListener('change', (e) => {
       ZM.params.canvasBorderVisible = e.target.checked;
       updateBorderVisibility(e.target.checked);
@@ -615,7 +615,7 @@ function setupFramebufferControls(ZM) {
   }
 
   // Apply initial state
-  updateBorderVisibility(ZM.params.canvasBorderVisible !== false);
+  updateBorderVisibility(ZM.params.canvasBorderVisible === true);
 }
 
 /**
@@ -625,6 +625,7 @@ function setupFramebufferControls(ZM) {
 function applyCanvasBorder(visible, color = '#adff2f') {
   const wrapper = document.getElementById('canvas-wrapper');
   if (!wrapper) return;
+  console.log(`[Canvas Border] Setting visibility to: ${visible}`);
   wrapper.style.setProperty('--canvas-border-color', color);
   wrapper.classList.toggle('canvas-border-hidden', !visible);
 }
@@ -1594,7 +1595,8 @@ function syncUIFromParams(ZM) {
 
   // Update canvas border visibility
   const borderVisibleCheckbox = document.getElementById('canvas-border-visible');
-  const borderVisible = ZM.params.canvasBorderVisible !== false;
+  const borderVisible = ZM.params.canvasBorderVisible === true;
+  console.log(`[syncUIFromParams] canvasBorderVisible from ZM.params: ${ZM.params.canvasBorderVisible}, setting to: ${borderVisible}`);
   if (borderVisibleCheckbox) borderVisibleCheckbox.checked = borderVisible;
   applyCanvasBorder(borderVisible);
   

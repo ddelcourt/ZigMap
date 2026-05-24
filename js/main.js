@@ -188,6 +188,32 @@ async function loadPresetFile(ZM, presetName = 'zigmap_init') {
     
     const loadedData = await response.json();
     
+    // Clean up project-wide settings from states (same as we do in StateManager)
+    if (loadedData.states && Array.isArray(loadedData.states)) {
+      loadedData.states.forEach(state => {
+        if (state.params) {
+          delete state.params.stateTransitionDuration;
+          delete state.params.colorTransitionDuration;
+          delete state.params.autoTriggerStates;
+          delete state.params.autoTriggerFrequency;
+          delete state.params.near;
+          delete state.params.far;
+          delete state.params.framebufferMode;
+          delete state.params.framebufferPreset;
+          delete state.params.framebufferWidth;
+          delete state.params.framebufferHeight;
+          delete state.params.stereoscopicMode;
+          delete state.params.eyeSeparation;
+          delete state.params.canvasBorderVisible;
+          delete state.params.canvasBorderColor;
+          delete state.params.videoDuration;
+          delete state.params.videoFPS;
+          delete state.params.videoFormat;
+          delete state.params.depthInvert;
+        }
+      });
+    }
+    
     // Restore states if present
     if (loadedData.states && Array.isArray(loadedData.states)) {
       ZM.stateManager.states = loadedData.states;

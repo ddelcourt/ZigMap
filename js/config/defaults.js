@@ -80,7 +80,7 @@ export const DEFAULT_PARAMS = {
   framebufferPreset: '1920x1080',
   framebufferWidth: 1920,
   framebufferHeight: 1080,
-  canvasBorderVisible: true,
+  canvasBorderVisible: false,
   canvasBorderColor: '#adff2f',
 
   // Video Export

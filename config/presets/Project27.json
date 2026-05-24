@@ -1340,7 +1340,7 @@
         "speedRangeMin": 50,
         "speedRangeMax": 150,
         "fov": 60,
-        "canvasBorderVisible": true,
+        "canvasBorderVisible": false,
         "canvasBorderColor": "#adff2f",
         "overlayPresetFile": null,
         "overlayCustomFilename": null,
