@@ -69,7 +69,7 @@ Les états sont des instantanés complets des paramètres. Ils permettent de mé
 - **Save** : enregistre la configuration actuelle comme nouvel état.
 - **Update** : écrase l'état sélectionné avec la configuration actuelle.
 - **Delete** : supprime l'état sélectionné.
-- **Renommer** : cliquer sur le nom d'un état pour le modifier (ou utiliser le bouton renommer ✎).
+- **Renommer** : double-cliquer sur le nom d'un état pour le modifier (ou utiliser le bouton renommer ✎).
 - **Réordonner** : glisser-déposer les états avec la poignée ⋮⋮ sur la gauche.
 
 **Ordre et initialisation des états :**

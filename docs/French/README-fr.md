@@ -79,7 +79,7 @@ Les états sont des instantanés complets de configuration (paramètres, couleur
 3. Cliquer sur Sauvegarder pour créer un nouvel état
 4. Cliquer sur Mettre à jour pour écraser l'état sélectionné
 5. Cliquer sur Supprimer pour retirer un état
-6. Cliquer sur le nom d'un état pour le renommer
+6. Double-cliquer sur le nom d'un état pour le renommer
 7. **Glisser-déposer** les états pour les réordonner (poignée à gauche)
 
 **Ordre des états :**
@@ -154,7 +154,7 @@ Les paramètres sont automatiquement sauvegardés dans le localStorage à chaque
 - **Sauvegarder** : sauvegarde la configuration actuelle comme nouvel état
 - **Mettre à jour** : écrase l'état sélectionné avec la configuration actuelle
 - **Supprimer** : retire l'état sélectionné
-- **Renommer** : cliquer sur le nom de l'état pour le modifier
+- **Renommer** : double-cliquer sur le nom de l'état pour le modifier
 
 **Transition d'état** (0–30 s) : durée de transition entre les états.
 

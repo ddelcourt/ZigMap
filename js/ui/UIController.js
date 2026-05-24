@@ -1511,6 +1511,7 @@ function setupDocumentationButtons() {
     'doc-projection-fr': 'Projection-Matrix-Guide-fr.md',
     'doc-transitions-en': 'Transition-System-Architecture.md',
     'doc-transitions-fr': 'Transition-System-Architecture-fr.md',
+    'doc-spaceflow': 'SPACEFLOW-ARCHITECTURE.md',
     'doc-patch-system-en': 'PATCH-SYSTEM.md',
     'doc-patch-system-fr': 'PATCH-SYSTEM.md',
     'doc-player': 'Player-README.md',
@@ -1657,7 +1658,7 @@ function setupStatePanel(ZM) {
       const name = `State ${ZM.stateManager.states.length + 1}`;
       ZM.stateManager.save(name);
       // Show toast notification
-      showToast('State created! Click to rename.');
+      showToast('State created! Double-click to rename.');
     });
   }
   
@@ -1757,9 +1758,9 @@ function updateStatePanel(ZM) {
       ZM.stateManager.load(stateId);
     });
     
-    // Inline editing for state name - single click to rename
+    // Inline editing for state name - double-click to rename
     const nameElement = item.querySelector('.state-name');
-    nameElement.addEventListener('click', (e) => {
+    nameElement.addEventListener('dblclick', (e) => {
       e.stopPropagation();
       enableInlineEdit(ZM, stateId, nameElement);
     });

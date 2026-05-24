@@ -69,7 +69,7 @@ States are complete snapshots of parameters. They allow memorizing and recalling
 - **Save**: saves the current configuration as a new state.
 - **Update**: overwrites the selected state with the current configuration.
 - **Delete**: removes the selected state.
-- **Rename**: click on a state name to edit it (or use the rename button ✎).
+- **Rename**: double-click on a state name to edit it (or use the rename button ✎).
 - **Reorder**: drag and drop states using the ⋮⋮ handle on the left side.
 
 **State order and initialization:**

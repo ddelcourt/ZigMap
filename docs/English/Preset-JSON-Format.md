@@ -33,13 +33,18 @@ Preset files are stored in `config/presets/` and registered in `config/presets/m
 | `params` | object | Yes | Current application parameters |
 | `states` | array | No | Array of saved state configurations (order matters) |
 | `activeStateId` | string | No | ID of currently active state |
-| `overlayPresetFiles` | array | No | List of available overlay preset filenames |
+| `overlayPresetFiles` | array | No | **[Project-level]** List of available overlay preset filenames (shared across all states) |
 | `saveDate` | string | No | ISO timestamp of file creation |
 
 **Note on `states` array order:**
 - When loading a preset for the first time, the **first state** in the array is loaded automatically.
 - State order can be modified by users via drag-and-drop in the UI.
 - Modified order persists in localStorage and is preserved on page refresh.
+
+**Note on project-level vs state-level fields:**
+- `overlayPresetFiles` is stored at the **project level** (top-level of preset file)
+- It is **NOT** saved within individual states
+- All states in a preset share the same overlay preset files list
 
 ---
 
@@ -211,6 +216,12 @@ Each state contains:
 | `metadata` | object | Additional state metadata |
 
 **Note:** State `params` typically contain only geometry, color, modulation, and camera parameters. Global settings like framebuffer mode are not state-specific.
+
+**Not included in states:**
+- `overlayPresetFiles` — Project-level only (shared across all states)
+- Global export settings (videoDuration, videoFPS, videoFormat)
+- Framebuffer settings (framebufferMode, framebufferWidth, framebufferHeight)
+- System settings (autoTriggerStates, autoTriggerFrequency)
 
 ---
 

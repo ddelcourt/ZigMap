@@ -79,7 +79,7 @@ States are complete snapshots of configuration (parameters, colors, camera posit
 3. Click Save to create a new state
 4. Click Update to overwrite the selected state
 5. Click Delete to remove a state
-6. Click on a state name to rename it (or use the rename button ✎)
+6. Double-click on a state name to rename it (or use the rename button ✎)
 7. **Drag and drop** states to reorder them (drag handle on left side)
 
 **State order:**
@@ -161,7 +161,7 @@ Supported formats: PNG (recommended for transparency), JPG, SVG.
 - **Save**: saves current configuration as a new state
 - **Update**: overwrites selected state with current configuration
 - **Delete**: removes selected state
-- **Rename**: click on state name to edit
+- **Rename**: double-click on state name to edit
 
 **State Transition** (0–30 s): duration of transition between states.
 
@@ -545,7 +545,7 @@ Lower emit rate or close other programs. Disable random thickness/speed if lag p
 Check Show Overlay checkbox. Verify opacity > 0%. Ensure image loaded successfully.
 
 **State renaming fails**  
-Click directly on state name text. Avoid triggering keyboard shortcuts during rename.
+Double-click directly on state name text. Avoid triggering keyboard shortcuts during rename.
 
 **Keyboard shortcuts not working**  
 Ensure state rename mode is not active. Shortcuts disabled while editing state names.
