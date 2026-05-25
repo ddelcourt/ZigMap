@@ -59,6 +59,7 @@
 ### Part II: Core Systems
 4. [Universal Systems](#4-universal-systems)
 5. [Patch System](#5-patch-system)
+   - 5a. [SVG Export from Patches: Complete Flow](#5a-svg-export-from-patches-complete-flow)
 6. [State Management](#6-state-management)
 
 ### Part III: Dynamic Parameters
@@ -182,6 +183,8 @@ Single algorithm       →    Pluggable patches
 #### Layer 2: Patch Interface (Contract)
 - Defines what framework expects from patches
 - Defines what patches can expect from framework
+- **Specifies how patches publish parameters** (via `getManifest()`)
+- **Defines parameter manifest structure** (types, categories, validation)
 - Ensures patches are interchangeable
 - Enables future extensibility
 
@@ -874,7 +877,9 @@ export class PatchInterface {
   
   /**
    * Returns patch metadata and parameter definitions
+   * 🔑 THIS IS HOW PATCHES PUBLISH PARAMETERS TO THE FRAMEWORK
    * @returns {Object} Manifest with name, version, parameters
+   *                   Return null to use external manifest.json instead
    */
   getManifest() {
     return {
@@ -889,12 +894,14 @@ export class PatchInterface {
   
   /**
    * Returns geometry for export (SVG, depth map)
-   * @returns {Object} { lines: [...], metadata: {...} }
+   * 🚨 CRITICAL FOR SVG EXPORT — MUST IMPLEMENT
+   * @returns {Object} { type, items: [...], metadata: {...} }
    */
   getGeometry() {
     return {
-      lines: [],
-      metadata: {}
+      type: 'ribbons',           // Geometry type hint
+      items: [],                  // Array of geometric primitives
+      metadata: {}                // Optional metadata
     }
   }
   
@@ -920,6 +927,28 @@ export class PatchInterface {
 }
 ```
 
+### Required vs Optional Methods
+
+**✅ REQUIRED** — Every patch must implement:
+- `setup(config)` — Initialize patch
+- `update(dt, params)` — Update animation state
+- `draw(p, camera, params)` — Render visuals
+- `getManifest()` — Publish parameter definitions (return manifest object OR null for external file)
+- `getGeometry()` — 🚨 **CRITICAL** Export geometry for SVG/depth (return `{type, items: [], metadata: {}}`)
+
+**🔘 OPTIONAL** — Implement if needed:
+- `onParameterChange(key, value)` — React to specific parameter changes (optimization)
+- `onResize(width, height)` — Handle canvas resize
+- `destroy()` — Clean up resources when patch unloads
+
+**⚠️ Note on SVG Export:**
+While `getGeometry()` is listed as required, patches that don't implement it will still work for PNG/Video exports. However, **SVG export will be disabled** for that patch. This is acceptable for prototypes, but production patches should support full export capabilities.
+
+**Key Point on getManifest():**
+- Can return manifest object inline (Option 1: all-in-code)
+- Can return `null` to use external `manifest.json` file (Option 2: separation of concerns, recommended)
+- Framework automatically handles both approaches
+
 ### What Patches Get From Framework
 
 1. **Camera State** — Position, rotation, FOV (via `draw()` parameter)
@@ -931,7 +960,10 @@ export class PatchInterface {
 
 ### What Patches Provide To Framework
 
-1. **Manifest** — Parameter definitions, categories, metadata
+1. **Manifest** — Parameter definitions, categories, metadata (via `getManifest()` or external `manifest.json`)
+   - **This is the PRIMARY interface** for parameter publication
+   - Tells framework: what parameters exist, their types, defaults, ranges, UI layout
+   - Framework auto-generates UI, validation, storage, sync from this
 2. **Rendering** — Via `draw(p, camera, params)` method
 3. **Animation** — Via `update(dt, params)` method
 4. **Geometry** — For export via `getGeometry()`
@@ -955,6 +987,409 @@ Patches **CAN**:
 - ✅ Manage internal animation state (particle positions, line buffers, physics, etc.)
 - ✅ React smoothly to parameter changes
 - ✅ Import shared utilities
+
+---
+
+## 5a. SVG Export from Patches: Complete Flow 🚨
+
+### THE CRITICAL QUESTION: How do patches export SVG?
+
+This is **THE MOST IMPORTANT** architectural question because SVG export is NON-NEGOTIABLE. Here's the complete answer:
+
+---
+
+### The Complete SVG Export Pipeline
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  USER CLICKS "EXPORT SVG"                │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│              FRAMEWORK (SVGExporter.js)                  │
+│                                                          │
+│  1. 📞 CALL PATCH METHOD                                 │
+│     ├─ const geometry = patch.getGeometry()            │
+│     └─ Patch MUST implement this method                │
+│                                                          │
+│  ⚠️ IF PATCH DOESN'T IMPLEMENT getGeometry():          │
+│     ├─ Show error toast                                 │
+│     ├─ Log warning to console                           │
+│     └─ ABORT export (SVG disabled for this patch)      │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│                  PATCH (e.g. ZigzagPatch)                │
+│                                                          │
+│  2. 🎨 RETURN GEOMETRY DATA                              │
+│     getGeometry() {                                     │
+│       return {                                          │
+│         type: 'ribbons',                                │
+│         items: [                                        │
+│           {                                             │
+│             type: 'ribbon',                             │
+│             vertices: [                                 │
+│               { x: 100, y: 200, z: 50 },               │
+│               { x: 150, y: 180, z: 45 },               │
+│               // ... more vertices                      │
+│             ],                                          │
+│             thickness: 24,                              │
+│             color: { r: 255, g: 200, b: 100 },         │
+│             opacity: 0.95                               │
+│           },                                            │
+│           // ... more ribbons/shapes                    │
+│         ]                                               │
+│       };                                                │
+│     }                                                   │
+│                                                          │
+│  ⚠️ PATCH MUST:                                          │
+│     ✅ Return current visible geometry                  │
+│     ✅ Use 3D world coordinates (framework projects)    │
+│     ✅ Include color and opacity per item               │
+│     ✅ Filter out invisible/faded items                 │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│              FRAMEWORK (SVGExporter.js)                  │
+│                                                          │
+│  3. 🔄 PROCESS GEOMETRY                                  │
+│     for each item in geometry.items:                    │
+│       ├─ Apply geometry scale                           │
+│       ├─ Apply emitter rotation                         │
+│       ├─ Apply camera rotations (X, Y)                  │
+│       ├─ Transform to camera space                      │
+│       ├─ Frustum cull (check if in view)                │
+│       └─ Perspective project (3D → 2D)                  │
+│                                                          │
+│  4. 🎨 GENERATE SVG ELEMENTS                             │
+│     for each visible item:                              │
+│       if item.type === 'ribbon':                        │
+│         ├─ Expand centerline to ribbon sides            │
+│         ├─ Project both sides to screen space           │
+│         └─ Create <polygon> element                     │
+│       else if item.type === 'polygon':                  │
+│         └─ Create <polygon> directly                    │
+│       // ... other types                                │
+│                                                          │
+│  5. 📦 CREATE SVG DOCUMENT                               │
+│     ├─ Create <svg> root element                        │
+│     ├─ Add background rectangle                         │
+│     ├─ Append all polygons/paths                        │
+│     └─ Set viewBox and dimensions                       │
+│                                                          │
+│  6. 💾 DOWNLOAD FILE                                     │
+│     └─ Save as spaceflow-[timestamp].svg                │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### What Patches MUST Provide
+
+**MANDATORY IMPLEMENTATION:**
+
+```javascript
+class MyCustomPatch {
+  // ... setup(), update(), draw() ...
+  
+  /**
+   * 🚨 CRITICAL: This method is REQUIRED for SVG export
+   * Framework calls this when user clicks "Export SVG"
+   */
+  getGeometry() {
+    // 1. Collect all visible geometry from your patch's internal state
+    const visibleItems = this.collectVisibleGeometry();
+    
+    // 2. Convert to standardized format
+    return {
+      type: 'ribbons',           // Or 'polygons', 'mixed', etc.
+      items: visibleItems.map(item => ({
+        type: 'ribbon',          // Primitive type
+        vertices: item.get3DVertices(),  // Array of {x, y, z}
+        thickness: item.width,   // For ribbons
+        color: {                 // RGB 0-255
+          r: item.color[0],
+          g: item.color[1],
+          b: item.color[2]
+        },
+        opacity: item.alpha      // 0.0 - 1.0
+      })),
+      metadata: {
+        count: visibleItems.length,
+        bounds: this.calculateBounds()
+      }
+    };
+  }
+}
+```
+
+---
+
+### Geometry Format Contract
+
+**Supported Primitive Types:**
+
+#### 1. Ribbon (Thick Line)
+```javascript
+{
+  type: 'ribbon',
+  vertices: [           // Centerline in 3D world coordinates
+    { x: 100, y: 200, z: 50 },
+    { x: 150, y: 180, z: 45 },
+    { x: 200, y: 190, z: 40 }
+  ],
+  thickness: 24,        // Width in world units
+  color: { r: 255, g: 200, b: 100 },
+  opacity: 0.95
+}
+```
+Framework will:
+- Expand centerline to left/right edges using `thickness/2`
+- Project to 2D screen space
+- Create `<polygon>` with all edge points
+
+#### 2. Polygon (Closed Shape)
+```javascript
+{
+  type: 'polygon',
+  vertices: [           // Already expanded vertices (outline)
+    { x: 100, y: 100, z: 0 },
+    { x: 200, y: 100, z: 0 },
+    { x: 150, y: 200, z: 0 }
+  ],
+  color: { r: 100, g: 150, b: 255 },
+  opacity: 1.0
+}
+```
+Framework will:
+- Project vertices directly to 2D
+- Create `<polygon>` element
+
+#### 3. Polyline (Open Path)
+```javascript
+{
+  type: 'polyline',
+  vertices: [ /* ... */ ],
+  strokeWidth: 2,
+  strokeColor: { r: 255, g: 0, b: 0 },
+  opacity: 0.8
+}
+```
+Framework will:
+- Project vertices
+- Create `<polyline>` with stroke
+
+#### 4. Circle
+```javascript
+{
+  type: 'circle',
+  center: { x: 0, y: 0, z: 0 },
+  radius: 50,
+  color: { r: 255, g: 100, b: 100 },
+  opacity: 0.5
+}
+```
+Framework will:
+- Project center point
+- Scale radius based on perspective
+- Create `<circle>` element
+
+---
+
+### What Framework Provides (Automatically)
+
+**You DON'T need to handle:**
+
+❌ **Coordinate Projection** — Framework projects 3D → 2D
+- Applies geometry scale
+- Applies emitter rotation
+- Applies camera rotations (X, Y axes)
+- Applies perspective projection
+- Handles camera offsets and distance
+
+❌ **SVG Generation** — Framework creates SVG elements
+- Creates `<svg>` root element
+- Generates `<polygon>`, `<path>`, `<circle>` elements
+- Sets `fill`, `stroke`, `opacity` attributes
+- Handles proper XML namespaces
+
+❌ **File Download** — Framework handles file I/O
+- Serializes SVG to string
+- Creates blob
+- Triggers download with filename
+
+❌ **Error Handling** — Framework manages edge cases
+- Checks if patch implements `getGeometry()`
+- Validates geometry format
+- Handles empty geometry gracefully
+- Shows user-friendly error messages
+
+---
+
+### Migration Example: Current ZigMap26 → Future SpaceFlow
+
+**Current (Monolithic):**
+```javascript
+// SVGExporter.js directly accesses emitter
+function exportSVG(ZM) {
+  ZM.emitterInstance.lines.forEach(line => {
+    const vertices = line._buildVertices();
+    // ... build ribbon sides
+    // ... project to screen
+    // ... create SVG polygon
+  });
+}
+```
+**Problem:** Tightly coupled to Emitter/ZigzagLine classes
+
+---
+
+**Future (Modular):**
+
+```javascript
+// ZigzagPatch.js implements interface
+class ZigzagEmitterPatch {
+  getGeometry() {
+    return {
+      type: 'ribbons',
+      items: this.emitter.lines
+        .filter(line => line.isVisible())  // Only visible lines
+        .map(line => ({
+          type: 'ribbon',
+          vertices: line.getCenterlineVertices(),
+          thickness: line.lineThickness,
+          color: {
+            r: line.currentColor[0],
+            g: line.currentColor[1],
+            b: line.currentColor[2]
+          },
+          opacity: line.getAlpha(),
+          zOffset: line.zOffset
+        }))
+    };
+  }
+}
+
+// SVGExporter.js is generic
+function exportSVG(framework) {
+  const geometry = framework.currentPatch.getGeometry();
+  
+  if (!geometry) {
+    showError('This patch does not support SVG export');
+    return;
+  }
+  
+  // Process geometry (works for ANY patch)
+  geometry.items.forEach(item => {
+    const projected = projectGeometry(item, framework.camera);
+    const svgElement = createSVGElement(item.type, projected);
+    svg.appendChild(svgElement);
+  });
+  
+  downloadSVG(svg);
+}
+```
+**Benefit:** Works with zigzag, particles, fractals, ANY future patch!
+
+---
+
+### What Happens If Patch Doesn't Implement getGeometry()?
+
+**Framework behavior:**
+
+```javascript
+function exportSVG(framework) {
+  // Try to get geometry
+  const geometry = framework.currentPatch.getGeometry?.();
+  
+  if (!geometry || !geometry.items || geometry.items.length === 0) {
+    // SVG export NOT available for this patch
+    console.warn(`Patch "${framework.currentPatch.name}" does not implement getGeometry()`);
+    showToast('SVG export not available for this patch', 'error');
+    
+    // Disable SVG export button in UI
+    document.getElementById('export-svg-btn').disabled = true;
+    document.getElementById('export-svg-btn').title = 'This patch does not support SVG export';
+    
+    return;  // Abort export
+  }
+  
+  // Proceed with export...
+}
+```
+
+**Result:**
+- ✅ PNG/Video exports still work (canvas-based)
+- ❌ SVG export button disabled
+- 💬 User gets clear message
+- 🔧 Developer gets console warning
+
+**Policy:** While not every patch MUST support SVG, the framework makes it easy. Patches that don't support it lose a key professional feature.
+
+---
+
+### Testing SVG Export Implementation
+
+**Checklist for new patches:**
+
+```javascript
+// ✅ Step 1: Implement getGeometry()
+class MyPatch {
+  getGeometry() {
+    return {
+      type: 'ribbons',
+      items: [ /* ... */ ]
+    };
+  }
+}
+
+// ✅ Step 2: Test in console
+const geometry = myPatch.getGeometry();
+console.log('Geometry items:', geometry.items.length);
+console.log('First item:', geometry.items[0]);
+
+// ✅ Step 3: Verify structure
+geometry.items.forEach(item => {
+  assert(item.type, 'Item must have type');
+  assert(item.vertices, 'Item must have vertices');
+  assert(item.vertices.every(v => v.x !== undefined), 'Vertices must have x');
+  assert(item.color, 'Item must have color');
+});
+
+// ✅ Step 4: Test SVG export in app
+// Click "Export SVG" button
+// Verify downloaded file opens in Illustrator/Inkscape
+// Check: Are all shapes visible?
+// Check: Are colors correct?
+// Check: Is perspective correct?
+
+// ✅ Step 5: Test edge cases
+// - Export with 0 items (should show graceful error)
+// - Export during state transition
+// - Export with extreme camera angles
+```
+
+---
+
+### Summary: Patch → SVG Responsibilities
+
+| Task | Patch Responsibility | Framework Responsibility |
+|------|---------------------|-------------------------|
+| **1. Implement method** | ✅ Provide `getGeometry()` | ❌ Just call it |
+| **2. Collect geometry** | ✅ Gather visible items | ❌ N/A |
+| **3. Format data** | ✅ Return standardized format | ✅ Validate format |
+| **4. Filter invisible** | ✅ Only visible items | ❌ N/A |
+| **5. Provide 3D coords** | ✅ World space vertices | ❌ N/A |
+| **6. Apply rotations** | ❌ Raw vertices only | ✅ All transformations |
+| **7. Project to 2D** | ❌ Framework handles | ✅ Full projection |
+| **8. Generate SVG** | ❌ Just data | ✅ Create elements |
+| **9. Download file** | ❌ Just data | ✅ File I/O |
+| **10. Error handling** | ❌ Just data | ✅ Validation & messages |
+
+**Key Principle:** Patches provide **WHAT to draw** (geometry), Framework handles **HOW to draw it** (SVG generation).
 
 ---
 
@@ -1163,6 +1598,235 @@ function loadState(state, currentPatch) {
 - Everything else automatic
 
 **Result:** Adding 1 parameter = 1 JSON entry
+
+---
+
+### How Patches Publish Parameters
+
+**The Parameter Publication Flow:**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    PATCH (Layer 3)                       │
+│                                                          │
+│  Option 1: External File        Option 2: Inline        │
+│  ┌──────────────────┐           ┌──────────────────┐   │
+│  │  manifest.json   │           │  getManifest() { │   │
+│  │  {               │           │    return {      │   │
+│  │    parameters: […]│           │      params: […] │   │
+│  │  }               │           │    }             │   │
+│  └──────────────────┘           │  }               │   │
+│         │                        └──────────────────┘   │
+│         │                                 │              │
+│         └────────────┬────────────────────┘              │
+│                      │                                   │
+│                      ▼                                   │
+│              📤 PUBLICATION                              │
+└──────────────────────┼───────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────┐
+│              FRAMEWORK (Layer 1)                         │
+│                                                          │
+│  1. 📥 Read Manifest                                     │
+│     ├─ Call patch.getManifest()                         │
+│     └─ Fallback to manifest.json if null                │
+│                                                          │
+│  2. ✓ Validate Structure                                │
+│     ├─ Required fields present?                         │
+│     ├─ Types valid? Ranges correct?                     │
+│     └─ Categories referenced exist?                     │
+│                                                          │
+│  3. 🎛️ Generate UI                                       │
+│     ├─ Create sliders, checkboxes, dropdowns            │
+│     ├─ Group by categories                              │
+│     └─ Wire event listeners                             │
+│                                                          │
+│  4. 💾 Setup Storage                                     │
+│     ├─ Extract default values                           │
+│     ├─ Initialize SpaceFlow.params                      │
+│     └─ Enable state save/load                           │
+│                                                          │
+│  5. 🔄 Enable Sync                                       │
+│     ├─ Broadcast to display windows                     │
+│     └─ Handle multi-window coordination                 │
+│                                                          │
+│  6. 📤 Enable Export                                     │
+│     └─ Include parameters in JSON                       │
+│                                                          │
+│  ALL AUTOMATIC — Patch does nothing more!               │
+└─────────────────────────────────────────────────────────┘
+```
+
+Patches have **two options** for exposing their parameter definitions to the framework:
+
+#### Option 1: External Manifest File (Recommended)
+
+**Structure:**
+```
+patches/
+  zigzag/
+    ├── ZigzagEmitterPatch.js
+    ├── Emitter.js
+    ├── ZigzagLine.js
+    └── manifest.json          ← Parameter definitions here
+```
+
+**In patch class:**
+```javascript
+export class ZigzagEmitterPatch {
+  // ... setup(), update(), draw() ...
+  
+  getManifest() {
+    // Framework loads manifest.json automatically
+    // Patch just returns reference or lets framework handle it
+    return null; // Framework uses external file
+  }
+}
+```
+
+**Advantages:**
+- ✅ Clean separation: logic vs. configuration
+- ✅ Easy to edit without touching code
+- ✅ Can be hot-reloaded during development
+- ✅ Easier for non-programmers to adjust parameters
+- ✅ Version control shows parameter changes clearly
+
+#### Option 2: Inline Method (Alternative)
+
+**In patch class:**
+```javascript
+export class ZigzagEmitterPatch {
+  getManifest() {
+    return {
+      name: "Zigzag Emitter",
+      version: "1.0.0",
+      description: "Animated zigzag ribbons in 3D space",
+      author: "ddelcourt",
+      parameters: [
+        {
+          key: "segmentLength",
+          label: "Segment Length",
+          type: "slider",
+          min: 5,
+          max: 200,
+          default: 50,
+          category: "geometry"
+        },
+        // ... more parameters ...
+      ],
+      categories: [
+        { id: "geometry", label: "Geometry", icon: "📐" }
+      ]
+    };
+  }
+}
+```
+
+**Advantages:**
+- ✅ Everything in one file (single source of truth)
+- ✅ No external file dependencies
+- ✅ Can generate parameters programmatically
+- ✅ Useful for patches with dynamic parameter sets
+
+**Disadvantages:**
+- ❌ Mixing code and configuration
+- ❌ Harder to modify parameters
+- ❌ No hot-reload during development
+
+---
+
+### Publication Lifecycle
+
+**1. Patch Registration**
+```javascript
+// Framework discovers patch
+const patch = new ZigzagEmitterPatch();
+
+// Framework requests manifest
+const manifest = patch.getManifest();
+
+// If null, framework looks for external manifest.json
+if (!manifest) {
+  manifest = await fetch('patches/zigzag/manifest.json').then(r => r.json());
+}
+```
+
+**2. Manifest Validation**
+```javascript
+// Framework validates structure
+ParameterManager.validate(manifest);
+// ✓ All required fields present?
+// ✓ Parameter types valid?
+// ✓ Min < max for sliders?
+// ✓ Default within range?
+// ✓ Categories referenced exist?
+```
+
+**3. Default Value Extraction**
+```javascript
+// Framework extracts defaults
+const defaults = ParameterManager.extractDefaults(manifest);
+// → { segmentLength: 50, speed: 100, ... }
+
+// Merge with universal parameters
+SpaceFlow.params = {
+  ...universalDefaults,  // Camera, palette, etc.
+  ...defaults            // Patch-specific
+};
+```
+
+**4. UI Generation**
+```javascript
+// Framework generates UI controls
+DynamicUI.generate(manifest, SpaceFlow.params);
+// → Creates sliders, checkboxes, dropdowns
+// → Grouped by categories
+// → Event listeners wired automatically
+```
+
+**5. Parameter Updates**
+```javascript
+// User changes slider
+slider.addEventListener('input', (e) => {
+  const key = 'segmentLength';
+  const value = parseFloat(e.target.value);
+  
+  // Framework validates
+  if (ParameterManager.validate(key, value)) {
+    // Update global params
+    SpaceFlow.params[key] = value;
+    
+    // Notify patch (optional callback)
+    patch.onParameterChange?.(key, value);
+    
+    // Auto-save state (if enabled)
+    StateManager.autoSave();
+    
+    // Broadcast to display windows
+    WindowSync.broadcastParameter(key, value);
+  }
+});
+```
+
+**Summary: Framework Responsibilities**
+
+| Step | Framework Action | Patch Action |
+|------|------------------|--------------|
+| 1. Load | Call `patch.getManifest()` | Return manifest or `null` |
+| 2. Fallback | Load external `manifest.json` if needed | Provide external file |
+| 3. Validate | Check structure, types, ranges | Define valid manifest |
+| 4. Extract | Get default values | Specify defaults |
+| 5. Merge | Combine with universal params | Use `this.params` reference |
+| 6. Generate | Build UI controls dynamically | Nothing (automatic) |
+| 7. Wire | Connect event listeners | Nothing (automatic) |
+| 8. Update | Manage parameter changes | Optionally react via `onParameterChange()` |
+| 9. Store | Save/load states | Nothing (automatic) |
+| 10. Sync | Broadcast to display windows | Nothing (automatic) |
+
+**Key Insight:** Patches are **publishers**, Framework is **consumer**. Once a patch publishes its manifest, the framework handles everything else.
+
+---
 
 ### Complete Manifest Structure
 
