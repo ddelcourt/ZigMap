@@ -44,23 +44,19 @@ body.global-ui-hidden .controls-topbar {
 
 /* Position each item to align with its column */
 .controls-topbar-item[data-target="controls"] {
-  right: 0;
+  left: 0;
 }
 
 .controls-topbar-item[data-target="controls-middle"] {
-  right: 300px;
-}
-
-.controls-topbar-item[data-target="controls-state-params"] {
-  left: 600px;
-}
-
-.controls-topbar-item[data-target="controls-states"] {
   left: 300px;
 }
 
+.controls-topbar-item[data-target="controls-state-params"] {
+  right: 300px;
+}
+
 .controls-topbar-item[data-target="controls-right"] {
-  left: 0;
+  right: 0;
 }
 
 .controls-topbar-item:hover {
@@ -81,7 +77,6 @@ body.global-ui-hidden .controls-topbar {
 .controls,
 .controls-middle,
 .controls-state-params,
-.controls-states,
 .controls-right {
   max-height: 100vh;
 }
@@ -90,7 +85,6 @@ body.global-ui-hidden .controls-topbar {
 .controls,
 .controls-middle,
 .controls-state-params,
-.controls-states,
 .controls-right {
   display: flex;
   flex-direction: column;
@@ -115,7 +109,6 @@ body.global-ui-hidden .controls-topbar {
 .controls:not(.startup-visible):not(:hover):not(.hidden):not(.topbar-hovered),
 .controls-middle:not(.startup-visible):not(:hover):not(.hidden):not(.topbar-hovered),
 .controls-state-params:not(.startup-visible):not(:hover):not(.hidden):not(.topbar-hovered),
-.controls-states:not(.startup-visible):not(:hover):not(.hidden):not(.topbar-hovered),
 .controls-right:not(.startup-visible):not(:hover):not(.hidden):not(.topbar-hovered) {
   opacity: 0.24;
 }
@@ -123,15 +116,14 @@ body.global-ui-hidden .controls-topbar {
 .controls::-webkit-scrollbar,
 .controls-middle::-webkit-scrollbar,
 .controls-state-params::-webkit-scrollbar,
-.controls-states::-webkit-scrollbar,
 .controls-right::-webkit-scrollbar {
   display: none;
 }
 
-/* Right panel positioning - Image Output */
+/* Left panel positioning */
 .controls {
-  right: 0;
-  border-left: 1px solid rgba(34, 34, 34, 0.3);
+  left: 0;
+  border-right: 1px solid rgba(34, 34, 34, 0.3);
 }
 
 .controls.hidden {
@@ -147,10 +139,10 @@ body.global-ui-hidden .controls {
   pointer-events: none;
 }
 
-/* Right-middle panel positioning - Documentation */
+/* Left-middle panel positioning - Documentation */
 .controls-middle {
-  right: 300px;
-  border-left: 1px solid rgba(34, 34, 34, 0.3);
+  left: 300px;
+  border-right: 1px solid rgba(34, 34, 34, 0.3);
 }
 
 .controls-middle.hidden {
@@ -165,10 +157,10 @@ body.global-ui-hidden .controls-middle {
   pointer-events: none;
 }
 
-/* Left-middle-2 panel positioning - State-specific parameters */
+/* Right-middle panel positioning - State-specific parameters */
 .controls-state-params {
-  left: 600px;
-  border-right: 1px solid rgba(34, 34, 34, 0.3);
+  right: 300px;
+  border-left: 1px solid rgba(34, 34, 34, 0.3);
 }
 
 .controls-state-params.hidden {
@@ -183,28 +175,10 @@ body.global-ui-hidden .controls-state-params {
   pointer-events: none;
 }
 
-/* Left-middle panel positioning - Project States */
-.controls-states {
-  left: 300px;
-  border-right: 1px solid rgba(34, 34, 34, 0.3);
-}
-
-.controls-states.hidden {
-  transform: translateY(-100%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-body.global-ui-hidden .controls-states {
-  transform: translateY(-100%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Left panel positioning - Project management */
+/* Right panel positioning - Project management */
 .controls-right {
-  left: 0;
-  border-right: 1px solid rgba(34, 34, 34, 0.3);
+  right: 0;
+  border-left: 1px solid rgba(34, 34, 34, 0.3);
 }
 
 .controls-right.hidden {

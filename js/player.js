@@ -112,11 +112,13 @@ async function loadPresetFromURL(presetName) {
     
     const jsonData = await response.json();
     
+    console.log(`✓ Loaded preset: ${presetName}.json`);
     
     // Load the preset
     loadPreset(jsonData);
     
   } catch (err) {
+    console.error('❌ Failed to load preset from URL:', err);
     if (loadingIndicator) loadingIndicator.style.display = 'none';
     showError('Failed to load preset: ' + err.message);
   }
@@ -144,9 +146,14 @@ function initializeDropzone() {
   
   // Check if all elements exist
   if (!dropzoneOverlay || !fileInput || !fileSelectBtn) {
+    console.error('❌ Failed to initialize dropzone: missing DOM elements');
+    console.error('dropzoneOverlay:', dropzoneOverlay);
+    console.error('fileInput:', fileInput);
+    console.error('fileSelectBtn:', fileSelectBtn);
     return;
   }
   
+  console.log('✓ Dropzone elements found, attaching listeners...');
   
   // Prevent default drag behaviors
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -176,13 +183,16 @@ function initializeDropzone() {
   
   // File select button
   fileSelectBtn.addEventListener('click', () => {
+    console.log('📁 File select button clicked');
     fileInput.click();
   });
   
   // File input change
   fileInput.addEventListener('change', (e) => {
+    console.log('📁 File input changed');
     const file = e.target.files[0];
     if (file) {
+      console.log('📁 File selected:', file.name);
       loadJSONFile(file);
     }
   });
@@ -195,17 +205,20 @@ function initializeDropzone() {
     });
   }
   
+  console.log('✓ Dropzone initialized successfully');
 }
 
 /**
  * Handle dropped files
  */
 function handleDrop(e) {
+  console.log('📁 File dropped!');
   const dt = e.dataTransfer;
   const files = dt.files;
   
   if (files.length > 0) {
     const file = files[0];
+    console.log('📁 Dropped file:', file.name, 'Type:', file.type);
     
     // Check if it's a JSON file
     if (file.type === 'application/json' || file.name.endsWith('.json')) {
@@ -220,6 +233,7 @@ function handleDrop(e) {
  * Load and parse JSON file
  */
 function loadJSONFile(file) {
+  console.log('📥 Loading JSON file:', file.name);
   
   // Show loading indicator
   if (loadingIndicator) loadingIndicator.style.display = 'flex';
@@ -240,6 +254,7 @@ function loadJSONFile(file) {
       loadPreset(jsonData);
       
     } catch (err) {
+      console.error('❌ Error parsing JSON:', err);
       if (loadingIndicator) loadingIndicator.style.display = 'none';
       showError(`Failed to load preset: ${err.message}`);
     }
@@ -318,9 +333,11 @@ function loadPreset(jsonData) {
     setTimeout(() => {
       if (loadingIndicator) loadingIndicator.style.display = 'none';
       if (dropzoneOverlay) dropzoneOverlay.style.display = 'none';
+      console.log('✅ Visualization should now be visible');
     }, 500);
     
   } catch (err) {
+    console.error('❌ Error loading preset:', err);
     if (loadingIndicator) loadingIndicator.style.display = 'none';
     showError(`Failed to initialize visualization: ${err.message}`);
   }
@@ -341,6 +358,7 @@ function initializeVisualization(jsonData) {
   // Load overlay preset files list if present (just filenames, not base64 data)
   if (jsonData.overlayPresetFiles && Array.isArray(jsonData.overlayPresetFiles)) {
     ZM.overlayPresetFiles = jsonData.overlayPresetFiles;
+    console.log(`✓ Found ${ZM.overlayPresetFiles.length} overlay presets available`);
   } else {
     ZM.overlayPresets = [];
   }
@@ -358,6 +376,13 @@ function initializeVisualization(jsonData) {
       // This ensures the state is added to history and transitions work correctly
       ZM.stateManager.load(firstState.id, true);
       
+      console.log('📷 Camera loaded from first state:', firstState.name);
+      console.log('  - distance:', ZM.camera.distance);
+      console.log('  - rotationX:', ZM.camera.rotationX);
+      console.log('  - rotationY:', ZM.camera.rotationY);
+      console.log('  - offsetX:', ZM.camera.offsetX);
+      console.log('  - offsetY:', ZM.camera.offsetY);
+      console.log('  - geometryScale:', ZM.params.geometryScale);
     }
   } else {
     // No states - sync camera from params
@@ -377,13 +402,17 @@ function initializeVisualization(jsonData) {
   setupResizeHandler(ZM);
   
   // Initialize sketches
+  console.log('🎨 About to initialize sketches...');
   if (ZM.initializeSketches) {
     ZM.initializeSketches();
+    console.log('✓ Sketches initialized, p5Instance:', ZM.p5Instance ? 'created' : 'null');
   } else {
+    console.error('❌ initializeSketches function not found on ZM object');
   }
   
   // Auto-start auto-trigger if enabled and states exist
   if (ZM.params.autoTriggerStates && ZM.stateManager.states.length > 1) {
+    console.log('🎬 Auto-trigger enabled, starting playback...');
     
     // Initialize auto-trigger timer
     if (!ZM.autoTriggerTimer) {
@@ -407,6 +436,8 @@ function initializeVisualization(jsonData) {
     }
   }
   
+  console.log('✓ ZigMap26 Player initialized');
+  console.log(`✓ Loaded ${ZM.stateManager.states.length} states`);
 }
 
 /**
@@ -449,12 +480,17 @@ function updateVisualization(jsonData) {
     updateOverlayDisplay(ZM, overlayImg);
   }
   
+  console.log('✓ Preset updated');
 }
 
 /**
  * Setup keyboard handlers for player controls
  */
 function setupKeyboardHandlers(ZM) {
+  console.log('⌨️  Setting up keyboard handlers');
+  console.log('  - StateManager available:', !!ZM.stateManager);
+  console.log('  - navigateStates available:', !!(ZM.stateManager && ZM.stateManager.navigateStates));
+  console.log('  - States count:', ZM.stateManager ? ZM.stateManager.states.length : 0);
   
   // Setup overlay image element
   const overlayImg = document.getElementById('overlay-image');
@@ -500,6 +536,7 @@ function setupKeyboardHandlers(ZM) {
     fullscreenBtn.addEventListener('click', () => {
       if (!getFullscreenElement()) {
         enterFullscreen().catch(err => {
+          console.log('Fullscreen request failed:', err);
         });
       } else {
         exitFullscreen();
@@ -551,6 +588,7 @@ function setupKeyboardHandlers(ZM) {
       e.preventDefault();
       if (!getFullscreenElement()) {
         enterFullscreen().catch(err => {
+          console.log('Fullscreen request failed:', err);
         });
       } else {
         exitFullscreen();
@@ -562,6 +600,7 @@ function setupKeyboardHandlers(ZM) {
       e.preventDefault();
       if (ZM.autoTriggerTimer) {
         ZM.autoTriggerTimer.paused = !ZM.autoTriggerTimer.paused;
+        console.log('Auto-trigger', ZM.autoTriggerTimer.paused ? 'paused' : 'playing');
       }
     }
     
@@ -569,16 +608,20 @@ function setupKeyboardHandlers(ZM) {
     if (e.code === 'ArrowLeft') {
       e.preventDefault();
       if (ZM.stateManager && ZM.stateManager.navigateStates) {
+        console.log('⬅️  Previous state');
         ZM.stateManager.navigateStates(-1);
       } else {
+        console.warn('State manager not available for navigation');
       }
     }
     
     if (e.code === 'ArrowRight') {
       e.preventDefault();
       if (ZM.stateManager && ZM.stateManager.navigateStates) {
+        console.log('➡️  Next state');
         ZM.stateManager.navigateStates(1);
       } else {
+        console.warn('State manager not available for navigation');
       }
     }
     
@@ -588,6 +631,7 @@ function setupKeyboardHandlers(ZM) {
       e.preventDefault();
       ZM.params.overlayVisible = !ZM.params.overlayVisible;
       updateOverlayDisplay(ZM, overlayImg);
+      console.log('🖼️  Overlay', ZM.params.overlayVisible ? 'visible' : 'hidden');
     }
     
     // Keys 1-9: Load overlay from presets list
@@ -598,7 +642,9 @@ function setupKeyboardHandlers(ZM) {
       if (ZM.overlayPresetFiles && index < ZM.overlayPresetFiles.length) {
         const filename = ZM.overlayPresetFiles[index];
         loadOverlayFromFile(ZM, filename, overlayImg);
+        console.log(`🖼️  Loading overlay ${index + 1}: ${filename}`);
       } else {
+        console.log(`No overlay preset at index ${index + 1}`);
       }
     }
     
@@ -607,6 +653,7 @@ function setupKeyboardHandlers(ZM) {
     if (e.key === 'p' || e.key === 'P') {
       e.preventDefault();
       if (ZM.exportPNG) {
+        console.log('📸 Exporting PNG...');
         ZM.exportPNG();
       }
     }
@@ -615,6 +662,7 @@ function setupKeyboardHandlers(ZM) {
     if (e.key === 's' || e.key === 'S') {
       e.preventDefault();
       if (ZM.exportSVG) {
+        console.log('📐 Exporting SVG...');
         ZM.exportSVG();
       }
     }
@@ -641,10 +689,13 @@ async function loadOverlayFromFile(ZM, filename, overlayImg) {
         ZM.params.overlayVisible = true;
         updateOverlayDisplay(ZM, overlayImg);
         const displayName = filename.replace('.json', '').replace(/_/g, ' ');
+        console.log(`✓ Loaded overlay: ${displayName}`);
       }
     } else {
+      console.error(`Failed to load overlay: ${filename}`);
     }
   } catch (err) {
+    console.error(`Error loading overlay from ${filename}:`, err);
   }
 }
 
@@ -677,6 +728,7 @@ function updateOverlayDisplay(ZM, overlayImg) {
  * Show error message
  */
 function showError(message) {
+  console.error('❌ Player error:', message);
   if (errorMessage) errorMessage.textContent = message;
   if (errorDisplay) errorDisplay.style.display = 'flex';
 }
@@ -836,6 +888,7 @@ function toggleShortcutsToast() {
  * Initialize the player when DOM is ready
  */
 function initPlayer() {
+  console.log('🎨 Initializing ZigMap26 Player...');
   
   // Show keyboard shortcuts toast on startup
   showShortcutsToast();
@@ -848,8 +901,11 @@ function initPlayer() {
   const presetParam = urlParams.get('preset');
   
   if (presetParam) {
+    console.log(`📦 Loading preset from URL: ${presetParam}`);
     loadPresetFromURL(presetParam);
   } else {
+    console.log('✅ ZigMap26 Player ready');
+    console.log('📁 Drop a .json preset file to start');
   }
 }
 

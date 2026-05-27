@@ -34,6 +34,8 @@ const displayId = urlParams.get('id') || 'display-unknown';
 // Update document title with display ID
 document.title = `SpaceFlow — ${displayId}`;
 
+console.log(`🖥️ Display window ID: ${displayId}`);
+
 // Create global SpaceFlow namespace
 window.SpaceFlow = {
   // Display identification
@@ -157,6 +159,8 @@ function initializeOverlay(ZM) {
 async function init() {
   const ZM = window.SpaceFlow;
   
+  console.log('🖥️ Initializing display window...');
+  
   // Initialize camera with params (not ZM object)
   ZM.camera = new Camera(ZM.params);
   
@@ -169,6 +173,7 @@ async function init() {
   // Initialize window sync (wait for initial state from primary)
   // Note: Don't await yet, we'll handle it after sketches are ready
   const syncPromise = initializeDisplaySync(ZM).catch(err => {
+    console.error('❌ Failed to sync with primary window:', err);
     updateConnectionStatus(false);
     throw err;
   });
@@ -186,6 +191,7 @@ async function init() {
   setupMouseHandlers();
   
   // Initialize sketches
+  console.log('🎨 Initializing sketches...');
   ZM.initializeSketches();
   
   // Update overlay after sketches are initialized
@@ -196,6 +202,7 @@ async function init() {
   // Now wait for sync to complete and trigger palette change
   try {
     await syncPromise;
+    console.log('✓ Display window synced with primary');
     updateConnectionStatus(true);
     
     // Wait for sketches to be fully ready before triggering palette change
@@ -219,8 +226,11 @@ async function init() {
       ZM.triggerPaletteChange();
     }
   } catch (err) {
+    console.error('❌ Sync error:', err);
     // Continue anyway - display window can still work, just might not be in sync
   }
+  
+  console.log('✓ Display window ready');
 }
 
 /**
@@ -279,9 +289,14 @@ function setupKeyboardShortcuts() {
   // Toggle fullscreen function
   const toggleFullscreen = () => {
     if (!getFullscreenElement()) {
-      enterFullscreen().catch(() => {});
+      enterFullscreen().then(() => {
+        console.log('🖥️ Entered fullscreen mode');
+      }).catch(err => {
+        console.error('Failed to enter fullscreen:', err);
+      });
     } else {
       exitFullscreen();
+      console.log('🪟 Exited fullscreen mode');
     }
   };
 
@@ -340,9 +355,9 @@ function setupKeyboardShortcuts() {
       toggleFullscreen();
     }
     
-    // ESC key: Exit fullscreen (browser default)
+    // ESC key: Exit fullscreen (browser default, but let's log it)
     if (e.key === 'Escape' && getFullscreenElement()) {
-      // Browser handles this automatically
+      console.log('🪟 Exiting fullscreen mode (ESC pressed)');
     }
   });
 
@@ -369,8 +384,10 @@ function setupKeyboardShortcuts() {
   // Handle fullscreen change events
   const onFullscreenChange = () => {
     if (getFullscreenElement()) {
+      console.log('🖥️ Fullscreen mode active');
       cursorTimeout = setTimeout(hideCursor, 2000);
     } else {
+      console.log('🪟 Fullscreen mode exited');
       document.body.classList.remove('hide-cursor');
       clearTimeout(cursorTimeout);
     }

@@ -31,7 +31,9 @@ function formatJSONWithCompactPalettes(data) {
 export function clearLocalStorage() {
   try {
     localStorage.clear();
+    console.log('✓ localStorage cleared');
   } catch (e) {
+    console.warn('localStorage clear failed:', e);
   }
 }
 
@@ -53,8 +55,10 @@ export function saveToLocalStorage(params, projectName = null) {
       projectName: projectName || null
     };
     
+    console.log('[localStorage] Saving data:', { projectName, activePaletteIndex: paramsToSave.activePaletteIndex });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
   } catch (e) {
+    console.warn('localStorage save failed:', e);
   }
 }
 
@@ -69,10 +73,13 @@ export function loadFromLocalStorage(defaultParams) {
     if (!stored) return null;
     
     const data = JSON.parse(stored);
+    console.log('[localStorage] Raw loaded data:', data);
     
     // Handle old format (params only) vs new format (object with params and projectName)
     const loaded = data.params ? data.params : data;
     const projectName = data.projectName || null;
+    console.log('[localStorage] Extracted params:', loaded);
+    console.log('[localStorage] Extracted projectName:', projectName);
     
     // Remove canvas border settings - these should come from preset file, not localStorage
     // The loaded preset file is the authority for these UI settings
@@ -123,8 +130,10 @@ export function loadFromLocalStorage(defaultParams) {
     if (loaded.ambientSpeedMaster === undefined) loaded.ambientSpeedMaster = 100;
     
     const result = { params: { ...defaultParams, ...loaded }, projectName };
+    console.log('[localStorage] Returning:', { projectName, activePaletteIndex: result.params.activePaletteIndex });
     return result;
   } catch (e) {
+    console.warn('localStorage load failed:', e);
     return null;
   }
 }
@@ -138,22 +147,28 @@ export function loadFromLocalStorage(defaultParams) {
 export function downloadJSON(ZM, format = 'project', customFilename = null) {
   // Only allow downloads from main window, not display windows
   if (ZM.isDisplayMode) {
+    console.log('💾 downloadJSON() blocked: display windows cannot download');
     return;
   }
   
+  console.log('[Export] Format selected:', format);
   
   // Force-update active state before exporting to capture any recent changes
   if (ZM.cancelStateAutoUpdate) {
     ZM.cancelStateAutoUpdate(); // Cancel any pending debounced update
   }
   if (ZM.stateManager?.activeStateId) {
+    console.log('[Export] Force-updating active state before export');
     ZM.stateManager.update(ZM.stateManager.activeStateId);
   }
   
+  console.log('[Export] States to export:', ZM.stateManager?.states?.length);
+  console.log('[Export] Active state ID:', ZM.stateManager?.activeStateId);
   
   // Log each state's activePaletteIndex
   if (ZM.stateManager?.states) {
     ZM.stateManager.states.forEach((state, idx) => {
+      console.log(`[Export] State ${idx}: ${state.name}, activePaletteIndex:`, state.params?.activePaletteIndex);
     });
   }
   
@@ -219,8 +234,12 @@ export function downloadJSON(ZM, format = 'project', customFilename = null) {
  * @param {Object} ZM - Main application object
  */
 async function exportAllStatesAsFiles(ZM) {
+  console.log('[Export] exportAllStatesAsFiles called');
+  console.log('[Export] StateManager:', ZM.stateManager);
+  console.log('[Export] States count:', ZM.stateManager?.states?.length);
   
   if (!ZM.stateManager || !ZM.stateManager.states || ZM.stateManager.states.length === 0) {
+    console.warn('No states to export');
     if (ZM.showToast) {
       ZM.showToast('No states to export');
     }
@@ -228,7 +247,9 @@ async function exportAllStatesAsFiles(ZM) {
   }
   
   // Check if JSZip is available
+  console.log('[Export] JSZip available?', typeof JSZip !== 'undefined');
   if (typeof JSZip === 'undefined') {
+    console.error('JSZip library not loaded');
     if (ZM.showToast) {
       ZM.showToast('Error: ZIP library not available');
     }
@@ -236,6 +257,7 @@ async function exportAllStatesAsFiles(ZM) {
   }
   
   const states = ZM.stateManager.states;
+  console.log('[Export] Creating ZIP with', states.length, 'states');
   const zip = new JSZip();
   
   // Add each state to the ZIP
@@ -247,20 +269,25 @@ async function exportAllStatesAsFiles(ZM) {
   });
   
   // Generate ZIP file
+  console.log('[Export] Generating ZIP blob...');
   try {
     const zipBlob = await zip.generateAsync({ type: 'blob' });
+    console.log('[Export] ZIP blob generated:', zipBlob.size, 'bytes');
     const url = URL.createObjectURL(zipBlob);
     const timestamp = new Date().toISOString().slice(0, 10);
     const a = document.createElement('a');
     a.href = url;
     a.download = `spaceflow-states-${timestamp}.zip`;
+    console.log('[Export] Triggering download:', a.download);
     a.click();
     URL.revokeObjectURL(url);
     
     if (ZM.showToast) {
       ZM.showToast(`Exported ${states.length} states in ZIP archive`);
     }
+    console.log('[Export] ZIP export completed successfully');
   } catch (err) {
+    console.error('Failed to create ZIP:', err);
     if (ZM.showToast) {
       ZM.showToast('Error creating ZIP archive');
     }
@@ -278,6 +305,7 @@ async function loadOverlayFromPreset(filename) {
       return data.base64;
     }
   } catch (err) {
+    console.error(`Failed to load overlay preset: ${filename}`, err);
   }
   return null;
 }
@@ -358,6 +386,7 @@ export function loadJSON(file, callback) {
         projectName: loaded.projectName || file.name // Store project name from file
       } : { params: params, projectName: file.name });
     } catch (err) {
+      console.error('JSON load failed:', err);
       if (window.SpaceFlow && window.SpaceFlow.showToast) {
         window.SpaceFlow.showToast('Error loading JSON file. Please check the file format.');
       }
