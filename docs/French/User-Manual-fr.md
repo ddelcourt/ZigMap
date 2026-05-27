@@ -1,5 +1,28 @@
 # ZigMap Emitter — Manuel utilisateur
 
+```mermaid
+graph TB
+    Start["Ouvrir index.html"] --> UI["Interface Charge"]
+    
+    UI --> Controls["Panneau Gauche:<br/>Projet, États, Paramètres"]
+    UI --> Canvas["Canvas:<br/>Visualisation 3D"]
+    
+    Canvas --> Mouse["Contrôles Souris:<br/>Orbite, Déplacement, Zoom"]
+    Canvas --> Keys["Raccourcis Clavier:<br/>Tab, Entrée, P, S, R, 1-4"]
+    
+    Controls --> Project["Sauvegarder/Charger Projets"]
+    Controls --> States["Gérer États<br/>(Save, Update, Delete)"]
+    Controls --> Params["Ajuster Paramètres<br/>(Géométrie, Couleur, Animation)"]
+    
+    States --> Auto["Déclenchement Auto:<br/>Lecture automatique états"]
+    
+    Params --> Export["Export:<br/>PNG, SVG, Vidéo, Profondeur"]
+    
+    style Start fill:#2d3748,stroke:#4299e1,color:#fff
+    style Canvas fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Export fill:#22543d,stroke:#68d391,color:#fff
+```
+
 ---
 
 ## Démarrage

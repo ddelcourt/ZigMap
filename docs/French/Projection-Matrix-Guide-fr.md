@@ -49,6 +49,29 @@ Le ZigzagEmitter rend des rubans en zigzag dans l'espace 3D avec caméra contrô
 
 Le processus 3D → 2D consiste en une série de changements de systèmes de coordonnées.
 
+```mermaid
+flowchart TD
+    Local["Étape 1 : Espace Local → Espace Monde<br/>Transform: (ligneX - largeurCanevas/2 + localX) × échelle"]
+    
+    Local --> Rotate["Étape 2 : Rotations 3D<br/>rotateZ (émetteur)<br/>rotateY (orbite horizontale)<br/>rotateX (orbite verticale)"]
+    
+    Rotate --> Camera["Étape 3 : Transformation Caméra<br/>caméraX = -décalagePanX<br/>caméraY = -décalagePanY<br/>caméraZ = caméraZParDéfaut + distanceZoom"]
+    
+    Camera --> View["Transform vers Espace Vue<br/>vueX = mondeX_tourné - caméraX<br/>vueY = mondeY_tourné - caméraY<br/>vueZ = mondeZ_tourné - caméraZ"]
+    
+    View --> Frustum["Étape 4 : Découpe Frustum<br/>Vérif: vueZ >= -proche && vueZ <= -loin"]
+    
+    Frustum --> Project["Étape 5 : Projection Perspective<br/>échelle = caméraZParDéfaut / -vueZ<br/>écranX = vueX × échelle + largeurCanevas/2<br/>écranY = vueY × échelle + hauteurCanevas/2"]
+    
+    Project --> Screen["Coordonnées Écran 2D"]
+    
+    style Local fill:#2d3748,stroke:#4299e1,color:#fff
+    style Rotate fill:#1a365d,stroke:#63b3ed,color:#fff
+    style Camera fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Project fill:#22543d,stroke:#68d391,color:#fff
+    style Screen fill:#2f855a,stroke:#9ae6b4,color:#fff
+```
+
 ### Étape 1 : espace local → espace monde
 
 Chaque ruban existe dans son propre système de coordonnées local. Pour le placer dans la scène :

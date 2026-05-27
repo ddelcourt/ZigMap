@@ -1,5 +1,24 @@
 # Update Preset List
 
+```mermaid
+flowchart TD
+    Start["Run ./scripts/welcome-updater"] --> Scan["Scan config/presets/ for .json files"]
+    
+    Scan --> Generate["Generate config/presets/manifest.json"]
+    
+    Generate --> Update["Update welcome.html<br/>(between marker comments)"]
+    
+    Update --> Sort["Sort presets:<br/>1. Init files first<br/>2. Then alphabetically"]
+    
+    Sort --> Links["Generate Editor + Player links<br/>for each preset"]
+    
+    Links --> Done["✅ Done!<br/>Click 'Refresh' on welcome page"]
+    
+    style Start fill:#2d3748,stroke:#4299e1,color:#fff
+    style Generate fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Done fill:#22543d,stroke:#68d391,color:#fff
+```
+
 ## Usage
 
 Run the script to automatically update the welcome page with all presets found in `config/presets/`:

@@ -14,6 +14,36 @@ Preset files are stored in `config/presets/` and registered in `config/presets/m
 
 ### Version 2.0 Format (Current)
 
+```mermaid
+graph TB
+    Root["Preset File (.json)"]
+    
+    Root --> Version["version: '2.0'"]
+    Root --> Params["params: { }"]
+    Root --> States["states: [ ]"]
+    Root --> Active["activeStateId: 'id'"]
+    Root --> Overlay["overlayPresetFiles: [ ]"]
+    Root --> Date["saveDate: ISO timestamp"]
+    
+    Params --> Geo["Geometry Parameters"]
+    Params --> Color["Color Parameters"]
+    Params --> Anim["Animation Parameters"]
+    Params --> Cam["Camera Parameters"]
+    Params --> Exp["Export Parameters"]
+    
+    States --> State1["State 1 (loads first)"]
+    States --> State2["State 2"]
+    States --> StateN["State N"]
+    
+    Overlay --> Over1["File 1 (project-level)"]
+    Overlay --> Over2["File 2 (shared)"]
+    
+    style Root fill:#2d3748,stroke:#4299e1,color:#fff
+    style Params fill:#2c5282,stroke:#90cdf4,color:#fff
+    style States fill:#1a365d,stroke:#63b3ed,color:#fff
+    style Overlay fill:#22543d,stroke:#68d391,color:#fff
+```
+
 ```json
 {
   "version": "2.0",

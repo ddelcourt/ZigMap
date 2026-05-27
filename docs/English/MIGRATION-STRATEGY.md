@@ -33,6 +33,31 @@
 
 Transform ZigMap26 from a **monolithic zigzag generator** into **SpaceFlow**, a modular framework for pluggable generative art patches, while maintaining 100% backward compatibility and ensuring **ZERO disruption** to existing functionality.
 
+```mermaid
+flowchart LR
+    P0["Phase 0<br/>Foundation<br/>(Weeks 1-2)"] --> P1["Phase 1<br/>Code Extraction<br/>(Weeks 3-4)"]
+    P1 --> P2["Phase 2<br/>Interface<br/>(Weeks 5-6)"]
+    P2 --> P3["Phase 3<br/>Dynamic UI<br/>(Weeks 7-8)"]
+    P3 --> P4["Phase 4<br/>Patch Loading<br/>(Weeks 9-10)"]
+    P4 --> P5["Phase 5<br/>Finalization<br/>(Weeks 11-12)"]
+    P5 --> P6["Phase 6<br/>Rebranding<br/>(Week 13)"]
+    
+    SVG1["🚨 Test SVG"] -.-> P0
+    SVG2["🚨 Test SVG"] -.-> P1
+    SVG3["🚨 Test SVG"] -.-> P2
+    SVG4["🚨 Test SVG"] -.-> P3
+    SVG5["🚨 Test SVG"] -.-> P4
+    SVG6["🚨 Test SVG"] -.-> P5
+    SVG7["🚨 Test SVG"] -.-> P6
+    
+    style P0 fill:#2d3748,stroke:#4299e1,color:#fff
+    style P3 fill:#2c5282,stroke:#90cdf4,color:#fff
+    style P6 fill:#22543d,stroke:#68d391,color:#fff
+    style SVG1 fill:#742a2a,stroke:#fc8181,color:#fff
+    style SVG4 fill:#742a2a,stroke:#fc8181,color:#fff
+    style SVG7 fill:#742a2a,stroke:#fc8181,color:#fff
+```
+
 ### Success Criteria
 
 ✅ All existing features work identically  

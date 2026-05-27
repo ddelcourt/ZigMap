@@ -16,6 +16,29 @@ The **Player Mode** is a minimal, distribution-friendly version of ZigMap26 desi
 
 ## How to Use
 
+```mermaid
+flowchart TD
+    Start["Open player.html"] --> Choice{Loading Method}
+    
+    Choice -->|Drag & Drop| Drop["Drag .json file onto page"]
+    Choice -->|File Selector| Select["Click 'Select File' button<br/>Choose .json file"]
+    
+    Drop --> Auto["Auto-load visualization"]
+    Select --> Auto
+    
+    Auto --> Check{Auto-trigger enabled?}
+    
+    Check -->|Yes| Play["Auto-play states"]
+    Check -->|No| Manual["Manual controls<br/>(Spacebar, Arrows)"]
+    
+    Play --> Enjoy["Enjoy! ✨"]
+    Manual --> Enjoy
+    
+    style Start fill:#2d3748,stroke:#4299e1,color:#fff
+    style Auto fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Enjoy fill:#22543d,stroke:#68d391,color:#fff
+```
+
 ### Option 1: Drag & Drop
 1. Open `player.html` in your web browser
 2. Drag a `.json` preset file (created with SpaceFlow Editor) onto the page

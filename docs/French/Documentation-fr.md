@@ -104,66 +104,49 @@ Liste complète de tous les paramètres configurables dans l'objet `params` :
 
 L'Émetteur Zigzag suit une **architecture modulaire ES6** avec une séparation claire des responsabilités via des fichiers dédiés à chaque composant majeur. L'application est structurée comme suit :
 
-```
-┌─────────────────────────────────────────────┐
-│         Structure HTML & CSS                │
-│  (Contrôles UI, Mise en page, Style)        │
-└─────────────────────────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────────┐
-│         Application JavaScript              │
-│                                             │
-│  ┌───────────────────────────────────────┐ │
-│  │     Point d'Entrée (main.js)          │ │
-│  │  • Initialisation                     │ │
-│  │  • Chargement preset premier lancement│ │
-│  │  • Orchestration des modules          │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Couche Configuration             │ │
-│  │  • constants.js (Constantes système)  │ │
-│  │  • defaults.js (Paramètres par défaut)│ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Classes Principales              │ │
-│  │  • ZigzagLine (Géométrie de ligne)    │ │
-│  │  • Emitter (Gestion du pool de lignes)│ │
-│  │  • Camera (Position & projection)     │ │
-│  │  • Projection (Matrices de transform) │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Couche Rendu                     │ │
-│  │  • SketchFactory (Instances p5.js)    │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Système d'Export                 │ │
-│  │  • PNGExporter (Composite canevas)    │ │
-│  │  • SVGExporter (Export vectoriel)     │ │
-│  │  • DepthExporter (Cartes de profon.)  │ │
-│  │  • VideoRecorder (CCapture.js)        │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Couche Stockage & État           │ │
-│  │  • StateManager (Capture/restauration)│ │
-│  │  • localStorage (Persistance)         │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Gestionnaires d'Entrée           │ │
-│  │  • KeyboardHandler (Raccourcis)       │ │
-│  │  • MouseHandler (Contrôles orbite)    │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Couche UI                        │ │
-│  │  • UIController (Câblage contrôles)   │ │
-│  └───────────────────────────────────────┘ │
-└─────────────────────────────────────────────┘
+```mermaid
+graph TB
+    HTML["Structure HTML & CSS<br/>(Contrôles UI, Mise en page, Style)"]
+    
+    HTML --> Main
+    
+    subgraph JS["Application JavaScript"]
+        Main["Point d'Entrée (main.js)<br/>• Initialisation<br/>• Chargement preset premier lancement<br/>• Orchestration des modules"]
+        
+        Main --> Config
+        
+        Config["Couche Configuration<br/>• constants.js (Constantes système)<br/>• defaults.js (Paramètres par défaut)"]
+        
+        Config --> Core
+        
+        Core["Classes Principales<br/>• ZigzagLine (Géométrie de ligne)<br/>• Emitter (Gestion du pool de lignes)<br/>• Camera (Position & projection)<br/>• Projection (Matrices de transform)"]
+        
+        Core --> Render
+        
+        Render["Couche Rendu<br/>• SketchFactory (Instances p5.js)"]
+        
+        Render --> Export
+        
+        Export["Système d'Export<br/>• PNGExporter (Composite canevas)<br/>• SVGExporter (Export vectoriel)<br/>• DepthExporter (Cartes de profon.)<br/>• VideoRecorder (CCapture.js)"]
+        
+        Export --> Storage
+        
+        Storage["Couche Stockage & État<br/>• StateManager (Capture/restauration)<br/>• localStorage (Persistance)"]
+        
+        Storage --> Input
+        
+        Input["Gestionnaires d'Entrée<br/>• KeyboardHandler (Raccourcis)<br/>• MouseHandler (Contrôles orbite)"]
+        
+        Input --> UI
+        
+        UI["Couche UI<br/>• UIController (Câblage contrôles)"]
+    end
+    
+    style HTML fill:#2d3748,stroke:#4299e1,color:#fff
+    style JS fill:#1a202c,stroke:#4299e1,color:#fff
+    style Main fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Core fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Export fill:#22543d,stroke:#68d391,color:#fff
 ```
 
 ### Modèles de Conception

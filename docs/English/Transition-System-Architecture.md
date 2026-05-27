@@ -49,21 +49,29 @@ The system is designed with **perfect synchronization** across multiple windows,
 
 Color transitions use a **distributed per-line** approach where each `ZigzagLine` instance manages its own color animation:
 
-```
-triggerPaletteChange()
-  ↓
-For each line:
-  line.transitionToColor(newColor)
-    ↓
-  line.startColor = currentColor
-  line.targetColor = newColor
-  line.colorTransitionProgress = 0.0
-  line.isTransitioning = true
-    ↓
-Animation loop (60fps):
-  if (isTransitioning):
-    progress += dt / params.colorTransitionDuration
-    currentColor = lerp(startColor, targetColor, progress)
+```mermaid
+flowchart TD
+    Start["triggerPaletteChange()"] --> ForEach["For each line"]
+    
+    ForEach --> Transition["line.transitionToColor(newColor)"]
+    
+    Transition --> SetStart["line.startColor = currentColor"]
+    SetStart --> SetTarget["line.targetColor = newColor"]
+    SetTarget --> SetProgress["line.colorTransitionProgress = 0.0"]
+    SetProgress --> SetFlag["line.isTransitioning = true"]
+    
+    SetFlag --> Loop["Animation loop (60fps)"]
+    
+    Loop --> Check{isTransitioning?}
+    Check -->|Yes| Update["progress += dt / params.colorTransitionDuration"]
+    Update --> Lerp["currentColor = lerp(startColor, targetColor, progress)"]
+    Lerp --> Loop
+    
+    Check -->|No| End["Done"]
+    
+    style Start fill:#2d3748,stroke:#4299e1,color:#fff
+    style Loop fill:#2c5282,stroke:#90cdf4,color:#fff
+    style End fill:#22543d,stroke:#68d391,color:#fff
 ```
 
 ### Key Components

@@ -25,14 +25,7 @@
 
 # 1. Résumé Exécutif
 
-## Le Problème
-Le système actuel code tout en dur :
-- Contrôles UI définis manuellement dans HTML
-- Liaisons de paramètres écrites à la main en JavaScript
-- Chaque nouveau patch nécessite de modifier 4+ fichiers
-- Aucun moyen de charger différents patches p5.js dynamiquement
-
-## La Solution
+## Vue d'Ensemble de l'Architecture
 **Système de patches piloté par manifeste** où :
 - Les patches définissent les paramètres dans `manifest.json`
 - L'interface générée automatiquement depuis le manifeste
@@ -40,7 +33,7 @@ Le système actuel code tout en dur :
 - Caméra et palettes sont des **systèmes universels** (fonctionnent avec tous les patches)
 - Seules géométrie/comportement/modulation sont spécifiques au patch
 
-## L'Innovation Clé
+## Innovation Clé
 Trois classes centrales gèrent tout :
 1. **ParameterManager** — Hub central avec validation
 2. **DynamicUI** — Génère les contrôles depuis le manifeste
@@ -52,27 +45,29 @@ Trois classes centrales gèrent tout :
 
 # 2. Analyse de l'Architecture Actuelle
 
-## Comment Ça Fonctionne Maintenant
+## Flux d'Architecture
 
+```mermaid
+graph TD
+    A[DEFAULT_PARAMS<br/>defaults.js] --> B[ZigMap26.params<br/>état global]
+    B --> C[UIController.js<br/>liaisons de paramètres]
+    C --> D[index.html<br/>contrôles UI]
+    D --> E[Emitter/ZigzagLine<br/>accès direct aux params]
+    
+    style A fill:#2d3748,stroke:#4299e1,stroke-width:2px,color:#fff
+    style B fill:#2d3748,stroke:#4299e1,stroke-width:2px,color:#fff
+    style C fill:#2d3748,stroke:#4299e1,stroke-width:2px,color:#fff
+    style D fill:#2d3748,stroke:#4299e1,stroke-width:2px,color:#fff
+    style E fill:#2d3748,stroke:#48bb78,stroke-width:2px,color:#fff
 ```
-DEFAULT_PARAMS (defaults.js)
-    ↓
-ZigMap26.params (état global)
-    ↓
-UIController.js (liaisons codées en dur)
-    ↓
-index.html (contrôles codés en dur)
-    ↓
-Emitter/ZigzagLine (accès direct aux params)
-```
 
-## Problèmes
+## Caractéristiques de Conception
 
-- ❌ **UI codée en dur** : Chaque slider/checkbox défini manuellement dans HTML
-- ❌ **Liaisons codées en dur** : Appels `wireSlider()` pour chaque paramètre
-- ❌ **Params codés en dur** : `defaults.js` spécifique au patch zigzag
-- ❌ **Couplage étroit** : Le code de rendu accède directement à `params.lineThickness`
-- ❌ **Pas d'extensibilité** : Nouveau patch nécessite de modifier 4+ fichiers
+- **Couche UI** : Contrôles définis en HTML avec liaisons manuelles
+- **Couche Paramètres** : Les appels `wireSlider()` connectent l'UI à l'état
+- **Couche Données** : `defaults.js` contient les définitions de paramètres
+- **Couche Rendu** : Accès direct à l'objet paramètre
+- **Extensibilité** : Les nouveaux patches nécessitent des mises à jour coordonnées sur plusieurs fichiers
 
 ---
 
@@ -145,53 +140,31 @@ Variations et aléatoire :
 
 ## Le Flux de Données
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 1. MANIFEST (patches/zigzag/manifest.json)                  │
-│    Définition de paramètres avec métadonnées                │
-└────────────────────────┬────────────────────────────────────┘
-                         ↓
-┌─────────────────────────────────────────────────────────────┐
-│ 2. PARAMETER MANAGER                                         │
-│    - Charge le manifeste                                     │
-│    - Crée les objets paramètres avec défauts                │
-│    - Fournit get/set avec validation                        │
-└────────────────────────┬────────────────────────────────────┘
-                         ↓
-┌─────────────────────────────────────────────────────────────┐
-│ 3. GÉNÉRATEUR UI DYNAMIQUE                                   │
-│    - Lit les définitions de contrôles du manifeste          │
-│    - Crée dynamiquement les éléments HTML                   │
-│    - Connecte les événements au ParameterManager            │
-└────────────────────────┬────────────────────────────────────┘
-                         ↓
-┌─────────────────────────────────────────────────────────────┐
-│ 4. INTERACTION UTILISATEUR                                   │
-│    - L'utilisateur déplace le slider                         │
-│    - Le gestionnaire d'événement appelle ParameterManager.set()│
-│    - La validation se produit                                │
-│    - Le changement diffuse à tous les listeners             │
-└────────────────────────┬────────────────────────────────────┘
-                         ↓
-          ┌──────────────┴──────────────┐
-          ↓                             ↓
-┌──────────────────────┐    ┌──────────────────────┐
-│ 5a. RAM (Live)       │    │ 5b. STOCKAGE         │
-│  - Patch.params      │    │  - localStorage      │
-│  - Patch updates     │    │  - Fichiers JSON     │
-│  - Rendu immédiat    │    │  - Snapshots d'état  │
-└──────────────────────┘    └──────────────────────┘
-          │                             │
-          └──────────────┬──────────────┘
-                         ↓
-┌─────────────────────────────────────────────────────────────┐
-│ 6. RECHARGEMENT                                              │
-│    - Charge depuis le stockage                               │
-│    - Valide contre le manifeste                              │
-│    - Restaure vers ParameterManager                          │
-│    - Met à jour l'UI pour correspondre                       │
-│    - Passe au patch                                          │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    A["1. MANIFEST<br/>patches/zigzag/manifest.json<br/><i>Définition de paramètres avec métadonnées</i>"]
+    B["2. PARAMETER MANAGER<br/>• Charge le manifeste<br/>• Crée les objets paramètres avec défauts<br/>• Fournit get/set avec validation"]
+    C["3. GÉNÉRATEUR UI DYNAMIQUE<br/>• Lit les définitions de contrôles du manifeste<br/>• Crée dynamiquement les éléments HTML<br/>• Connecte les événements au ParameterManager"]
+    D["4. INTERACTION UTILISATEUR<br/>• L'utilisateur déplace le slider<br/>• Le gestionnaire d'événement appelle ParameterManager.set()<br/>• La validation se produit<br/>• Le changement diffuse à tous les listeners"]
+    E["5a. RAM (Live)<br/>• Patch.params<br/>• Patch updates<br/>• Rendu immédiat"]
+    F["5b. STOCKAGE<br/>• localStorage<br/>• Fichiers JSON<br/>• Snapshots d'état"]
+    G["6. RECHARGEMENT<br/>• Charge depuis le stockage<br/>• Valide contre le manifeste<br/>• Restaure vers ParameterManager<br/>• Met à jour l'UI pour correspondre<br/>• Passe au patch"]
+    
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    D --> F
+    E --> G
+    F --> G
+    
+    style A fill:#1a365d,stroke:#4299e1,stroke-width:3px,color:#fff
+    style B fill:#2d3748,stroke:#4299e1,stroke-width:2px,color:#fff
+    style C fill:#2d3748,stroke:#4299e1,stroke-width:2px,color:#fff
+    style D fill:#2d3748,stroke:#ed8936,stroke-width:2px,color:#fff
+    style E fill:#2d3748,stroke:#48bb78,stroke-width:2px,color:#fff
+    style F fill:#2d3748,stroke:#9f7aea,stroke-width:2px,color:#fff
+    style G fill:#2d3748,stroke:#4299e1,stroke-width:2px,color:#fff
 ```
 
 ## Les Garanties Clés
@@ -236,48 +209,44 @@ paramManager.set('lineThickness', 50);
 
 ## 5.1 Diagramme d'Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                  APPLICATION CENTRALE                       │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │  Systèmes Universels (Toujours Présents)             │  │
-│  │                                                        │  │
-│  │  • Caméra          (fov, distance, rotation...)       │  │
-│  │  • Palettes        (4 palettes, transitions, seed)   │  │
-│  │  • Export          (PNG, SVG, vidéo, framebuffer)     │  │
-│  │  • Système         (master speed, auto-trigger)       │  │
-│  │  • Overlays        (échelle, opacité, position)       │  │
-│  └───────────────────────────────────────────────────────┘  │
-│                              ↓                              │
-│                  Fournit aux Patches                        │
-│                              ↓                              │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │  Interface Patch                                      │  │
-│  │  - constructor(p5, patchParams, universalParams, utils)│ │
-│  │  - setup()                                             │  │
-│  │  - update(dt)                                          │  │
-│  │  - draw()                                              │  │
-│  │  - onParamsChanged(patchParams, universalParams)      │  │
-│  │  - dispose()                                           │  │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              ↑
-                              │ Implémente
-                              │
-        ┌─────────────────────┴─────────────────────┐
-        │                     │                     │
-┌───────▼────────┐   ┌────────▼────────┐   ┌───────▼────────┐
-│ Patch Zigzag   │   │ Patch Particle  │   │  Patch Wave    │
-├────────────────┤   ├─────────────────┤   ├────────────────┤
-│ manifest.json  │   │ manifest.json   │   │ manifest.json  │
-│ patch.js       │   │ patch.js        │   │ patch.js       │
-│                │   │                 │   │                │
-│ Params:        │   │ Params:         │   │ Params:        │
-│ • segmentLen   │   │ • particleCount │   │ • wavelength   │
-│ • thickness    │   │ • gravity       │   │ • amplitude    │
-│ • emitRate     │   │ • turbulence    │   │ • frequency    │
-│ • speed        │   │ • particleSize  │   │ • phaseSpeed   │
-└────────────────┘   └─────────────────┘   └────────────────┘
+```mermaid
+graph TB
+    subgraph CORE["APPLICATION CENTRALE"]
+        subgraph UNIVERSAL["Systèmes Universels (Toujours Présents)"]
+            CAM["🎥 Caméra<br/>fov, distance, rotation"]
+            PAL["🎨 Palettes<br/>4 palettes, transitions, seed"]
+            EXP["📤 Export<br/>PNG, SVG, vidéo, framebuffer"]
+            SYS["⚙️ Système<br/>master speed, auto-trigger"]
+            OVR["🖼️ Overlays<br/>échelle, opacité, position"]
+        end
+        
+        INTERFACE["Interface Patch<br/>• constructor(p5, patchParams, universalParams, utils)<br/>• setup()<br/>• update(dt)<br/>• draw()<br/>• onParamsChanged(patchParams, universalParams)<br/>• dispose()"]
+    end
+    
+    UNIVERSAL -->|Fournit aux| INTERFACE
+    
+    subgraph PATCHES["Implémentations de Patches"]
+        Z["Patch Zigzag<br/>manifest.json + patch.js<br/>━━━━━━━━━━<br/>Params:<br/>• segmentLen<br/>• thickness<br/>• emitRate<br/>• speed"]
+        P["Patch Particle<br/>manifest.json + patch.js<br/>━━━━━━━━━━<br/>Params:<br/>• particleCount<br/>• gravity<br/>• turbulence<br/>• particleSize"]
+        W["Patch Wave<br/>manifest.json + patch.js<br/>━━━━━━━━━━<br/>Params:<br/>• wavelength<br/>• amplitude<br/>• frequency<br/>• phaseSpeed"]
+    end
+    
+    INTERFACE -.->|Implémente| Z
+    INTERFACE -.->|Implémente| P
+    INTERFACE -.->|Implémente| W
+    
+    style CORE fill:#1a202c,stroke:#4299e1,stroke-width:3px,color:#fff
+    style UNIVERSAL fill:#2d3748,stroke:#4299e1,stroke-width:2px,color:#fff
+    style INTERFACE fill:#2d3748,stroke:#48bb78,stroke-width:2px,color:#fff
+    style PATCHES fill:#1a202c,stroke:#9f7aea,stroke-width:3px,color:#fff
+    style Z fill:#2d3748,stroke:#9f7aea,stroke-width:2px,color:#fff
+    style P fill:#2d3748,stroke:#9f7aea,stroke-width:2px,color:#fff
+    style W fill:#2d3748,stroke:#9f7aea,stroke-width:2px,color:#fff
+    style CAM fill:#374151,stroke:#4299e1,stroke-width:1px,color:#fff
+    style PAL fill:#374151,stroke:#4299e1,stroke-width:1px,color:#fff
+    style EXP fill:#374151,stroke:#4299e1,stroke-width:1px,color:#fff
+    style SYS fill:#374151,stroke:#4299e1,stroke-width:1px,color:#fff
+    style OVR fill:#374151,stroke:#4299e1,stroke-width:1px,color:#fff
 ```
 
 ## 5.2 Exemple de Manifeste de Patch

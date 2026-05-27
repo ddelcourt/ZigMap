@@ -1,5 +1,24 @@
 # Mise à Jour de la Liste des Presets
 
+```mermaid
+flowchart TD
+    Start["Exécuter ./scripts/welcome-updater"] --> Scan["Scanner config/presets/ pour fichiers .json"]
+    
+    Scan --> Generate["Générer config/presets/manifest.json"]
+    
+    Generate --> Update["Mettre à jour welcome.html<br/>(entre commentaires marqueurs)"]
+    
+    Update --> Sort["Trier presets:<br/>1. Fichiers init d'abord<br/>2. Puis alphabétiquement"]
+    
+    Sort --> Links["Générer liens Éditeur + Lecteur<br/>pour chaque preset"]
+    
+    Links --> Done["✅ Terminé!<br/>Cliquer 'Refresh' sur page d'accueil"]
+    
+    style Start fill:#2d3748,stroke:#4299e1,color:#fff
+    style Generate fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Done fill:#22543d,stroke:#68d391,color:#fff
+```
+
 ## Utilisation
 
 Exécutez le script pour mettre à jour automatiquement la page d'accueil avec tous les presets trouvés dans `config/presets/` :

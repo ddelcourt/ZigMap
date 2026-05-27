@@ -16,6 +16,29 @@ Le **Mode Lecteur** est une version minimale de SpaceFlow, conçue pour la distr
 
 ## Mode d'Emploi
 
+```mermaid
+flowchart TD
+    Start["Ouvrir player.html"] --> Choice{Méthode de Chargement}
+    
+    Choice -->|Glisser-Déposer| Drop["Glisser fichier .json sur la page"]
+    Choice -->|Sélecteur| Select["Cliquer 'Select File'<br/>Choisir fichier .json"]
+    
+    Drop --> Auto["Chargement auto visualisation"]
+    Select --> Auto
+    
+    Auto --> Check{Déclenchement auto activé?}
+    
+    Check -->|Oui| Play["Lecture auto des états"]
+    Check -->|Non| Manual["Contrôles manuels<br/>(Barre espace, Flèches)"]
+    
+    Play --> Enjoy["Profitez! ✨"]
+    Manual --> Enjoy
+    
+    style Start fill:#2d3748,stroke:#4299e1,color:#fff
+    style Auto fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Enjoy fill:#22543d,stroke:#68d391,color:#fff
+```
+
 ### Option 1 : Glisser-Déposer
 1. Ouvrez `player.html` dans votre navigateur web
 2. Glissez un fichier preset `.json` (créé avec l'Éditeur SpaceFlow) sur la page

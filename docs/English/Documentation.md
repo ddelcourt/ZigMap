@@ -104,66 +104,49 @@ Complete list of all configurable parameters in the `params` object:
 
 The Zigzag Emitter follows a **modular ES6 architecture** with clear separation of concerns through dedicated files for each major component. The application is structured as follows:
 
-```
-┌─────────────────────────────────────────────┐
-│           HTML Structure & CSS              │
-│  (UI Controls, Layout, Visual Styling)      │
-└─────────────────────────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────────┐
-│          JavaScript Application             │
-│                                             │
-│  ┌───────────────────────────────────────┐ │
-│  │     Main Entry Point (main.js)        │ │
-│  │  • Initialization                     │ │
-│  │  • First-time preset loading          │ │
-│  │  • Module orchestration               │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Configuration Layer              │ │
-│  │  • constants.js (System constants)    │ │
-│  │  • defaults.js (Default parameters)   │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Core Classes                     │ │
-│  │  • ZigzagLine (Line geometry)         │ │
-│  │  • Emitter (Line management)          │ │
-│  │  • Camera (Position & projection)     │ │
-│  │  • Projection (Matrix transforms)     │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Rendering Layer                  │ │
-│  │  • SketchFactory (p5.js instances)    │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Export System                    │ │
-│  │  • PNGExporter (Composite canvas)     │ │
-│  │  • SVGExporter (Vector export)        │ │
-│  │  • DepthExporter (Depth maps)         │ │
-│  │  • VideoRecorder (CCapture.js)        │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Storage & State Layer            │ │
-│  │  • StateManager (Capture/restore)     │ │
-│  │  • localStorage (Persistence)         │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      Input Handlers                   │ │
-│  │  • KeyboardHandler (Shortcuts)        │ │
-│  │  • MouseHandler (Orbit controls)      │ │
-│  └───────────────────────────────────────┘ │
-│                    ↓                        │
-│  ┌───────────────────────────────────────┐ │
-│  │      UI Layer                         │ │
-│  │  • UIController (Control wiring)      │ │
-│  └───────────────────────────────────────┘ │
-└─────────────────────────────────────────────┘
+```mermaid
+graph TB
+    HTML["HTML Structure & CSS<br/>(UI Controls, Layout, Visual Styling)"]
+    
+    HTML --> Main
+    
+    subgraph JS["JavaScript Application"]
+        Main["Main Entry Point (main.js)<br/>• Initialization<br/>• First-time preset loading<br/>• Module orchestration"]
+        
+        Main --> Config
+        
+        Config["Configuration Layer<br/>• constants.js (System constants)<br/>• defaults.js (Default parameters)"]
+        
+        Config --> Core
+        
+        Core["Core Classes<br/>• ZigzagLine (Line geometry)<br/>• Emitter (Line management)<br/>• Camera (Position & projection)<br/>• Projection (Matrix transforms)"]
+        
+        Core --> Render
+        
+        Render["Rendering Layer<br/>• SketchFactory (p5.js instances)"]
+        
+        Render --> Export
+        
+        Export["Export System<br/>• PNGExporter (Composite canvas)<br/>• SVGExporter (Vector export)<br/>• DepthExporter (Depth maps)<br/>• VideoRecorder (CCapture.js)"]
+        
+        Export --> Storage
+        
+        Storage["Storage & State Layer<br/>• StateManager (Capture/restore)<br/>• localStorage (Persistence)"]
+        
+        Storage --> Input
+        
+        Input["Input Handlers<br/>• KeyboardHandler (Shortcuts)<br/>• MouseHandler (Orbit controls)"]
+        
+        Input --> UI
+        
+        UI["UI Layer<br/>• UIController (Control wiring)"]
+    end
+    
+    style HTML fill:#2d3748,stroke:#4299e1,color:#fff
+    style JS fill:#1a202c,stroke:#4299e1,color:#fff
+    style Main fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Core fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Export fill:#22543d,stroke:#68d391,color:#fff
 ```
 
 ### Design Patterns

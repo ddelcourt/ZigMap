@@ -1564,7 +1564,7 @@ function setupDocumentationButtons() {
     'doc-spaceflow': 'SPACEFLOW-ARCHITECTURE.md',
     'doc-migration': 'MIGRATION-STRATEGY.md',
     'doc-patch-system-en': 'PATCH-SYSTEM.md',
-    'doc-patch-system-fr': 'PATCH-SYSTEM.md',
+    'doc-patch-system-fr': 'PATCH-SYSTEM-fr.md',
     'doc-player': 'Player-README.md',
     'doc-preset-format': 'Preset-JSON-Format.md',
     'doc-update-presets': 'Update-Presets.md'

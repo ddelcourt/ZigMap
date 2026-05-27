@@ -36,6 +36,29 @@ The ZigzagEmitter renders zigzag ribbons in 3D space with controllable camera (r
 
 The 3D → 2D process consists of a series of coordinate system changes.
 
+```mermaid
+flowchart TD
+    Local["Step 1: Local Space → World Space<br/>Transform: (lineX - canvasWidth/2 + localX) × scale"]
+    
+    Local --> Rotate["Step 2: 3D Rotations<br/>rotateZ (emitter)<br/>rotateY (horizontal orbit)<br/>rotateX (vertical orbit)"]
+    
+    Rotate --> Camera["Step 3: Camera Transform<br/>cameraX = -panOffsetX<br/>cameraY = -panOffsetY<br/>cameraZ = defaultCameraZ + zoomDistance"]
+    
+    Camera --> View["Transform to View Space<br/>viewX = worldX_rotated - cameraX<br/>viewY = worldY_rotated - cameraY<br/>viewZ = worldZ_rotated - cameraZ"]
+    
+    View --> Frustum["Step 4: Frustum Clipping<br/>Check: viewZ >= -near && viewZ <= -far"]
+    
+    Frustum --> Project["Step 5: Perspective Projection<br/>scale = defaultCameraZ / -viewZ<br/>screenX = viewX × scale + canvasWidth/2<br/>screenY = viewY × scale + canvasHeight/2"]
+    
+    Project --> Screen["2D Screen Coordinates"]
+    
+    style Local fill:#2d3748,stroke:#4299e1,color:#fff
+    style Rotate fill:#1a365d,stroke:#63b3ed,color:#fff
+    style Camera fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Project fill:#22543d,stroke:#68d391,color:#fff
+    style Screen fill:#2f855a,stroke:#9ae6b4,color:#fff
+```
+
 ### Step 1: local space → world space
 
 Each ribbon exists in its own local coordinate system. To place it in the scene:

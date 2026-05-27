@@ -125,43 +125,42 @@ Single algorithm       →    Pluggable patches
 
 ## 2. Three-Layer Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                  SPACEFLOW FRAMEWORK                     │
-│                  (Universal Systems)                     │
-│                                                          │
-│  Camera System • Color Palette System • Export System   │
-│  Storage System • Window Sync • UI Shell • Overlay      │
-└─────────────────────────────────────────────────────────┘
-                           ↕
-        ┌──────────────────────────────────────┐
-        │        PATCH INTERFACE (API)         │
-        │     (Contract between layers)        │
-        │                                      │
-        │  • setup(config)                     │
-        │  • update(dt, params)                │
-        │  • draw(p, camera, params)           │
-        │  • getManifest()                     │
-        │  • getGeometry()                     │
-        │  • onParameterChange(key, value)     │
-        │  • onResize(width, height)           │
-        │  • destroy()                         │
-        └──────────────────────────────────────┘
-                           ↕
-┌─────────────────────────────────────────────────────────┐
-│                PATCH IMPLEMENTATIONS                     │
-│               (Pluggable Algorithms)                     │
-│                                                          │
-│  📦 zigzag/                                              │
-│     ├── ZigzagEmitterPatch.js (implements interface)    │
-│     ├── Emitter.js (emission logic)                     │
-│     ├── ZigzagLine.js (geometry + animation)            │
-│     └── manifest.json (parameter definitions)           │
-│                                                          │
-│  📦 particles/ (future)                                  │
-│  📦 fractals/ (future)                                   │
-│  📦 fluid/ (future)                                      │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph Framework["SPACEFLOW FRAMEWORK<br/>(Universal Systems)"]
+        Camera["Camera System"]
+        Colors["Color Palette System"]
+        Export["Export System"]
+        Storage["Storage System"]
+        Sync["Window Sync"]
+        UI["UI Shell"]
+        Overlay["Overlay System"]
+    end
+    
+    subgraph Interface["PATCH INTERFACE (API)<br/>(Contract between layers)"]
+        Setup["setup(config)"]
+        Update["update(dt, params)"]
+        Draw["draw(p, camera, params)"]
+        Manifest["getManifest()"]
+        Geometry["getGeometry()"]
+        ParamChange["onParameterChange(key, value)"]
+        Resize["onResize(width, height)"]
+        Destroy["destroy()"]
+    end
+    
+    subgraph Patches["PATCH IMPLEMENTATIONS<br/>(Pluggable Algorithms)"]
+        Zigzag["📦 zigzag/<br/>ZigzagEmitterPatch.js<br/>Emitter.js<br/>ZigzagLine.js<br/>manifest.json"]
+        Future1["📦 particles/ (future)"]
+        Future2["📦 fractals/ (future)"]
+        Future3["📦 fluid/ (future)"]
+    end
+    
+    Framework <--> Interface
+    Interface <--> Patches
+    
+    style Framework fill:#2d3748,stroke:#4299e1,color:#fff
+    style Interface fill:#1a365d,stroke:#63b3ed,color:#fff
+    style Patches fill:#2c5282,stroke:#90cdf4,color:#fff
 ```
 
 ### Layer Responsibilities
@@ -198,59 +197,68 @@ Single algorithm       →    Pluggable patches
 
 ### Complete Hierarchy
 
-```
-SpaceFlow Application
-├── Framework Configuration
-│   ├── Current Patch Name
-│   ├── Active State ID
-│   └── UI Layout Mode
-│
-├── Universal Properties (Framework-level)
-│   ├── 🎥 Camera
-│   │   ├── fov, near, far
-│   │   ├── distance, rotationX, rotationY, rotationZ
-│   │   └── offsetX, offsetY
-│   │
-│   ├── 🎨 Colors
-│   │   ├── palettes[4][4] (4 palettes, 4 colors each)
-│   │   ├── activePaletteIndex
-│   │   └── colorTransitionDuration
-│   │
-│   ├── ⚡ Animation (Global)
-│   │   ├── ambientSpeedMaster
-│   │   ├── stateTransitionDuration
-│   │   ├── autoTriggerStates
-│   │   └── autoTriggerFrequency
-│   │
-│   ├── 📤 Export
-│   │   ├── framebufferMode, width, height, preset
-│   │   ├── canvasBorderVisible, canvasBorderColor
-│   │   └── videoDuration, videoFPS, videoFormat
-│   │
-│   └── 🖼️ Overlay
-│       ├── visible, source (preset/custom)
-│       ├── scale, opacity, x, y
-│       └── autoFit
-│
-└── Patch Properties (Patch-specific)
-    ├── 📐 Geometry (example: Zigzag patch)
-    │   ├── segmentLength
-    │   ├── lineThickness
-    │   ├── emitterRotation
-    │   ├── geometryScale
-    │   └── colorSlotZOffset
-    │
-    ├── 🎬 Behavior
-    │   ├── emitRate
-    │   ├── speed
-    │   └── direction (if applicable)
-    │
-    ├── 📊 Modulation
-    │   ├── randomThickness, thicknessRangeMin/Max
-    │   └── randomSpeed, speedRangeMin/Max
-    │
-    └── 🎛️ [Custom Categories]
-        └── (defined by patch manifest)
+```mermaid
+graph TB
+    App["SpaceFlow Application"]
+    
+    App --> Framework["Framework Configuration"]
+    Framework --> PatchName["Current Patch Name"]
+    Framework --> StateID["Active State ID"]
+    Framework --> UIMode["UI Layout Mode"]
+    
+    App --> Universal["Universal Properties<br/>(Framework-level)"]
+    
+    Universal --> Camera["🎥 Camera"]
+    Camera --> Cam1["fov, near, far"]
+    Camera --> Cam2["distance, rotationX, rotationY, rotationZ"]
+    Camera --> Cam3["offsetX, offsetY"]
+    
+    Universal --> Colors["🎨 Colors"]
+    Colors --> Col1["palettes[4][4]"]
+    Colors --> Col2["activePaletteIndex"]
+    Colors --> Col3["colorTransitionDuration"]
+    
+    Universal --> Anim["⚡ Animation (Global)"]
+    Anim --> An1["ambientSpeedMaster"]
+    Anim --> An2["stateTransitionDuration"]
+    Anim --> An3["autoTriggerStates"]
+    Anim --> An4["autoTriggerFrequency"]
+    
+    Universal --> ExportSys["📤 Export"]
+    ExportSys --> Ex1["framebufferMode, width, height, preset"]
+    ExportSys --> Ex2["canvasBorderVisible, canvasBorderColor"]
+    ExportSys --> Ex3["videoDuration, videoFPS, videoFormat"]
+    
+    Universal --> OverlaySys["🖼️ Overlay"]
+    OverlaySys --> Ov1["visible, source (preset/custom)"]
+    OverlaySys --> Ov2["scale, opacity, x, y"]
+    OverlaySys --> Ov3["autoFit"]
+    
+    App --> Patch["Patch Properties<br/>(Patch-specific)"]
+    
+    Patch --> Geo["📐 Geometry (Zigzag example)"]
+    Geo --> G1["segmentLength"]
+    Geo --> G2["lineThickness"]
+    Geo --> G3["emitterRotation"]
+    Geo --> G4["geometryScale"]
+    Geo --> G5["colorSlotZOffset"]
+    
+    Patch --> Behav["🎬 Behavior"]
+    Behav --> B1["emitRate"]
+    Behav --> B2["speed"]
+    Behav --> B3["direction (if applicable)"]
+    
+    Patch --> Mod["📊 Modulation"]
+    Mod --> M1["randomThickness, thicknessRangeMin/Max"]
+    Mod --> M2["randomSpeed, speedRangeMin/Max"]
+    
+    Patch --> Custom["🎛️ Custom Categories"]
+    Custom --> C1["(defined by patch manifest)"]
+    
+    style App fill:#2d3748,stroke:#4299e1,color:#fff
+    style Universal fill:#1a365d,stroke:#63b3ed,color:#fff
+    style Patch fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Framework fill:#22543d,stroke:#68d391,color:#fff
 ```
 
 ### Property Organization Rules
@@ -410,17 +418,16 @@ class ZigzagEmitterPatch {
 - ✅ Frame-independent animation is maintained (animation speed remains consistent across different frame rates)
 
 **UI Control:**
-```
-┌─────────────────────────────────┐
-│ UNIVERSAL                       │
-│                                 │
-│ ▼ ANIMATION ⚡                  │
-│   Ambient Speed     [100%    ]  │ ← Affects ALL patches
-│   State Transition  [3.0 s   ]  │
-│   Auto-Trigger      ☐           │
-│   Trigger Frequency [30 s    ]  │
-│                                 │
-└─────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph Universal["UNIVERSAL ANIMATION ⚡"]
+        Speed["Ambient Speed: 100%<br/>(Affects ALL patches)"]
+        State["State Transition: 3.0s"]
+        Auto["Auto-Trigger: ☐"]
+        Freq["Trigger Frequency: 30s"]
+    end
+    
+    style Universal fill:#2d3748,stroke:#4299e1,color:#fff
 ```
 
 **Key Insight:** `ambientSpeedMaster` is **NOT a patch parameter**. It's a framework-level time multiplier that scales the `dt` value before it reaches patches. This means:
@@ -467,40 +474,35 @@ When `framebufferMode` is enabled, the canvas renders at the specified fixed res
 
 SpaceFlow provides **four export formats**, each using a different pipeline:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    EXPORT PIPELINE                          │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌──────────┐    ┌──────────┐    ┌────────────────────┐   │
-│  │   PNG    │───▶│  Canvas  │───▶│  Direct capture    │   │
-│  │  Export  │    │ Renderer │    │  (screenshot)      │   │
-│  └──────────┘    └──────────┘    └────────────────────┘   │
-│       ↓                                                     │
-│  Framebuffer-aware, includes overlay                       │
-│                                                             │
-│  ┌──────────┐    ┌──────────┐    ┌────────────────────┐   │
-│  │  Video   │───▶│  Canvas  │───▶│  Frame-by-frame    │   │
-│  │  Export  │    │ Renderer │    │  capture (CCapture)│   │
-│  └──────────┘    └──────────┘    └────────────────────┘   │
-│       ↓                                                     │
-│  Framebuffer-aware, time-based recording, includes overlay │
-│                                                             │
-│  ┌──────────┐    ┌──────────┐    ┌────────────────────┐   │
-│  │   SVG    │───▶│ Geometry │───▶│  Vector generation │   │
-│  │  Export  │    │  API     │    │  (resolution-free) │   │
-│  └──────────┘    └──────────┘    └────────────────────┘   │
-│       ↓                                                     │
-│  Calls patch.getGeometry() → processes vertices            │
-│                                                             │
-│  ┌──────────┐    ┌──────────┐    ┌────────────────────┐   │
-│  │  Depth   │───▶│ Geometry │───▶│  Grayscale render  │   │
-│  │   Map    │    │  API     │    │  based on Z-depth  │   │
-│  └──────────┘    └──────────┘    └────────────────────┘   │
-│       ↓                                                     │
-│  Calls patch.getGeometry() → projects & rasterizes         │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph Pipeline["EXPORT PIPELINE"]
+        subgraph PNG["PNG Export"]
+            PNG1["Canvas Renderer"] --> PNG2["Direct capture<br/>(screenshot)"]
+            PNG3["Framebuffer-aware, includes overlay"]
+        end
+        
+        subgraph Video["Video Export"]
+            Vid1["Canvas Renderer"] --> Vid2["Frame-by-frame capture<br/>(CCapture)"]
+            Vid3["Framebuffer-aware, time-based recording,<br/>includes overlay"]
+        end
+        
+        subgraph SVG["SVG Export"]
+            SVG1["Geometry API"] --> SVG2["Vector generation<br/>(resolution-free)"]
+            SVG3["Calls patch.getGeometry() → processes vertices"]
+        end
+        
+        subgraph Depth["Depth Map"]
+            Dep1["Geometry API"] --> Dep2["Grayscale render<br/>based on Z-depth"]
+            Dep3["Calls patch.getGeometry() → projects & rasterizes"]
+        end
+    end
+    
+    style Pipeline fill:#2d3748,stroke:#4299e1,color:#fff
+    style PNG fill:#1a365d,stroke:#63b3ed,color:#fff
+    style Video fill:#1a365d,stroke:#63b3ed,color:#fff
+    style SVG fill:#2c5282,stroke:#90cdf4,color:#fff
+    style Depth fill:#2c5282,stroke:#90cdf4,color:#fff
 ```
 
 ---
@@ -1047,75 +1049,40 @@ This is **THE MOST IMPORTANT** architectural question because SVG export is NON-
 
 ### The Complete SVG Export Pipeline
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant Framework as Framework (SVGExporter.js)
+    participant Patch as Patch (e.g. ZigzagPatch)
+    participant Output as SVG File
+    
+    User->>Framework: Click "Export SVG"
+    
+    Framework->>Patch: 📞 CALL patch.getGeometry()
+    
+    alt Patch implements getGeometry()
+        Patch->>Patch: 🎨 Collect geometry data
+        Note over Patch: Return {type, items[]}<br/>with vertices, colors,<br/>thickness, opacity
+        Patch-->>Framework: Return geometry object
+        
+        Framework->>Framework: 🔄 PROCESS GEOMETRY
+        Note over Framework: Apply scale, rotation<br/>Transform to camera space<br/>Frustum culling<br/>Perspective projection
+        
+        Framework->>Framework: 🎨 GENERATE SVG
+        Note over Framework: Expand ribbons<br/>Project to 2D<br/>Create polygons/paths<br/>Apply colors & opacity
+        
+        Framework->>Output: 💾 Download SVG file
+        Output-->>User: ✅ SVG exported
+        
+    else Patch missing getGeometry()
+        Framework->>Framework: ⚠️ ERROR
+        Note over Framework: Show error toast<br/>Log warning<br/>ABORT export
+        Framework-->>User: ❌ SVG disabled for this patch
+    end
+    
+    style Framework fill:#2d3748,stroke:#4299e1,color:#fff
+    style Patch fill:#2c5282,stroke:#90cdf4,color:#fff
 ```
-┌─────────────────────────────────────────────────────────┐
-│                  USER CLICKS "EXPORT SVG"                │
-└─────────────────────┬───────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────┐
-│              FRAMEWORK (SVGExporter.js)                  │
-│                                                          │
-│  1. 📞 CALL PATCH METHOD                                 │
-│     ├─ const geometry = patch.getGeometry()            │
-│     └─ Patch MUST implement this method                │
-│                                                          │
-│  ⚠️ IF PATCH DOESN'T IMPLEMENT getGeometry():          │
-│     ├─ Show error toast                                 │
-│     ├─ Log warning to console                           │
-│     └─ ABORT export (SVG disabled for this patch)      │
-└─────────────────────┬───────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────┐
-│                  PATCH (e.g. ZigzagPatch)                │
-│                                                          │
-│  2. 🎨 RETURN GEOMETRY DATA                              │
-│     getGeometry() {                                     │
-│       return {                                          │
-│         type: 'ribbons',                                │
-│         items: [                                        │
-│           {                                             │
-│             type: 'ribbon',                             │
-│             vertices: [                                 │
-│               { x: 100, y: 200, z: 50 },               │
-│               { x: 150, y: 180, z: 45 },               │
-│               // ... more vertices                      │
-│             ],                                          │
-│             thickness: 24,                              │
-│             color: { r: 255, g: 200, b: 100 },         │
-│             opacity: 0.95                               │
-│           },                                            │
-│           // ... more ribbons/shapes                    │
-│         ]                                               │
-│       };                                                │
-│     }                                                   │
-│                                                          │
-│  ⚠️ PATCH MUST:                                          │
-│     ✅ Return current visible geometry                  │
-│     ✅ Use 3D world coordinates (framework projects)    │
-│     ✅ Include color and opacity per item               │
-│     ✅ Filter out invisible/faded items                 │
-└─────────────────────┬───────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────┐
-│              FRAMEWORK (SVGExporter.js)                  │
-│                                                          │
-│  3. 🔄 PROCESS GEOMETRY                                  │
-│     for each item in geometry.items:                    │
-│       ├─ Apply geometry scale                           │
-│       ├─ Apply emitter rotation                         │
-│       ├─ Apply camera rotations (X, Y)                  │
-│       ├─ Transform to camera space                      │
-│       ├─ Frustum cull (check if in view)                │
-│       └─ Perspective project (3D → 2D)                  │
-│                                                          │
-│  4. 🎨 GENERATE SVG ELEMENTS                             │
-│     for each visible item:                              │
-│       if item.type === 'ribbon':                        │
-│         ├─ Expand centerline to ribbon sides            │
-│         ├─ Project both sides to screen space           │
 │         └─ Create <polygon> element                     │
 │       else if item.type === 'polygon':                  │
 │         └─ Create <polygon> directly                    │
