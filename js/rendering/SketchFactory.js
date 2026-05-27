@@ -142,6 +142,7 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       
       // Mark sketch as ready
       ZM.sketchReady = true;
+      console.log('✓ Sketch setup complete - rendering started');
     };
     
     p.draw = () => {

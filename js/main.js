@@ -394,7 +394,9 @@ async function init() {
   }
   
   // Initialize sketches
+  console.log('✓ Initializing sketches...');
   ZM.initializeSketches();
+  console.log('✓ SpaceFlow initialized - patch ready');
   
   // Update overlay positioning after sketches are initialized (important for stereo mode)
   if (ZM.updateOverlay) {
@@ -564,6 +566,7 @@ async function init() {
   console.log('SpaceFlow initialized ✓');
 
   // Show keyboard shortcuts toast on startup
+  console.log('ℹ️  Keyboard shortcuts panel visible - press "I" or click OK to dismiss');
   showShortcutsToast(true);
 
   // Shortcut Keys button in Documentation panel
