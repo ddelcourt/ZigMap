@@ -53,7 +53,7 @@ export function startVideoRecording(ZM) {
   
   // Initialize CCapture
   capturer = new CCapture({
-    format: ZM.params.videoFormat === 'mp4' ? 'webm' : ZM.params.videoFormat,
+    format: ZM.params.videoFormat,
     framerate: ZM.params.videoFPS,
     name: 'spaceflow',
     quality: 95,

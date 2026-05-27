@@ -396,8 +396,10 @@ Vector version of current image, line by line with exact projection. Infinite sc
 **Export depth map** (D) — format: `.png` grayscale  
 Encodes Z depth as brightness: close = white, far = black.
 
-**Video recording** — format: `.webm` or `.mp4`  
+**Video recording** — format: `.webm` (recommended) or `.gif`  
 Frame-by-frame capture for smooth, deterministic rendering. Start/stop from Export section UI. Red indicator displays during recording. File automatically exports when stopped.
+
+⚠️ **Note:** MP4 export is not available in browsers. Export as WebM and convert using **Shutter Encoder** if needed (see Troubleshooting).
 
 ---
 
@@ -537,6 +539,13 @@ Verify browser localStorage permissions are enabled.
 
 **Video file too large**  
 Reduce duration, frame rate, or resolution in Export section.
+
+**Want MP4 instead of WebM?**  
+Browsers cannot export MP4 directly due to codec licensing. Export as WebM, then convert using:
+- **Shutter Encoder** (recommended): https://github.com/paulpacifico/shutter-encoder — Professional open-source converter with GPU acceleration
+- **ffmpeg**: `ffmpeg -i input.webm output.mp4`
+- **HandBrake**: https://handbrake.fr/
+- **Online**: CloudConvert, FreeConvert
 
 **Choppy animation**  
 Lower emit rate or close other programs. Disable random thickness/speed if lag persists.

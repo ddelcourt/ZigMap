@@ -76,7 +76,8 @@ Preset files are stored in `config/presets/` and registered in `config/presets/m
   ],
   "activePaletteIndex": 0,           // Active palette (0-3)
   "colorTransitionDuration": 16,     // Color transition time in seconds
-  "colorSlotZOffset": 90             // Z-offset per color slot (prevents z-fighting)
+  "colorSlotZOffset": 90,            // Z-offset per color slot (prevents z-fighting)
+  "colorRandomSeed": 1               // Seed for deterministic color selection (1-9999)
 }
 ```
 
@@ -151,7 +152,9 @@ Preset files are stored in `config/presets/` and registered in `config/presets/m
   "framebufferMode": false,     // Enable fixed-resolution rendering
   "framebufferPreset": "1080x1080",
   "framebufferWidth": 1080,
-  "framebufferHeight": 1080
+  "framebufferHeight": 1080,
+  "canvasBorderVisible": false, // Show/hide canvas border
+  "canvasBorderColor": "#adff2f" // Border color in hex format
 }
 ```
 
@@ -161,17 +164,23 @@ Preset files are stored in `config/presets/` and registered in `config/presets/m
 {
   "videoDuration": 10,          // Video recording duration in seconds
   "videoFPS": 30,               // Video frames per second
-  "videoFormat": "webm",        // Video format ("webm" or "gif")
+  "videoFormat": "webm",        // Video format ("webm" or "gif" only)
   "depthInvert": false          // Invert depth map (white=far, black=near)
 }
 ```
+
+**Note:** MP4 format is not supported in browsers due to codec licensing. Only WebM and GIF are available. To convert WebM to MP4, use **Shutter Encoder** (https://github.com/paulpacifico/shutter-encoder) — a free, professional converter with GPU acceleration.
 
 ### Overlay Parameters
 
 ```json
 {
   "overlayImageSrc": null,      // Base64 image data or null
+  "overlayPresetFile": null,    // Filename of selected preset overlay
+  "overlayCustomFilename": null, // Name of custom uploaded overlay file
+  "overlayCustomImageSrc": null, // Source data URL of custom uploaded overlay
   "overlayVisible": false,      // Show/hide overlay
+  "overlayAutoFit": false,      // Automatically fit overlay to canvas dimensions
   "overlayScale": 32,           // Overlay size percentage (1-200)
   "overlayOpacity": 100,        // Overlay transparency (0-100)
   "overlayX": 50,               // Horizontal position percentage (0-100)

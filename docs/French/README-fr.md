@@ -384,8 +384,10 @@ Capture directe du canevas avec transparence. Les dimensions correspondent au ca
 **Exporter SVG** (S) — format : `.svg`  
 Version vectorielle de l'image actuelle, ligne par ligne avec projection exacte. Mise à l'échelle infinie sans perte de qualité.
 
-**Enregistrement vidéo** — format : `.webm` ou `.mp4`  
+**Enregistrement vidéo** — format : `.webm` (recommandé) ou `.gif`  
 Capture image par image pour un rendu fluide et déterministe. Démarrage/arrêt depuis l'interface de la section Export. Un indicateur rouge s'affiche pendant l'enregistrement. Le fichier s'exporte automatiquement à l'arrêt.
+
+⚠️ **Note :** L'export MP4 n'est pas disponible dans les navigateurs. Exportez en WebM et convertissez avec **Shutter Encoder** si nécessaire (voir Dépannage).
 
 ---
 

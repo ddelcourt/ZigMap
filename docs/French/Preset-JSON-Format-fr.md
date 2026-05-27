@@ -71,7 +71,8 @@ Les fichiers preset sont stockés dans `config/presets/` et enregistrés dans `c
   ],
   "activePaletteIndex": 0,           // Palette active (0-3)
   "colorTransitionDuration": 16,     // Temps de transition de couleur en secondes
-  "colorSlotZOffset": 90             // Décalage Z par slot de couleur (empêche le z-fighting)
+  "colorSlotZOffset": 90,            // Décalage Z par slot de couleur (empêche le z-fighting)
+  "colorRandomSeed": 1               // Graine pour la sélection déterministe des couleurs (1-9999)
 }
 ```
 
@@ -146,7 +147,9 @@ Les fichiers preset sont stockés dans `config/presets/` et enregistrés dans `c
   "framebufferMode": false,     // Activer le rendu à résolution fixe
   "framebufferPreset": "1080x1080",
   "framebufferWidth": 1080,
-  "framebufferHeight": 1080
+  "framebufferHeight": 1080,
+  "canvasBorderVisible": false, // Afficher/masquer la bordure du canevas
+  "canvasBorderColor": "#adff2f" // Couleur de bordure au format hexadécimal
 }
 ```
 
@@ -156,17 +159,23 @@ Les fichiers preset sont stockés dans `config/presets/` et enregistrés dans `c
 {
   "videoDuration": 10,          // Durée d'enregistrement vidéo en secondes
   "videoFPS": 30,               // Images par seconde de la vidéo
-  "videoFormat": "webm",        // Format vidéo ("webm" ou "gif")
+  "videoFormat": "webm",        // Format vidéo ("webm" ou "gif" uniquement)
   "depthInvert": false          // Inverser la carte de profondeur (blanc=loin, noir=près)
 }
 ```
+
+**Note :** Le format MP4 n'est pas pris en charge dans les navigateurs en raison de la licence du codec. Seuls WebM et GIF sont disponibles. Pour convertir WebM vers MP4, utilisez **Shutter Encoder** (https://github.com/paulpacifico/shutter-encoder) — un convertisseur gratuit et professionnel avec accélération GPU.
 
 ### Paramètres d'Overlay
 
 ```json
 {
   "overlayImageSrc": null,      // Données d'image en base64 ou null
+  "overlayPresetFile": null,    // Nom du fichier de superposition préréglé sélectionné
+  "overlayCustomFilename": null, // Nom du fichier de superposition personnalisé téléchargé
+  "overlayCustomImageSrc": null, // URL de données source de la superposition personnalisée téléchargée
   "overlayVisible": false,      // Afficher/masquer l'overlay
+  "overlayAutoFit": false,      // Ajuster automatiquement la superposition aux dimensions du canevas
   "overlayScale": 32,           // Taille de l'overlay en pourcentage (1-200)
   "overlayOpacity": 100,        // Transparence de l'overlay (0-100)
   "overlayX": 50,               // Position horizontale en pourcentage (0-100)

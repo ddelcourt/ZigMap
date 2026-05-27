@@ -25,6 +25,7 @@ Complete list of all configurable parameters in the `params` object:
 | Color Transition Duration | `colorTransitionDuration` | Time in seconds for palette switch transitions |
 | State Transition Duration | `stateTransitionDuration` | Time in seconds for geometry, behavior, camera, and modulation transitions |
 | Color Slot Z-Offset | `colorSlotZOffset` | Z-axis separation multiplier per color slot to prevent z-fighting |
+| Color Random Seed | `colorRandomSeed` | Seed for deterministic color selection (1-9999) |
 | **State Auto-Trigger** |||
 | Auto-Trigger States | `autoTriggerStates` | Enable automatic state changes at specified intervals |
 | Auto-Trigger Frequency | `autoTriggerFrequency` | Time in seconds between automatic state changes (5-240) |
@@ -62,6 +63,8 @@ Complete list of all configurable parameters in the `params` object:
 | Video Duration | `videoDuration` | Recording length in seconds |
 | Video FPS | `videoFPS` | Recording frame rate (frames per second) |
 | Video Format | `videoFormat` | Video codec format (e.g., 'webm') |
+| **Depth Map Export** |||
+| Depth Invert | `depthInvert` | Invert depth map colors (white=far, black=near) |
 | **Overlay Image** |||
 | Overlay Image Source | `overlayImageSrc` | Source URL or data URL of the overlay image |
 | Overlay Preset File | `overlayPresetFile` | Filename of selected preset overlay |
@@ -1958,6 +1961,45 @@ export function captureVideoFrame(ZM) {
 - High resolution + long duration = slow process
 - File size grows linearly with frames
 
+**Video Format Support:**
+
+⚠️ **Important:** MP4 export is **not supported** in web browsers due to codec licensing restrictions.
+
+- **WebM**: ✅ Fully supported in all modern browsers (Chrome, Firefox, Edge, Safari)
+- **GIF**: ✅ Supported but larger file sizes and limited color palette
+- **MP4**: ❌ Not supported - automatically converted to WebM
+
+**Technical Explanation:**
+
+The H.264/MP4 codec requires licensing fees and is not freely available in browser-based JavaScript libraries. CCapture.js (the underlying recording library) only supports WebM (VP8/VP9) and GIF formats.
+
+If you select "mp4" as the video format, the application automatically converts it to "webm" behind the scenes:
+
+```javascript
+// VideoRecorder.js implementation
+format: ZM.params.videoFormat === 'mp4' ? 'webm' : ZM.params.videoFormat
+```
+
+**Workaround for MP4:**
+
+1. Export as WebM from SpaceFlow
+2. Convert using **Shutter Encoder** (recommended):
+   - **Best converter**: Free, open-source, professional tool
+   - **Download**: https://github.com/paulpacifico/shutter-encoder
+   - **Features**: GPU acceleration, batch conversion, extensive codec support
+   - **Usage**: Drag WebM file → Select MP4 H.264 → Convert
+3. Alternative tools:
+   - **ffmpeg** (command-line): `ffmpeg -i input.webm output.mp4`
+   - **HandBrake** (GUI): https://handbrake.fr/
+   - **Online**: CloudConvert, FreeConvert
+
+**Why WebM is Excellent:**
+- Open source and royalty-free
+- Excellent compression (comparable to MP4)
+- Native browser support (no plugins needed)
+- Supports high resolution and transparency
+- Widely accepted on modern platforms (YouTube, Twitter, Discord)
+
 ---
 
 ### Depth Map Export Technical Details
@@ -2905,10 +2947,22 @@ The original monolithic `ZigzagEmitter_12.html` (2,334 lines) has been refactore
 
 ## Browser Compatibility
 
+**General Support:**
 - Chrome/Edge: full support
 - Firefox: full support
 - Safari: full support (ES6 modules)
 - Mobile: limited (no right-click for pan)
+
+**Video Export Compatibility:**
+
+| Browser | WebM | GIF | MP4 |
+|---------|------|-----|-----|
+| Chrome | ✅ Native | ✅ Yes | ❌ No* |
+| Firefox | ✅ Native | ✅ Yes | ❌ No* |
+| Edge | ✅ Native | ✅ Yes | ❌ No* |
+| Safari | ✅ Native | ✅ Yes | ❌ No* |
+
+*MP4 automatically converts to WebM. See [Video Export Technical Details](#video-export-technical-details) for explanation and workarounds.
 
 ## Dependencies
 

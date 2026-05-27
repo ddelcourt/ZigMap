@@ -25,6 +25,7 @@ Liste complète de tous les paramètres configurables dans l'objet `params` :
 | Durée Transition Couleur | `colorTransitionDuration` | Temps en secondes pour les transitions de palette |
 | Durée Transition État | `stateTransitionDuration` | Temps en secondes pour les transitions de géométrie, comportement, caméra et modulations |
 | Décalage Z Plage Couleur | `colorSlotZOffset` | Multiplicateur de séparation sur l'axe Z par plage de couleur pour éviter le z-fighting |
+| Graine Aléatoire Couleur | `colorRandomSeed` | Graine pour la sélection déterministe des couleurs (1-9999) |
 | **Déclenchement Automatique d'États** |||
 | Déclencher États Automatiquement | `autoTriggerStates` | Activer les changements d'état automatiques à intervalles spécifiés |
 | Fréquence Déclenchement Auto | `autoTriggerFrequency` | Temps en secondes entre les changements d'état automatiques (5-240) |
@@ -62,6 +63,8 @@ Liste complète de tous les paramètres configurables dans l'objet `params` :
 | Durée Vidéo | `videoDuration` | Durée d'enregistrement en secondes |
 | FPS Vidéo | `videoFPS` | Fréquence d'images de l'enregistrement (images par seconde) |
 | Format Vidéo | `videoFormat` | Format du codec vidéo (ex: 'webm') |
+| **Export Carte de Profondeur** |||
+| Inverser Profondeur | `depthInvert` | Inverser les couleurs de la carte de profondeur (blanc=loin, noir=près) |
 | **Image de Superposition** |||
 | Source Image Superposition | `overlayImageSrc` | URL source ou URL de données de l'image de superposition |
 | Fichier Préréglage Superposition | `overlayPresetFile` | Nom du fichier de superposition préréglé sélectionné |
@@ -1897,6 +1900,45 @@ Voir la section **Système d'Export** ci-dessous pour les détails sur :
 - Résolution élevée + longue durée = processus lent
 - Taille fichier croît linéairement avec images
 
+**Support des Formats Vidéo :**
+
+⚠️ **Important :** L'export MP4 n'est **pas pris en charge** dans les navigateurs web en raison de restrictions de licence de codec.
+
+- **WebM** : ✅ Entièrement pris en charge dans tous les navigateurs modernes (Chrome, Firefox, Edge, Safari)
+- **GIF** : ✅ Pris en charge mais tailles de fichier plus grandes et palette de couleurs limitée
+- **MP4** : ❌ Non pris en charge - automatiquement converti en WebM
+
+**Explication Technique :**
+
+Le codec H.264/MP4 nécessite des frais de licence et n'est pas librement disponible dans les bibliothèques JavaScript basées sur navigateur. CCapture.js (la bibliothèque d'enregistrement sous-jacente) ne prend en charge que les formats WebM (VP8/VP9) et GIF.
+
+Si vous sélectionnez "mp4" comme format vidéo, l'application le convertit automatiquement en "webm" en arrière-plan :
+
+```javascript
+// Implémentation VideoRecorder.js
+format: ZM.params.videoFormat === 'mp4' ? 'webm' : ZM.params.videoFormat
+```
+
+**Solution de Contournement pour MP4 :**
+
+1. Exporter en WebM depuis SpaceFlow
+2. Convertir avec **Shutter Encoder** (recommandé) :
+   - **Meilleur convertisseur** : Outil gratuit, open-source et professionnel
+   - **Télécharger** : https://github.com/paulpacifico/shutter-encoder
+   - **Fonctionnalités** : Accélération GPU, conversion par lot, support étendu des codecs
+   - **Utilisation** : Glisser fichier WebM → Sélectionner MP4 H.264 → Convertir
+3. Outils alternatifs :
+   - **ffmpeg** (ligne de commande) : `ffmpeg -i entree.webm sortie.mp4`
+   - **HandBrake** (interface graphique) : https://handbrake.fr/
+   - **En ligne** : CloudConvert, FreeConvert
+
+**Pourquoi WebM est Excellent :**
+- Open source et sans redevance
+- Excellente compression (comparable à MP4)
+- Support natif du navigateur (aucun plugin nécessaire)
+- Prend en charge la haute résolution et la transparence
+- Largement accepté sur les plateformes modernes (YouTube, Twitter, Discord)
+
 ---
 
 ### Détails Techniques Export Carte de Profondeur
@@ -2471,7 +2513,7 @@ Les modules ES6 nécessitent un serveur web (pas le protocole `file://`). N'impo
 - **PNG** : Export direct du canevas
 - **SVG** : Export vectoriel avec mathématiques de projection exactes
 - **Carte de Profondeur** : Rendu de profondeur basé CPU avec ajustement automatique
-- **Vidéo** : Intégration CCapture.js (WebM/MP4)
+- **Vidéo** : Intégration CCapture.js (WebM/GIF uniquement - MP4 non pris en charge dans les navigateurs)
 
 ### Persistance des Paramètres
 - **localStorage** : Sauvegarde automatique de tous les paramètres
