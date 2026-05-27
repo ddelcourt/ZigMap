@@ -8,55 +8,32 @@ import { getBackgroundColor } from '../core/colorUtils.js';
 export function exportSVG(ZM) {
   // Only allow exports from main window, not display windows
   if (ZM.isDisplayMode) {
-    console.log('📄 exportSVG() blocked: display windows cannot export');
     return;
   }
   
-  console.log('╔═══════════════════════════════════════════════════════════════════╗');
-  console.log('║                         SVG EXPORT START                           ║');
-  console.log('╠═══════════════════════════════════════════════════════════════════╣');
-  console.log('│ Canvas dimensions (ZM.W × ZM.H):', ZM.W, '×', ZM.H);
-  console.log('│ Framebuffer mode:', ZM.params.framebufferMode);
-  console.log('│ Stereoscopic mode:', ZM.params.stereoscopicMode);
   if (ZM.params.framebufferMode) {
-    console.log('│ Framebuffer size:', ZM.params.framebufferWidth, '×', ZM.params.framebufferHeight);
   }
-  console.log('│ ZM.sketchReady:', !!ZM.sketchReady);
-  console.log('│ ZM.p5Instance:', !!ZM.p5Instance);
-  console.log('│ ZM.emitterInstance:', !!ZM.emitterInstance);
   if (ZM.emitterInstance) {
-    console.log('│ Lines count:', ZM.emitterInstance.lines ? ZM.emitterInstance.lines.length : 0);
   }
-  console.log('│ ZM.camera:', !!ZM.camera);
-  console.log('│ ZM.buildRibbonSides:', !!ZM.buildRibbonSides);
   
   // Allow exports as long as we have valid geometry, even if sketch is being reinitialized
   // This allows exports during transitions between states or mode changes
   if (!ZM.emitterInstance || !ZM.emitterInstance.lines || ZM.emitterInstance.lines.length === 0) {
-    console.error('│ ERROR: No geometry available to export');
-    console.log('╚═══════════════════════════════════════════════════════════════════╝');
     if (ZM.showToast) ZM.showToast('No geometry to export. Wait for lines to appear...', 'info');
     return;
   }
   
   // Check for other required components
   if (!ZM.camera) {
-    console.error('│ ERROR: Camera not initialized');
-    console.log('╚═══════════════════════════════════════════════════════════════════╝');
     if (ZM.showToast) ZM.showToast('Camera not ready', 'error');
     return;
   }
   
   if (!ZM.buildRibbonSides) {
-    console.error('│ ERROR: buildRibbonSides function not found');
-    console.log('╚═══════════════════════════════════════════════════════════════════╝');
     if (ZM.showToast) ZM.showToast('Export failed: missing helper function', 'error');
     return;
   }
   
-  console.log('│ Lines to export:', ZM.emitterInstance.lines.length);
-  console.log('│ Canvas dimensions:', ZM.W, 'x', ZM.H);
-  console.log('╚═══════════════════════════════════════════════════════════════════╝');
   
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -110,13 +87,6 @@ export function exportSVG(ZM) {
   const cameraY = -ZM.camera.offsetY;
   const cameraZ = defaultCameraZ + ZM.camera.distance;
   
-  console.log('SVG Export Camera Setup:');
-  console.log('  - FOV:', ZM.fovTransition.current);
-  console.log('  - Default cameraZ:', defaultCameraZ.toFixed(2));
-  console.log('  - Camera position:', cameraX.toFixed(2), cameraY.toFixed(2), cameraZ.toFixed(2));
-  console.log('  - Emitter rotation:', (emitterRotation * 180 / Math.PI).toFixed(2));
-  console.log('  - Camera rotation:', ZM.camera.rotationX.toFixed(3), ZM.camera.rotationY.toFixed(3));
-  console.log('  - Geometry scale:', ZM.geometryScaleTransition.current);
   
   function projectPoint(x, y, z) {
     // Transformation pipeline:
@@ -189,17 +159,14 @@ export function exportSVG(ZM) {
     svg.appendChild(polygon);
     exportedCount++;
     } catch (err) {
-      console.error('SVG Export: Failed to export line:', err);
     }
   });
   
   if (exportedCount === 0) {
-    console.warn('SVG Export: No ribbons were exported (all outside frustum or invalid)');
     if (ZM.showToast) ZM.showToast('No visible geometry in current view', 'info');
     return;
   }
   
-  console.log(`✓ SVG Export: Successfully exported ${exportedCount} ribbons`);
   
   // Download
   const blob = new Blob(

@@ -112,10 +112,8 @@ function scanDepthRange(lines, ZM, defaultCameraZ, cameraX, cameraY, cameraZ) {
     }
   }
   
-  console.log(`  On-screen ribbons: ${ribbonCount}, total depth samples: ${allDepths.length}`);
   
   if (allDepths.length < 10) {
-    console.log('  Warning: Too few depth samples, using fallback range');
     return { minDepth: 1, maxDepth: 1000 };
   }
   
@@ -129,8 +127,6 @@ function scanDepthRange(lines, ZM, defaultCameraZ, cameraX, cameraY, cameraZ) {
   const minD = allDepths[idx1];
   const maxD = allDepths[idx99];
   
-  console.log(`  Full depth span: ${allDepths[0].toFixed(2)} - ${allDepths[allDepths.length-1].toFixed(2)}`);
-  console.log(`  Using range (1st-99th percentile): ${minD.toFixed(2)} - ${maxD.toFixed(2)}`);
   
   if (!isFinite(minD) || !isFinite(maxD) || maxD <= minD) {
     return { minDepth: 1, maxDepth: 1000 };
@@ -141,7 +137,6 @@ function scanDepthRange(lines, ZM, defaultCameraZ, cameraX, cameraY, cameraZ) {
   const finalMinDepth = Math.max(0.01, minD - expand);
   const finalMaxDepth = maxD + expand;
   
-  console.log(`  Final range: minDepth=${finalMinDepth.toFixed(2)}, maxDepth=${finalMaxDepth.toFixed(2)}`);
   
   return { minDepth: finalMinDepth, maxDepth: finalMaxDepth };
 }
@@ -152,7 +147,6 @@ function scanDepthRange(lines, ZM, defaultCameraZ, cameraX, cameraY, cameraZ) {
  */
 function rasterizeDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {
   if (pts.length !== 4 || pts.some(p => !p)) {
-    console.warn('rasterizeDepthPolygon: invalid quad', pts);
     return;
   }
 
@@ -208,25 +202,21 @@ function rasterizeDepthPolygon(ctx, pts, minDepth, maxDepth, invert, alpha) {
 export function exportDepthMap(ZM) {
   // Only allow exports from main window, not display windows
   if (ZM.isDisplayMode) {
-    console.log('🗺️ exportDepthMap() blocked: display windows cannot export');
     return;
   }
   
   // Allow exports as long as we have valid geometry, even during sketch reinitialization
   if (!ZM.emitterInstance || !ZM.emitterInstance.lines || ZM.emitterInstance.lines.length === 0) {
-    console.log('Depth Export: No geometry available');
     if (ZM.showToast) ZM.showToast('No geometry to export. Wait for lines to appear...', 'info');
     return;
   }
   
   if (!ZM.camera) {
-    console.log('Depth Export: Camera not initialized');
     if (ZM.showToast) ZM.showToast('Camera not ready', 'error');
     return;
   }
   
   if (!ZM.buildRibbonSides) {
-    console.error('Depth Export: buildRibbonSides function not found on ZM namespace');
     if (ZM.showToast) ZM.showToast('Export failed: missing buildRibbonSides function');
     return;
   }
@@ -239,7 +229,6 @@ export function exportDepthMap(ZM) {
     try {
       renderDepthMap(ZM);
     } catch (e) {
-      console.error('Depth map export failed:', e);
       if (ZM.showToast) ZM.showToast('Depth map export failed: ' + e.message);
     } finally {
       btn.disabled = false;
@@ -260,16 +249,9 @@ function renderDepthMap(ZM) {
   const cameraY = -ZM.camera.offsetY;
   const cameraZ = defaultCameraZ + ZM.camera.distance;
   
-  console.log('Depth Map Camera Setup:');
-  console.log('  - Camera position:', cameraX.toFixed(2), cameraY.toFixed(2), cameraZ.toFixed(2));
   
   // Auto-range from actual geometry
   const { minDepth, maxDepth } = scanDepthRange(lines, ZM, defaultCameraZ, cameraX, cameraY, cameraZ);
-  console.log(`Depth map export:`);
-  console.log(`  Canvas dimensions: ${ZM.W} × ${ZM.H}`);
-  console.log(`  Stereo mode: ${ZM.params.stereoscopicMode}`);
-  console.log(`  Active lines: ${lines.length}`);
-  console.log(`  Depth range: near=${minDepth.toFixed(1)}, far=${maxDepth.toFixed(1)}`);
   
   // Create offscreen canvas
   const offCanvas = document.createElement('canvas');
@@ -308,7 +290,6 @@ function renderDepthMap(ZM) {
     if (renderedCount === 0) {
       const validDepths = leftProj.filter(Boolean).slice(0, 5).map(p => p.depth.toFixed(2));
       if (validDepths.length > 0) {
-        console.log('  First ribbon sample depths:', validDepths);
       }
     }
     
@@ -331,7 +312,6 @@ function renderDepthMap(ZM) {
     renderedCount++;
   }
   
-  console.log(`  Rendered ${renderedCount} ribbons (${segmentCount} segments)`);
   
   // Download
   offCanvas.toBlob(blob => {

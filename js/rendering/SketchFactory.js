@@ -86,23 +86,19 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
         try {
           const gl = p.drawingContext;
           const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-          console.log(`📐 Canvas: ${ZM.W}x${ZM.H} | WebGL Max: ${maxTextureSize}x${maxTextureSize}`);
           
           // Warn if size exceeds GPU limits (consider pixelDensity multiplier)
           const actualWidth = ZM.W * p.pixelDensity();
           const actualHeight = ZM.H * p.pixelDensity();
           if (actualWidth > maxTextureSize || actualHeight > maxTextureSize) {
-            console.warn(`⚠️ Canvas buffer ${actualWidth}x${actualHeight} may exceed GPU limit ${maxTextureSize}`);
           }
         } catch (e) {
-          console.log('Could not check WebGL limits:', e.message);
         }
       }
       
       // Create or reuse emitter
       if (!ZM.emitterInstance) {
         // First canvas: create new emitter
-        console.log('  ✨ Creating NEW emitter');
         emitter = new Emitter({
           p: p,
           x: ZM.W / 2,
@@ -115,18 +111,14 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
           buildRibbonSidesFn: buildRibbonSides
         });
         ZM.emitterInstance = emitter;
-        console.log('  ✓ Emitter created and ready');
       } else {
         // Reuse existing emitter (dimensions already updated in initializeSketches)
-        console.log('  ♻️ REUSING existing emitter with', ZM.emitterInstance.lines.length, 'lines');
-        console.log('     Canvas:', canvasId, '| isPrimary:', isPrimary);
         emitter = ZM.emitterInstance;
         
         // CRITICAL: Only update p5 reference on PRIMARY canvas
         // Primary canvas handles emitter.update() which uses this.p.noise()
         // Secondary (right) canvas only draws, doesn't update emitter state
         if (isPrimary) {
-          console.log('     Updating p5 references for primary canvas');
           emitter.p = p;
           
           // Update p5 reference for all existing lines (for consistency)
@@ -136,7 +128,6 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
             line.buildRibbonSides = buildRibbonSides;
           }
         } else {
-          console.log('     Skipping p5 update for secondary canvas (uses primary refs)');
         }
       }
       
@@ -246,19 +237,12 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
         if (isPrimary && !ZM.isDisplayMode && ZM.params.autoTriggerStates && ZM.stateManager && ZM.stateManager.states.length > 1) {
           // Debug on frame 600 (10 seconds)
           if (p.frameCount === 600) {
-            console.log('🔄 Auto-trigger status check:');
-            console.log('  - autoTriggerStates:', ZM.params.autoTriggerStates);
-            console.log('  - states count:', ZM.stateManager.states.length);
-            console.log('  - autoTriggerTimer:', ZM.autoTriggerTimer);
-            console.log('  - frequency:', ZM.params.autoTriggerFrequency);
-            console.log('  - loadRandomState exists:', typeof ZM.stateManager.loadRandomState);
           }
           
           // Only increment timer if not paused
           if (!ZM.autoTriggerTimer.paused) {
             ZM.autoTriggerTimer.elapsed += dt;
             if (ZM.autoTriggerTimer.elapsed >= ZM.params.autoTriggerFrequency) {
-              console.log('⏰ Auto-trigger fired! Loading random state...');
               ZM.autoTriggerTimer.elapsed = 0;
               ZM.stateManager.loadRandomState(); // Fresh random selection each time
             }
@@ -294,18 +278,8 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       
       // Debug: log drawing on frame 120
       if (p.frameCount === 120 && isPrimary) {
-        console.log('🖌️ About to draw lines');
-        console.log('  - Total lines:', emitter.lines.length);
-        console.log('  - Camera distance:', ZM.camera.distance);
-        console.log('  - Camera rotation:', ZM.camera.rotationX, ZM.camera.rotationY);
-        console.log('  - Geometry scale:', scaleVal);
         if (emitter.lines.length > 0) {
           const firstLine = emitter.lines[0];
-          console.log('  - First line color:', firstLine.lineColor);
-          console.log('  - First line position:', firstLine.x, firstLine.y);
-          console.log('  - First line thickness:', firstLine.lineThickness);
-          console.log('  - First line alive:', firstLine.alive);
-          console.log('  - First line segments:', firstLine.segments.length);
         }
       }
       
@@ -317,15 +291,9 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
 }
 
 export function initializeSketches(ZM) {
-  console.log('🎬 initializeSketches called');
-  console.log('  - stereoscopicMode:', ZM.params.stereoscopicMode);
-  console.log('  - framebufferMode:', ZM.params.framebufferMode);
-  console.log('  - Current dimensions:', ZM.W, 'x', ZM.H);
-  console.log('  - noiseOffset:', ZM.noiseOffset.toFixed(3));
   
   // Preserve existing emitter (don't restart animation)
   if (ZM.emitterInstance && ZM.emitterInstance.lines) {
-    console.log('  - Preserving emitter with', ZM.emitterInstance.lines.length, 'existing lines');
   }
   
   // CRITICAL: Remove p5 instances FIRST, before touching DOM
@@ -351,7 +319,6 @@ export function initializeSketches(ZM) {
   
   const wrapper = document.getElementById('canvas-wrapper');
   if (!wrapper) {
-    console.error('❌ canvas-wrapper element not found!');
     return;
   }
   
@@ -360,9 +327,6 @@ export function initializeSketches(ZM) {
     const prevW = ZM.W;
     const prevH = ZM.H;
     
-    console.log('  - BEFORE dimension update:');
-    console.log('    prevW:', prevW, 'prevH:', prevH);
-    console.log('    Camera offsets:', ZM.camera.offsetX.toFixed(2), ZM.camera.offsetY.toFixed(2));
     
     // Update dimensions for stereo mode
     if (ZM.params.framebufferMode) {
@@ -373,9 +337,6 @@ export function initializeSketches(ZM) {
       ZM.H = window.innerHeight;
     }
     
-    console.log('  - AFTER dimension update:');
-    console.log('    newW:', ZM.W, 'newH:', ZM.H);
-    console.log('    dimensionsChanged:', (ZM.W !== prevW || ZM.H !== prevH));
     
     // Scale existing emitter and lines proportionally to new dimensions
     // Only scale if dimensions actually changed (mode toggle, not reload)
@@ -383,7 +344,6 @@ export function initializeSketches(ZM) {
     if (ZM.emitterInstance && prevW && prevH && dimensionsChanged) {
       const scaleX = ZM.W / prevW;
       const scaleY = ZM.H / prevH;
-      console.log('  - Scaling emitter geometry:', scaleX.toFixed(3), 'x', scaleY.toFixed(3));
       
       // Scale emitter position
       ZM.emitterInstance.x *= scaleX;
@@ -403,7 +363,6 @@ export function initializeSketches(ZM) {
       // Camera offsets are pan values that need to scale with scene coordinates
       ZM.camera.offsetX *= scaleX;
       ZM.camera.offsetY *= scaleY;
-      console.log('  - Camera offsets scaled to:', ZM.camera.offsetX.toFixed(1), ',', ZM.camera.offsetY.toFixed(1));
     } else if (ZM.emitterInstance) {
       // Dimensions didn't change, just update canvas dimensions
       ZM.emitterInstance.canvasWidth = ZM.W;
@@ -437,12 +396,7 @@ export function initializeSketches(ZM) {
     ZM.p5Instance = new p5(createSketch(ZM, -eyeSep / 100, 'left-canvas'));
     ZM.p5InstanceRight = new p5(createSketch(ZM, eyeSep / 100, 'right-canvas'));
     
-    console.log('✓ Canvases created in stereo mode');
-    console.log('  - Canvas dimensions:', ZM.W, 'x', ZM.H);
-    console.log('  - Emitter preserved:', ZM.emitterInstance ? 'YES' : 'NO');
     if (ZM.emitterInstance) {
-      console.log('  - Lines count:', ZM.emitterInstance.lines.length);
-      console.log('  - Emitter position:', ZM.emitterInstance.x.toFixed(1), ',', ZM.emitterInstance.y.toFixed(1));
     }
     
     if (ZM.params.framebufferMode) {
@@ -454,9 +408,6 @@ export function initializeSketches(ZM) {
     const prevW = ZM.W;
     const prevH = ZM.H;
     
-    console.log('  - BEFORE dimension update:');
-    console.log('    prevW:', prevW, 'prevH:', prevH);
-    console.log('    Camera offsets:', ZM.camera.offsetX.toFixed(2), ZM.camera.offsetY.toFixed(2));
     
     // Update dimensions for mono mode
     if (ZM.params.framebufferMode) {
@@ -467,9 +418,6 @@ export function initializeSketches(ZM) {
       ZM.H = window.innerHeight;
     }
     
-    console.log('  - AFTER dimension update:');
-    console.log('    newW:', ZM.W, 'newH:', ZM.H);
-    console.log('    dimensionsChanged:', (ZM.W !== prevW || ZM.H !== prevH));
     
     // Scale existing emitter and lines proportionally to new dimensions
     // Only scale if dimensions actually changed (mode toggle, not reload)
@@ -477,7 +425,6 @@ export function initializeSketches(ZM) {
     if (ZM.emitterInstance && prevW && prevH && dimensionsChanged) {
       const scaleX = ZM.W / prevW;
       const scaleY = ZM.H / prevH;
-      console.log('  - Scaling emitter geometry:', scaleX.toFixed(3), 'x', scaleY.toFixed(3));
       
       // Scale emitter position
       ZM.emitterInstance.x *= scaleX;
@@ -497,7 +444,6 @@ export function initializeSketches(ZM) {
       // Camera offsets are pan values that need to scale with scene coordinates
       ZM.camera.offsetX *= scaleX;
       ZM.camera.offsetY *= scaleY;
-      console.log('  - Camera offsets scaled to:', ZM.camera.offsetX.toFixed(1), ',', ZM.camera.offsetY.toFixed(1));
     } else if (ZM.emitterInstance) {
       // Dimensions didn't change, just update canvas dimensions
       ZM.emitterInstance.canvasWidth = ZM.W;
@@ -515,12 +461,7 @@ export function initializeSketches(ZM) {
     ZM.p5Instance = new p5(createSketch(ZM, 0, 'mono-canvas'));
     ZM.p5InstanceRight = null;
     
-    console.log('✓ Canvas created in mono mode');
-    console.log('  - Canvas dimensions:', ZM.W, 'x', ZM.H);
-    console.log('  - Emitter preserved:', ZM.emitterInstance ? 'YES' : 'NO');
     if (ZM.emitterInstance) {
-      console.log('  - Lines count:', ZM.emitterInstance.lines.length);
-      console.log('  - Emitter position:', ZM.emitterInstance.x.toFixed(1), ',', ZM.emitterInstance.y.toFixed(1));
     }
     
     if (ZM.params.framebufferMode) {

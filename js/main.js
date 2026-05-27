@@ -87,14 +87,9 @@ window.SpaceFlow = {
   loadJSON: (file) => loadJSON(file, (loadedData) => {
     // Clear localStorage to avoid loading ancient states
     clearLocalStorage();
-    console.log('📂 Loading project file (localStorage cleared)');
-    console.log(`✓ Project loaded: ${loadedData.projectName || file.name}`);
-    console.log('   File activePaletteIndex:', loadedData.params.activePaletteIndex);
-    console.log('   Current ZM.params.activePaletteIndex:', window.SpaceFlow.params.activePaletteIndex);
     
     // Update params
     Object.assign(window.SpaceFlow.params, loadedData.params);
-    console.log('   After Object.assign, activePaletteIndex:', window.SpaceFlow.params.activePaletteIndex);
     
     // Reset auto-trigger timer to prevent weird values
     if (window.SpaceFlow.autoTriggerTimer) {
@@ -133,7 +128,6 @@ window.SpaceFlow = {
       // Load the first state INSTANTLY (no transitions) to match exact parameters from JSON
       if (loadedData.states.length > 0) {
         const firstState = loadedData.states[0];
-        console.log('🎯 Loading first state instantly:', firstState.name);
         window.SpaceFlow.stateManager.load(firstState.id, true); // instant = true
       }
       
@@ -189,7 +183,6 @@ async function loadPresetFile(ZM, presetName = 'zigmap_init') {
   try {
     const response = await fetch(`config/presets/${presetName}.json`);
     if (!response.ok) {
-      console.warn(`Preset "${presetName}" not found, using defaults`);
       return false;
     }
     
@@ -255,10 +248,8 @@ async function loadPresetFile(ZM, presetName = 'zigmap_init') {
     // Save to localStorage so this only happens once
     ZM.saveToLocalStorage();
     
-    console.log(`✓ Preset loaded: ${presetName}`);
     return true;
   } catch (err) {
-    console.warn(`Could not load preset "${presetName}":`, err);
     return false;
   }
 }
@@ -289,7 +280,6 @@ async function init() {
   
   if (presetParam) {
     // Load preset from URL parameter (overrides localStorage)
-    console.log(`Loading preset from URL: ${presetParam}`);
     ZM._projectName = `${presetParam}.json`;
     await loadPresetFile(ZM, presetParam);
     
@@ -344,7 +334,6 @@ async function init() {
       if (ZM.stateManager.activeStateId) {
         // If we loaded from localStorage and there's an active state,
         // ensure params match the active state (not stale localStorage params)
-        console.log('🔄 Syncing params with active state:', ZM.stateManager.activeStateId);
         const activeState = ZM.stateManager.getStateById(ZM.stateManager.activeStateId);
         if (activeState) {
           // Preserve camera params (they're not stored in state.params, but in state.camera)
@@ -421,7 +410,6 @@ async function init() {
         ZM.updateStatePanel();
       }
       // Load the active state INSTANTLY to trigger all visual updates
-      console.log('🎯 Triggering active state on load:', ZM.stateManager.activeStateId);
       ZM.stateManager.load(ZM.stateManager.activeStateId, true); // instant = true
     } else if (ZM.syncUIFromParams) {
       // Fallback: sync UI if there's no active state
@@ -561,7 +549,6 @@ async function init() {
     if (ZM.updateCanvasSize) ZM.updateCanvasSize();
   });
   
-  console.log('SpaceFlow initialized ✓');
 
   // Show keyboard shortcuts toast on startup
   showShortcutsToast(true);

@@ -130,12 +130,10 @@ function captureCurrentState(ZM, name) {
   
   // Verify palettes are captured correctly
   if (!params.palettes || params.palettes.length !== 4) {
-    console.error('Warning: Palettes not properly captured', params.palettes);
   }
   
   // Verify activePaletteIndex is captured
   if (params.activePaletteIndex === undefined) {
-    console.error('Warning: activePaletteIndex not captured, using default 0');
     params.activePaletteIndex = 0;
   }
   
@@ -162,7 +160,6 @@ function captureCurrentState(ZM, name) {
     }
   };
   
-  console.log('State captured:', state.name, 'Active palette:', params.activePaletteIndex);
   
   return state;
 }
@@ -173,7 +170,6 @@ function captureCurrentState(ZM, name) {
  * @param {Object} state - State to restore
  */
 function restoreState(ZM, state, instant = false) {
-  console.log('Restoring state:', state.name, 'Palettes:', state.params.palettes, instant ? '(instant)' : '(with transitions)');
   
   // Cancel any pending auto-update to prevent overwriting the loaded state
   if (ZM.cancelStateAutoUpdate) {
@@ -193,8 +189,6 @@ function restoreState(ZM, state, instant = false) {
   // Deep clone state params to avoid reference issues
   const restoredParams = JSON.parse(JSON.stringify(state.params));
   
-  console.log('Restored params active palette:', restoredParams.activePaletteIndex);
-  console.log('Restored params palettes:', restoredParams.palettes?.length);
   
   // Note: We intentionally DO NOT clear the emitter when geometry changes
   // This allows smooth transitions where old lines fade out naturally
@@ -235,15 +229,10 @@ function restoreState(ZM, state, instant = false) {
   };
   
   // Update params with deep cloned values
-  console.log('[StateManager] About to assign state params, restoredParams.activePaletteIndex:', restoredParams.activePaletteIndex);
-  console.log('[StateManager] Current ZM.params.activePaletteIndex:', ZM.params.activePaletteIndex);
   Object.assign(ZM.params, restoredParams);
-  console.log('[StateManager] After Object.assign, ZM.params.activePaletteIndex:', ZM.params.activePaletteIndex);
   
   // Restore preserved project-wide settings
-  console.log('[StateManager] About to restore preserved settings, preservedSettings.activePaletteIndex:', preservedSettings.activePaletteIndex);
   Object.assign(ZM.params, preservedSettings);
-  console.log('[StateManager] After restoring preserved settings, ZM.params.activePaletteIndex:', ZM.params.activePaletteIndex);
   
   // Clear emitter in these cases:
   // 1. Instant mode (loading project file / initial preset - want fresh start)
@@ -252,18 +241,14 @@ function restoreState(ZM, state, instant = false) {
     const willEmit = ZM.params.emitRate > 0 && ZM.params.ambientSpeedMaster > 0;
     if (instant || !willEmit) {
       const reason = instant ? 'instant load' : 'emission disabled (emitRate=' + ZM.params.emitRate + ', ambientSpeedMaster=' + ZM.params.ambientSpeedMaster + ')';
-      console.log('🧹 Clearing ' + ZM.emitterInstance.lines.length + ' existing lines (' + reason + ')');
       ZM.emitterInstance.lines = [];
       ZM.emitterInstance.accumulator = 0;
     }
   }
   
-  console.log('ZM.params after assign, active palette:', ZM.params.activePaletteIndex);
-  console.log('ZM.params.palettes:', ZM.params.palettes?.length);
   
   // Verify activePaletteIndex was restored correctly
   if (ZM.params.activePaletteIndex !== restoredParams.activePaletteIndex) {
-    console.error('ERROR: activePaletteIndex got overwritten!', {
       expected: restoredParams.activePaletteIndex,
       actual: ZM.params.activePaletteIndex
     });
@@ -273,7 +258,6 @@ function restoreState(ZM, state, instant = false) {
   if (state.camera && ZM.camera) {
     if (instant) {
       // Instant mode: directly set camera values
-      console.log('📷 Setting camera instantly:', state.camera);
       ZM.camera.rotationX = state.camera.rotationX;
       ZM.camera.rotationY = state.camera.rotationY;
       ZM.camera.distance = state.camera.distance;
@@ -387,7 +371,6 @@ function restoreState(ZM, state, instant = false) {
   
   // Always apply the state's palette — both to ensure new lines use the correct
   // colors AND to transition existing lines to the restored palette.
-  console.log(`🎨 About to trigger palette change: instant=${instant}, palette=${ZM.params.activePaletteIndex}, duration=${ZM.params.colorTransitionDuration}s`);
   
   if (instant) {
     // Instant mode: snap background directly, then trigger palette so lines update
@@ -400,13 +383,11 @@ function restoreState(ZM, state, instant = false) {
       ZM.bgTransition.isTransitioning = false;
     }
     if (ZM.triggerPaletteChange) {
-      console.log('   → Calling triggerPaletteChange (instant mode)');
       ZM.triggerPaletteChange();
     }
   } else {
     // Normal mode: smooth palette transition
     if (ZM.triggerPaletteChange) {
-      console.log('   → Calling triggerPaletteChange (transition mode)');
       ZM.triggerPaletteChange();
     }
   }
@@ -417,7 +398,6 @@ function restoreState(ZM, state, instant = false) {
     syncUIWithoutRestart(ZM);
     
     // Save to main localStorage
-    console.log('[StateManager] About to save to localStorage, activePaletteIndex:', ZM.params.activePaletteIndex);
     if (ZM.saveToLocalStorage) {
       ZM.saveToLocalStorage();
     }
@@ -428,7 +408,6 @@ function restoreState(ZM, state, instant = false) {
     ZM.autoTriggerTimer.elapsed = 0;
   }
   
-  console.log('State restored with camera transition');
 }
 
 /**
@@ -545,7 +524,6 @@ function syncUIWithoutRestart(ZM) {
     const shouldBeActive = paletteIndex === ZM.params.activePaletteIndex;
     btn.classList.toggle('active', shouldBeActive);
     if (shouldBeActive) {
-      console.log(`✓ Palette button ${paletteIndex} set as active`);
     }
   });
   
@@ -626,12 +604,9 @@ function saveState(ZM, name) {
 function loadState(ZM, id, instant = false, toastPrefix = 'State: ') {
   const state = getStateById(ZM, id);
   if (!state) {
-    console.warn('State not found:', id);
     return false;
   }
   
-  console.log(`🎬 Loading state: "${state.name}" (instant: ${instant})`);
-  console.log(`   State colorTransitionDuration: ${state.params.colorTransitionDuration}s`);
   
   restoreState(ZM, state, instant);
   ZM.stateManager.activeStateId = id;
@@ -639,7 +614,6 @@ function loadState(ZM, id, instant = false, toastPrefix = 'State: ') {
   
   // Broadcast state load to display windows - they will call restoreState() with same logic
   if (ZM.windowSync && ZM.windowSync.broadcastStateLoad) {
-    console.log(`📤 Broadcasting state-load to display windows: ${state.name}`);
     ZM.windowSync.broadcastStateLoad(state, instant);
   }
 
@@ -697,7 +671,6 @@ function loadState(ZM, id, instant = false, toastPrefix = 'State: ') {
 function updateState(ZM, id) {
   const stateIndex = ZM.stateManager.states.findIndex(p => p.id === id);
   if (stateIndex === -1) {
-    console.warn('State not found:', id);
     return false;
   }
   
@@ -706,7 +679,6 @@ function updateState(ZM, id) {
   // Capture current state
   const updatedState = captureCurrentState(ZM, existingState.name);
   
-  console.log(`📝 Updating state "${existingState.name}":`, {
     activePaletteIndex: updatedState.params.activePaletteIndex,
     palettesCount: updatedState.params.palettes?.length
   });
@@ -723,7 +695,6 @@ function updateState(ZM, id) {
   
   // If this is the active state, also update main localStorage to keep params in sync
   if (id === ZM.stateManager.activeStateId) {
-    console.log('Updated active state - syncing main localStorage');
     ZM.saveToLocalStorage();
   }
   
@@ -732,7 +703,6 @@ function updateState(ZM, id) {
     ZM.updateStatePanel();
   }
   
-  console.log('State updated:', updatedState.name);
   
   return true;
 }
@@ -746,7 +716,6 @@ function updateState(ZM, id) {
 function deleteState(ZM, id) {
   const index = ZM.stateManager.states.findIndex(p => p.id === id);
   if (index === -1) {
-    console.warn('State not found:', id);
     return false;
   }
   
@@ -786,7 +755,6 @@ function deleteState(ZM, id) {
 function renameState(ZM, id, newName) {
   const state = getStateById(ZM, id);
   if (!state) {
-    console.warn('State not found:', id);
     return false;
   }
   
@@ -810,7 +778,6 @@ function renameState(ZM, id, newName) {
 function duplicateState(ZM, id) {
   const state = getStateById(ZM, id);
   if (!state) {
-    console.warn('State not found:', id);
     return null;
   }
   
@@ -878,7 +845,6 @@ function reorderStates(ZM, fromIndex, toIndex, silent = false) {
 function exportStateToFile(ZM, id) {
   const state = getStateById(ZM, id);
   if (!state) {
-    console.warn('State not found:', id);
     return;
   }
   
@@ -979,7 +945,6 @@ function importStateFromData(ZM, jsonData) {
       delete jsonData.params.depthInvert;
       ZM.stateManager.states.push(jsonData);
     } else {
-      console.error('Invalid state format');
       return false;
     }
     
@@ -992,7 +957,6 @@ function importStateFromData(ZM, jsonData) {
     
     return true;
   } catch (err) {
-    console.error('Failed to import state:', err);
     return false;
   }
 }
@@ -1049,7 +1013,6 @@ function loadStates() {
     
     return states;
   } catch (e) {
-    console.warn('Failed to load states:', e);
     return [];
   }
 }
@@ -1065,7 +1028,6 @@ function saveStatesToStorage(ZM) {
   try {
     localStorage.setItem(STATES_STORAGE_KEY, JSON.stringify(ZM.stateManager.states));
   } catch (e) {
-    console.warn('Failed to save states:', e);
   }
 }
 
@@ -1093,7 +1055,6 @@ function saveActiveStateId(ZM, id) {
   try {
     localStorage.setItem(ACTIVE_STATE_KEY, id);
   } catch (e) {
-    console.warn('Failed to save active state ID:', e);
   }
 }
 
@@ -1108,7 +1069,6 @@ function navigateHistory(ZM, direction) {
   
   // Check bounds
   if (newIndex < 0 || newIndex >= ZM.stateHistory.stack.length) {
-    console.log('[History] Cannot navigate - at', direction < 0 ? 'beginning' : 'end', 'of history');
     return false;
   }
   
@@ -1117,7 +1077,6 @@ function navigateHistory(ZM, direction) {
   const state = getStateById(ZM, stateId);
   
   if (!state) {
-    console.warn('[History] State not found:', stateId);
     return false;
   }
   
@@ -1162,7 +1121,6 @@ function navigateHistory(ZM, direction) {
   // Reset navigation flag
   ZM.stateHistory.isNavigating = false;
   
-  console.log('[History] Navigated to', direction < 0 ? 'previous' : 'next', 'state:', state.name, `(${newIndex + 1}/${ZM.stateHistory.stack.length})`);
   
   return true;
 }
@@ -1178,14 +1136,12 @@ function navigateStates(ZM, direction) {
   
   // Need at least 2 states to navigate
   if (states.length < 2) {
-    console.log('[Navigate] Need at least 2 states to navigate');
     return false;
   }
   
   // Find current state index
   const currentIndex = states.findIndex(s => s.id === ZM.stateManager.activeStateId);
   if (currentIndex === -1) {
-    console.warn('[Navigate] Current state not found in states array');
     return false;
   }
   
@@ -1202,7 +1158,6 @@ function navigateStates(ZM, direction) {
   // Load the state
   const success = loadState(ZM, nextState.id);
   
-  console.log('[Navigate] Navigated to', direction < 0 ? 'previous' : 'next', 'state:', nextState.name, `(${newIndex + 1}/${states.length})`);
   
   return success;
 }
@@ -1237,19 +1192,16 @@ function initializeAutoTriggerControls(ZM) {
         if (checkbox) checkbox.checked = true;
         ZM.autoTriggerTimer.paused = false;
         ZM.saveToLocalStorage();
-        console.log('[Auto-Trigger] Enabled and started');
         if (ZM.showToast) ZM.showToast('▶ States Player');
       } else {
         // Toggle pause state
         if (ZM.autoTriggerTimer.paused) {
           // Resume: unpause and continue from where we left off
           ZM.autoTriggerTimer.paused = false;
-          console.log('[Auto-Trigger] Resumed');
         } else {
           // Pause: save current elapsed time
           ZM.autoTriggerTimer.paused = true;
           ZM.autoTriggerTimer.pausedAt = ZM.autoTriggerTimer.elapsed;
-          console.log('[Auto-Trigger] Paused at', ZM.autoTriggerTimer.pausedAt.toFixed(1), 'seconds');
         }
       }
       updateAutoTriggerStatus(ZM);
@@ -1271,7 +1223,6 @@ function initializeAutoTriggerControls(ZM) {
     resetBtn.addEventListener('click', () => {
       ZM.autoTriggerTimer.elapsed = 0;
       ZM.autoTriggerTimer.pausedAt = 0;
-      console.log('[Auto-Trigger] Timer reset');
       updateAutoTriggerStatus(ZM);
       if (ZM.showToast) ZM.showToast('Timer Reset');
     });
@@ -1285,7 +1236,6 @@ function initializeAutoTriggerControls(ZM) {
       ZM.autoTriggerTimer.elapsed = 0;
       ZM.autoTriggerTimer.pausedAt = 0;
       ZM.stateManager.loadRandomState();
-      console.log('[Auto-Trigger] Skipped to next state');
       updateAutoTriggerStatus(ZM);
     });
   }
@@ -1306,7 +1256,6 @@ function initializeAutoTriggerControls(ZM) {
         ZM.autoTriggerTimer.pausedAt = newElapsed;
       }
       
-      console.log('[Auto-Trigger] Scrubbed to', newElapsed.toFixed(1), 'seconds');
       updateAutoTriggerStatus(ZM);
     };
     
@@ -1346,7 +1295,6 @@ function initializeAutoTriggerControls(ZM) {
 function loadRandomState(ZM) {
   // Never auto-trigger in display or player mode
   if (ZM.isDisplayMode || ZM.isPlayerMode) {
-    console.warn('[Auto-Trigger] Blocked - should not run in display/player mode');
     return false;
   }
   
@@ -1355,7 +1303,6 @@ function loadRandomState(ZM) {
   
   // Need at least 2 states for meaningful shuffling
   if (states.length < 2) {
-    console.warn('[Auto-Trigger] Need at least 2 states for shuffle selection');
     return false;
   }
   
@@ -1365,14 +1312,12 @@ function loadRandomState(ZM) {
     const availableStates = states.filter(state => state.id !== activeId);
     
     if (availableStates.length === 0) {
-      console.warn('[Auto-Trigger] No available states after filtering');
       return false;
     }
     
     // Shuffle the available states into a random order
     ZM.shufflePool = shuffleArray(availableStates);
     
-    console.log(`[Auto-Trigger] New shuffle cycle created: [${ZM.shufflePool.map(s => `"${s.name}"`).join(', ')}]`);
   }
   
   // Pop the next state from the shuffled pool
@@ -1383,7 +1328,6 @@ function loadRandomState(ZM) {
   const currentName = currentState ? currentState.name : 'Unknown';
   
   // Debug logging
-  console.log(`[Auto-Trigger] Shuffle Selection:
     Current: "${currentName}"
     Selected: "${nextState.name}"
     Remaining in cycle: [${ZM.shufflePool.map(s => `"${s.name}"`).join(', ')}]

@@ -32,7 +32,6 @@ let colorRNG = mulberry32(1); // Default seed = 1
 export function initColorRNG(seed) {
   const clampedSeed = Math.max(1, Math.min(9999, Math.floor(seed)));
   colorRNG = mulberry32(clampedSeed);
-  console.log(`🎨 Color RNG initialized with seed: ${clampedSeed}`);
   return clampedSeed;
 }
 
@@ -132,7 +131,6 @@ export function lerpColor(from, to, t) {
  * @param {Object} ZM - Global ZigMap instance
  */
 export function triggerPaletteChange(ZM) {
-  console.log(`🎨 triggerPaletteChange: palette=${ZM.params.activePaletteIndex}, lines=${ZM.emitterInstance?.lines.length || 0}, duration=${ZM.params.colorTransitionDuration}s`);
   
   // Transition all existing lines to their same slot index in new palette
   if (ZM.emitterInstance && ZM.emitterInstance.lines) {
