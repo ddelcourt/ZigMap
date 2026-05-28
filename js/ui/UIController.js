@@ -1193,16 +1193,34 @@ function setupOverlayControls(ZM) {
         overlayImg.style.display = 'block';
         overlayImg.src = ZM.params.overlayImageSrc;
         
-        // Always use transform-based scaling (GPU-accelerated)
-        overlayImg.style.maxWidth = 'none';
-        overlayImg.style.maxHeight = 'none';
-        overlayImg.style.width = '';
-        overlayImg.style.height = '';
-        overlayImg.style.transform = `translate(-50%, -50%) scale(${ZM.params.overlayScale / 100})`;
+        // Wait for image to load to get natural dimensions
+        const applyStyles = () => {
+          // Set explicit width/height to natural dimensions to prevent browser auto-sizing
+          if (overlayImg.naturalWidth && overlayImg.naturalHeight) {
+            overlayImg.style.width = `${overlayImg.naturalWidth}px`;
+            overlayImg.style.height = `${overlayImg.naturalHeight}px`;
+          }
+          
+          // Clear size constraints
+          overlayImg.style.maxWidth = 'none';
+          overlayImg.style.maxHeight = 'none';
+          overlayImg.style.minWidth = '0';
+          overlayImg.style.minHeight = '0';
+          overlayImg.style.objectFit = 'none';
+          
+          // Apply positioning and scaling
+          // Scale is doubled because we're now using explicit pixel dimensions
+          overlayImg.style.left = `${ZM.params.overlayX}%`;
+          overlayImg.style.top = `${ZM.params.overlayY}%`;
+          overlayImg.style.transform = `translate(-50%, -50%) scale(${ZM.params.overlayScale / 50})`;
+          overlayImg.style.opacity = ZM.params.overlayOpacity / 100;
+        };
         
-        overlayImg.style.opacity = ZM.params.overlayOpacity / 100;
-        overlayImg.style.left = `${ZM.params.overlayX}%`;
-        overlayImg.style.top = `${ZM.params.overlayY}%`;
+        if (overlayImg.complete && overlayImg.naturalWidth) {
+          applyStyles();
+        } else {
+          overlayImg.onload = applyStyles;
+        }
       });
     } else {
       overlays.forEach(overlayImg => {
