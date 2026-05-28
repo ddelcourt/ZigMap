@@ -5,6 +5,7 @@
 import { Emitter } from '../core/Emitter.js';
 import { getSpawnDistance, buildRibbonSides } from '../core/utils.js';
 import { getBackgroundColor, lerpColor } from '../core/colorUtils.js';
+import { getPerformanceMonitor } from '../core/PerformanceMonitor.js';
 
 let sharedLastTime = 0;
 
@@ -146,6 +147,10 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
     };
     
     p.draw = () => {
+      // Performance monitoring
+      const perfMon = getPerformanceMonitor();
+      if (perfMon && isPrimary) perfMon.startFrame();
+      
       // Time management
       const now = p.millis() / 1000;
       const dt = sharedLastTime === 0 ? 0.016 : now - sharedLastTime;
@@ -254,9 +259,14 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
             }
           }
           
-          // Update auto-trigger status display
-          if (ZM.stateManager.updateAutoTriggerStatus) {
-            ZM.stateManager.updateAutoTriggerStatus();
+          // PERFORMANCE FIX: Throttle UI updates to ~10fps instead of 60fps
+          // DOM manipulation is expensive - no need to update countdown every frame
+          if (!ZM._lastUIUpdate) ZM._lastUIUpdate = 0;
+          if (now - ZM._lastUIUpdate >= 0.1) { // Update every 100ms (10fps)
+            ZM._lastUIUpdate = now;
+            if (ZM.stateManager.updateAutoTriggerStatus) {
+              ZM.stateManager.updateAutoTriggerStatus();
+            }
           }
         }
       
@@ -282,7 +292,15 @@ export function createSketch(ZM, eyeOffset = 0, canvasId = 'left-canvas') {
       const scaleVal = ZM.geometryScaleTransition.current / 100;
       p.scale(scaleVal);
       
-      emitter.lines.forEach(line => line.draw(p, ZM));
+      emitter.lines.forEach(line => {
+        line.draw(p, ZM);
+        if (perfMon && isPrimary) perfMon.recordDraw();
+      });
+      
+      // Performance monitoring
+      if (perfMon && isPrimary) {
+        perfMon.endFrame(emitter.lines.length);
+      }
     };
     
     return p;

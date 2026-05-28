@@ -20,6 +20,7 @@ import { initializeStateManager } from './storage/StateManager.js';
 
 // Import rendering
 import { attachToZM } from './rendering/SketchFactory.js';
+import { initPerformanceMonitor } from './core/PerformanceMonitor.js';
 
 // Import export
 import { exportSVG } from './export/SVGExporter.js';
@@ -383,6 +384,9 @@ async function init() {
   // Attach rendering functions
   attachToZM(ZM);
   
+  // Initialize performance monitor
+  initPerformanceMonitor();
+  
   // Initialize UI
   initializeUI(ZM);
   // Re-assign after UIController overrides it — mini-toast is the canonical ZM.showToast
@@ -397,6 +401,7 @@ async function init() {
   console.log('✓ Initializing sketches...');
   ZM.initializeSketches();
   console.log('✓ SpaceFlow initialized - patch ready');
+  console.log('💡 Type showPerformanceStats() in console to see performance metrics');
   
   // Update overlay positioning after sketches are initialized (important for stereo mode)
   if (ZM.updateOverlay) {
